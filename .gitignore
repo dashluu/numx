@@ -1,0 +1,10 @@
+**/build
+.vscode
+**/.DS_Store
+*.so
+**/__pycache__
+**/__pycache__/*
+**/.pytest_cache
+*.ipynb
+**/mnist
+*.dat
