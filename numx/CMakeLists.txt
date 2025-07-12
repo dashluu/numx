@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(arrayx)
+project(numx)
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -22,52 +22,52 @@ add_definitions(-DPROJECT_ROOT="${CMAKE_SOURCE_DIR}/..")
 
 file(GLOB HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.h"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.h"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.h"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/array/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/array/*.h"
     # "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.h"
     # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.h"
 )
 
 file(GLOB SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/array/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/array/*.cpp"
     # "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.cpp"
     # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp"
 )
 
 if(APPLE)
     set(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/llvm/20.1.3/bin/clang++")
-    # add_subdirectory(runtime/metal/kernels)
-    # file(GLOB MTL_HEADER_FILES
-    #     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.h"
-    # )
-    # file(GLOB MTL_SRC_FILES
-    #     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.cpp"
-    # )
+    add_subdirectory(runtime/metal/kernels)
+    file(GLOB MTL_HEADER_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.h"
+    )
+    file(GLOB MTL_SRC_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.cpp"
+    )
     # set(CMAKE_BUILD_TYPE Debug)
     add_executable(${PROJECT_NAME} main.cpp ${SRC_FILES} ${HEADER_FILES} ${MTL_SRC_FILES} ${MTL_HEADER_FILES})
     # nanobind_add_module(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} ${MTL_SRC_FILES} ${MTL_HEADER_FILES})
-    # set(MTL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/metal-cpp")
-    # target_include_directories(${PROJECT_NAME} PRIVATE ${MTL_CPP})
-    # target_link_libraries(${PROJECT_NAME} PRIVATE
-    #     "-framework Metal"
-    #     "-framework Foundation"
-    #     "-framework QuartzCore"
-    # )
-    # # Ensure kernels are built before your executable
-    # add_dependencies(${PROJECT_NAME} mtl_kernels)
+    set(MTL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/metal-cpp")
+    target_include_directories(${PROJECT_NAME} PRIVATE ${MTL_CPP})
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        "-framework Metal"
+        "-framework Foundation"
+        "-framework QuartzCore"
+    )
+    # Ensure kernels are built before your executable
+    add_dependencies(${PROJECT_NAME} mtl_kernels)
 endif()
 
 # function(add_stub STUB_NAME MODULE_NAME MODULE_DIR)
 #     nanobind_add_stub(
 #         ${STUB_NAME}
-#         MODULE arrayx.${MODULE_NAME}
+#         MODULE numx.${MODULE_NAME}
 #         OUTPUT ${MODULE_DIR}/__init__.pyi
-#         PYTHON_PATH $<TARGET_FILE_DIR:arrayx>
-#         DEPENDS arrayx
+#         PYTHON_PATH $<TARGET_FILE_DIR:numx>
+#         DEPENDS numx
 #     )
 # endfunction()
 

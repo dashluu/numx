@@ -7,16 +7,16 @@ namespace nx::runtime::metal {
         m_kernel_by_name[name] = kernel;
     }
 
-    void MTLContext::init_kernels(const std::vector<std::string> &opnames, DtypeCategory dtype_category) {
-        for (auto &opname : opnames) {
-            init_kernels(opname, dtype_category);
+    void MTLContext::init_kernels(const std::vector<std::string> &names, DtypeCategory dtype_category) {
+        for (auto &name : names) {
+            init_kernels(name, dtype_category);
         }
     }
 
-    void MTLContext::init_kernels(const std::string &opname, DtypeCategory dtype_category) {
+    void MTLContext::init_kernels(const std::string &name, DtypeCategory dtype_category) {
         for (auto &dtype : all_dtypes) {
             if (dtype->has_category(dtype_category)) {
-                init_kernel(opname + "_" + dtype->get_name_str());
+                init_kernel(name + "_" + dtype->get_name_str());
             }
         }
     }
@@ -27,27 +27,27 @@ namespace nx::runtime::metal {
     }
 
     void MTLContext::init_unary_kernels() {
-        std::vector<std::string> unary_opstrs = {"exp", "log", "neg", "recip", "sq", "sqrt"};
-        init_kernels(unary_opstrs, DtypeCategory::NUMERIC);
+        std::vector<std::string> unary_names = {"exp", "log", "neg", "recip", "sq", "sqrt"};
+        init_kernels(unary_names, DtypeCategory::NUMERIC);
     }
 
     void MTLContext::init_binary_kernels() {
-        std::vector<std::string> binary_opstrs = {"add", "sub", "mul", "div", "lt", "gt", "leq", "geq", "minimum", "maximum"};
-        std::vector<std::string> eq_opstrs = {"eq", "neq"};
-        init_kernels(binary_opstrs, DtypeCategory::NUMERIC);
-        init_kernels(eq_opstrs, DtypeCategory::ALL);
+        std::vector<std::string> binary_names = {"add", "sub", "mul", "div", "lt", "gt", "leq", "geq", "minimum", "maximum"};
+        std::vector<std::string> eq_names = {"eq", "neq"};
+        init_kernels(binary_names, DtypeCategory::NUMERIC);
+        init_kernels(eq_names, DtypeCategory::ALL);
     }
 
     void MTLContext::init_reduce_kernels() {
-        std::vector<std::string> reduce_opstrs = {"sum", "max", "min", "argmax", "argmin"};
-        for (auto &opname : reduce_opstrs) {
-            init_kernels(opname + "_all", DtypeCategory::NUMERIC);
-            init_kernels("strided_" + opname + "_all", DtypeCategory::NUMERIC);
+        std::vector<std::string> reduce_names = {"sum", "max", "min", "argmax", "argmin"};
+        for (auto &name : reduce_names) {
+            init_kernels(name + "_all", DtypeCategory::NUMERIC);
+            init_kernels("strided_" + name + "_all", DtypeCategory::NUMERIC);
 
             for (uint8_t i = 1; i <= 32; i <<= 1) {
                 for (uint8_t j = 1; i * j <= 32; j <<= 1) {
-                    init_kernels(std::format("{}_col_{}x{}", opname, i, j), DtypeCategory::NUMERIC);
-                    init_kernels(std::format("strided_{}_col_{}x{}", opname, i, j), DtypeCategory::NUMERIC);
+                    init_kernels(std::format("{}_col_{}x{}", name, i, j), DtypeCategory::NUMERIC);
+                    init_kernels(std::format("strided_{}_col_{}x{}", name, i, j), DtypeCategory::NUMERIC);
                 }
             }
         }
@@ -77,10 +77,18 @@ namespace nx::runtime::metal {
         m_device = NS::TransferPtr<MTL::Device>(mtl_device);
         NS::String *path = NS::String::string(lib_path.c_str(), NS::ASCIIStringEncoding);
         auto url = NS::URL::fileURLWithPath(path);
-        // TODO: handle error
         NS::Error *error = nullptr;
         m_lib = NS::TransferPtr<MTL::Library>(m_device->newLibrary(url, &error));
+
+        if (error) {
+            const std::string description = error->localizedDescription()->utf8String();
+            throw std::runtime_error(description);
+        }
+
         m_cmd_queue = NS::TransferPtr<MTL::CommandQueue>(m_device->newCommandQueue());
+    }
+
+    void MTLContext::init_kernels() {
         // Initializes kernels here
         init_initializer_kernels();
         init_unary_kernels();

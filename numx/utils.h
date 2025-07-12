@@ -19,10 +19,8 @@
 #include <unordered_set>
 #include <vector>
 
-namespace nx::core {
+namespace nx::utils {
     using isize = int64_t;
-
-    struct Array;
 
     template <class T>
     concept Numeric = std::is_arithmetic_v<T>;
@@ -55,4 +53,4 @@ namespace nx::core {
     inline const std::string join(const std::vector<std::string> &v, const std::string &sep = ",") {
         return join<std::string>(v, [](std::string a) { return a; }, sep);
     }
-} // namespace nx::core
+} // namespace nx::utils

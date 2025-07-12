@@ -4,6 +4,8 @@
 #include <stdexcept>
 
 namespace nx::core {
+    using namespace nx::utils;
+
     class IncompatShapesForOp : public std::invalid_argument {
     public:
         IncompatShapesForOp(const std::string &op, const std::string l_view, const std::string r_view) : std::invalid_argument(std::format("Cannot run operator {} on incompatible shapes {} and {}.", op, l_view, r_view)) {}

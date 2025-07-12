@@ -176,8 +176,8 @@ void tiled_gemm3d_HxW(
 template <class T, class R, class HxW>
 void strided_tiled_gemm2d_HxW(
     const isize ndim,
-    const constant isize *lshape, const constant isize *rshape,
-    const constant isize *lstride, const constant isize *rstride,
+    const constant isize *l_shape, const constant isize *r_shape,
+    const constant isize *l_stride, const constant isize *r_stride,
     const device T *lhs, const device T *rhs, device R *output,
     const isize K, const isize N,
     const isize row, const isize col,
@@ -188,14 +188,14 @@ void strided_tiled_gemm2d_HxW(
     reset_tile(otile);
 
     for (i = 0; i < K4; i += 4) {
-        load_strided_ltile2d(ndim, lshape, lstride, lhs, ltile, row, i, K, tile_height, 4);
-        load_strided_rtile2d(ndim, rshape, rstride, rhs, rtile, col, i, N, 4, tile_width);
+        load_strided_ltile2d(ndim, l_shape, l_stride, lhs, ltile, row, i, K, tile_height, 4);
+        load_strided_rtile2d(ndim, r_shape, r_stride, rhs, rtile, col, i, N, 4, tile_width);
         otile += ltile * rtile;
     }
 
     if (K - K4 > 0) {
-        load_strided_ltile2d(ndim, lshape, lstride, lhs, ltile, row, i, K, tile_height, K - K4);
-        load_strided_rtile2d(ndim, rshape, rstride, rhs, rtile, col, i, N, K - K4, tile_width);
+        load_strided_ltile2d(ndim, l_shape, l_stride, lhs, ltile, row, i, K, tile_height, K - K4);
+        load_strided_rtile2d(ndim, r_shape, r_stride, rhs, rtile, col, i, N, K - K4, tile_width);
         otile += ltile * rtile;
     }
 
@@ -205,8 +205,8 @@ void strided_tiled_gemm2d_HxW(
 template <class T, class R, class HxW>
 void strided_tiled_gemm3d_HxW(
     const isize ndim,
-    const constant isize *lshape, const constant isize *rshape,
-    const constant isize *lstride, const constant isize *rstride,
+    const constant isize *l_shape, const constant isize *r_shape,
+    const constant isize *l_stride, const constant isize *r_stride,
     const device T *lhs, const device T *rhs, device R *output,
     const isize M, const isize K, const isize N,
     const isize batch, const isize row, const isize col,
@@ -217,14 +217,14 @@ void strided_tiled_gemm3d_HxW(
     reset_tile(otile);
 
     for (i = 0; i < K4; i += 4) {
-        load_strided_ltile3d(ndim, lshape, lstride, lhs, ltile, batch, row, i, M, K, N, tile_height, 4);
-        load_strided_rtile3d(ndim, rshape, rstride, rhs, rtile, batch, col, i, M, K, N, 4, tile_width);
+        load_strided_ltile3d(ndim, l_shape, l_stride, lhs, ltile, batch, row, i, M, K, N, tile_height, 4);
+        load_strided_rtile3d(ndim, r_shape, r_stride, rhs, rtile, batch, col, i, M, K, N, 4, tile_width);
         otile += ltile * rtile;
     }
 
     if (K - K4 > 0) {
-        load_strided_ltile3d(ndim, lshape, lstride, lhs, ltile, batch, row, i, M, K, N, tile_height, K - K4);
-        load_strided_rtile3d(ndim, rshape, rstride, rhs, rtile, batch, col, i, M, K, N, K - K4, tile_width);
+        load_strided_ltile3d(ndim, l_shape, l_stride, lhs, ltile, batch, row, i, M, K, N, tile_height, K - K4);
+        load_strided_rtile3d(ndim, r_shape, r_stride, rhs, rtile, batch, col, i, M, K, N, K - K4, tile_width);
         otile += ltile * rtile;
     }
 
@@ -296,8 +296,8 @@ void tiled_gemm3d_8x4(
 template <class T, class R, class HxW>
 void strided_tiled_gemm2d_8x4(
     const isize ndim,
-    const constant isize *lshape, const constant isize *rshape,
-    const constant isize *lstride, const constant isize *rstride,
+    const constant isize *l_shape, const constant isize *r_shape,
+    const constant isize *l_stride, const constant isize *r_stride,
     const device T *lhs, const device T *rhs, device R *output,
     const isize K, const isize N,
     const isize row, const isize col)
@@ -308,17 +308,17 @@ void strided_tiled_gemm2d_8x4(
     reset_tile(otile[1]);
 
     for (i = 0; i < K4; i += 4) {
-        load_strided_ltile2d(ndim, lshape, lstride, lhs, ltile[0], row, i, K, 4, 4);
-        load_strided_ltile2d(ndim, lshape, lstride, lhs, ltile[1], row + 4, i, K, 4, 4);
-        load_strided_rtile2d(ndim, rshape, rstride, rhs, rtile, col, i, N, 4, 4);
+        load_strided_ltile2d(ndim, l_shape, l_stride, lhs, ltile[0], row, i, K, 4, 4);
+        load_strided_ltile2d(ndim, l_shape, l_stride, lhs, ltile[1], row + 4, i, K, 4, 4);
+        load_strided_rtile2d(ndim, r_shape, r_stride, rhs, rtile, col, i, N, 4, 4);
         otile[0] += ltile[0] * rtile;
         otile[1] += ltile[1] * rtile;
     }
 
     if (K > K4) {
-        load_strided_ltile2d(ndim, lshape, lstride, lhs, ltile[0], row, i, K, 4, K - K4);
-        load_strided_ltile2d(ndim, lshape, lstride, lhs, ltile[1], row + 4, i, K, 4, K - K4);
-        load_strided_rtile2d(ndim, rshape, rstride, rhs, rtile, col, i, N, K - K4, 4);
+        load_strided_ltile2d(ndim, l_shape, l_stride, lhs, ltile[0], row, i, K, 4, K - K4);
+        load_strided_ltile2d(ndim, l_shape, l_stride, lhs, ltile[1], row + 4, i, K, 4, K - K4);
+        load_strided_rtile2d(ndim, r_shape, r_stride, rhs, rtile, col, i, N, K - K4, 4);
         otile[0] += ltile[0] * rtile;
         otile[1] += ltile[1] * rtile;
     }
@@ -330,8 +330,8 @@ void strided_tiled_gemm2d_8x4(
 template <class T, class R, class HxW>
 void strided_tiled_gemm3d_8x4(
     const isize ndim,
-    const constant isize *lshape, const constant isize *rshape,
-    const constant isize *lstride, const constant isize *rstride,
+    const constant isize *l_shape, const constant isize *r_shape,
+    const constant isize *l_stride, const constant isize *r_stride,
     const device T *lhs, const device T *rhs, device R *output,
     const isize M, const isize K, const isize N,
     const isize batch, const isize row, const isize col)
@@ -342,17 +342,17 @@ void strided_tiled_gemm3d_8x4(
     reset_tile(otile[1]);
 
     for (i = 0; i < K4; i += 4) {
-        load_strided_ltile3d(ndim, lshape, lstride, lhs, ltile[0], batch, row, i, M, K, N, 4, 4);
-        load_strided_ltile3d(ndim, lshape, lstride, lhs, ltile[1], batch, row + 4, i, M, K, N, 4, 4);
-        load_strided_rtile3d(ndim, rshape, rstride, rhs, rtile, batch, col, i, M, K, N, 4, 4);
+        load_strided_ltile3d(ndim, l_shape, l_stride, lhs, ltile[0], batch, row, i, M, K, N, 4, 4);
+        load_strided_ltile3d(ndim, l_shape, l_stride, lhs, ltile[1], batch, row + 4, i, M, K, N, 4, 4);
+        load_strided_rtile3d(ndim, r_shape, r_stride, rhs, rtile, batch, col, i, M, K, N, 4, 4);
         otile[0] += ltile[0] * rtile;
         otile[1] += ltile[1] * rtile;
     }
 
     if (K > K4) {
-        load_strided_ltile3d(ndim, lshape, lstride, lhs, ltile[0], batch, row, i, M, K, N, 4, K - K4);
-        load_strided_ltile3d(ndim, lshape, lstride, lhs, ltile[1], batch, row + 4, i, M, K, N, 4, K - K4);
-        load_strided_rtile3d(ndim, rshape, rstride, rhs, rtile, batch, col, i, M, K, N, K - K4, 4);
+        load_strided_ltile3d(ndim, l_shape, l_stride, lhs, ltile[0], batch, row, i, M, K, N, 4, K - K4);
+        load_strided_ltile3d(ndim, l_shape, l_stride, lhs, ltile[1], batch, row + 4, i, M, K, N, 4, K - K4);
+        load_strided_rtile3d(ndim, r_shape, r_stride, rhs, rtile, batch, col, i, M, K, N, K - K4, 4);
         otile[0] += ltile[0] * rtile;
         otile[1] += ltile[1] * rtile;
     }
@@ -364,14 +364,14 @@ void strided_tiled_gemm3d_8x4(
 template <class T, class R, class HxW>
 kernel void tiled_gemm2d(
     const constant isize *offset [[buffer(0)]],
-    const constant isize *lshape [[buffer(1)]],
-    const constant isize *rshape [[buffer(2)]],
+    const constant isize *l_shape [[buffer(1)]],
+    const constant isize *r_shape [[buffer(2)]],
     const device T *lhs [[buffer(3)]],
     const device T *rhs [[buffer(4)]],
     device R *output [[buffer(5)]],
     uint2 id [[thread_position_in_grid]])
 {
-    const isize M = lshape[0], K = lshape[1], N = rshape[1];
+    const isize M = l_shape[0], K = l_shape[1], N = r_shape[1];
     const isize row = id.y * 8, col = id.x * 4;
     const isize tile_height = 8 < (M - row) ? 8 : (M - row);
     const isize tile_width = 4 < (N - col) ? 4 : (N - col);
@@ -398,14 +398,14 @@ template <class T, class R, class HxW>
 kernel void tiled_gemm3d(
     const constant isize &ndim [[buffer(0)]],
     const constant isize *offset [[buffer(1)]],
-    const constant isize *lshape [[buffer(2)]],
-    const constant isize *rshape [[buffer(3)]],
+    const constant isize *l_shape [[buffer(2)]],
+    const constant isize *r_shape [[buffer(3)]],
     const device T *lhs [[buffer(4)]],
     const device T *rhs [[buffer(5)]],
     device R *output [[buffer(6)]],
     uint3 id [[thread_position_in_grid]])
 {
-    const isize M = lshape[ndim - 2], K = lshape[ndim - 1], N = rshape[ndim - 1];
+    const isize M = l_shape[ndim - 2], K = l_shape[ndim - 1], N = r_shape[ndim - 1];
     const isize batch = id.z, row = id.y * 8, col = id.x * 4;
     const isize tile_height = 8 < (M - row) ? 8 : (M - row);
     const isize tile_width = 4 < (N - col) ? 4 : (N - col);
@@ -431,16 +431,16 @@ kernel void tiled_gemm3d(
 template <class T, class R, class HxW>
 kernel void strided_tiled_gemm2d(
     const constant isize *offset [[buffer(0)]],
-    const constant isize *lshape [[buffer(1)]],
-    const constant isize *rshape [[buffer(2)]],
-    const constant isize *lstride [[buffer(3)]],
-    const constant isize *rstride [[buffer(4)]],
+    const constant isize *l_shape [[buffer(1)]],
+    const constant isize *r_shape [[buffer(2)]],
+    const constant isize *l_stride [[buffer(3)]],
+    const constant isize *r_stride [[buffer(4)]],
     const device T *lhs [[buffer(5)]],
     const device T *rhs [[buffer(6)]],
     device R *output [[buffer(7)]],
     uint2 id [[thread_position_in_grid]])
 {
-    const isize M = lshape[0], K = lshape[1], N = rshape[1];
+    const isize M = l_shape[0], K = l_shape[1], N = r_shape[1];
     const isize row = id.y * 8, col = id.x * 4;
     const isize tile_height = 8 < (M - row) ? 8 : (M - row);
     const isize tile_width = 4 < (N - col) ? 4 : (N - col);
@@ -449,17 +449,17 @@ kernel void strided_tiled_gemm2d(
     device R *offset_output = output + offset[2];
     
     if (tile_height == 8 && tile_width == 4) {
-        strided_tiled_gemm2d_8x4<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row, col);
+        strided_tiled_gemm2d_8x4<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row, col);
     } else if (tile_height > 4 && tile_width == 4) {
-        strided_tiled_gemm2d_HxW<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row, col, 4, 4);
-        strided_tiled_gemm2d_HxW<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row + 4, col, tile_height - 4, 4);
+        strided_tiled_gemm2d_HxW<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row, col, 4, 4);
+        strided_tiled_gemm2d_HxW<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row + 4, col, tile_height - 4, 4);
     } else if (tile_height > 4 && tile_width < 4) {
-        strided_tiled_gemm2d_HxW<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row, col, 4, tile_width);
-        strided_tiled_gemm2d_HxW<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row + 4, col, tile_height - 4, tile_width);
+        strided_tiled_gemm2d_HxW<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row, col, 4, tile_width);
+        strided_tiled_gemm2d_HxW<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row + 4, col, tile_height - 4, tile_width);
     } else if (tile_height == 4 && tile_width == 4) {
-        strided_tiled_gemm2d_HxW<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row, col, 4, 4);
+        strided_tiled_gemm2d_HxW<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row, col, 4, 4);
     } else {
-        strided_tiled_gemm2d_HxW<T, R, HxW>(2, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, K, N, row, col, tile_height, tile_width);
+        strided_tiled_gemm2d_HxW<T, R, HxW>(2, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, K, N, row, col, tile_height, tile_width);
     }
 }
 
@@ -467,16 +467,16 @@ template <class T, class R, class HxW>
 kernel void strided_tiled_gemm3d(
     const constant isize &ndim [[buffer(0)]],
     const constant isize *offset [[buffer(1)]],
-    const constant isize *lshape [[buffer(2)]],
-    const constant isize *rshape [[buffer(3)]],
-    const constant isize *lstride [[buffer(4)]],
-    const constant isize *rstride [[buffer(5)]],
+    const constant isize *l_shape [[buffer(2)]],
+    const constant isize *r_shape [[buffer(3)]],
+    const constant isize *l_stride [[buffer(4)]],
+    const constant isize *r_stride [[buffer(5)]],
     const device T *lhs [[buffer(6)]],
     const device T *rhs [[buffer(7)]],
     device R *output [[buffer(8)]],
     uint3 id [[thread_position_in_grid]])
 {
-    const isize M = lshape[ndim - 2], K = lshape[ndim - 1], N = rshape[ndim - 1];
+    const isize M = l_shape[ndim - 2], K = l_shape[ndim - 1], N = r_shape[ndim - 1];
     const isize batch = id.z, row = id.y * 8, col = id.x * 4;
     const isize tile_height = 8 < (M - row) ? 8 : (M - row);
     const isize tile_width = 4 < (N - col) ? 4 : (N - col);
@@ -485,17 +485,17 @@ kernel void strided_tiled_gemm3d(
     device R *offset_output = output + offset[2];
     
     if (tile_height == 8 && tile_width == 4) {
-        strided_tiled_gemm3d_8x4<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col);
+        strided_tiled_gemm3d_8x4<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col);
     } else if (tile_height > 4 && tile_width == 4) {
-        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, 4, 4);
-        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row + 4, col, tile_height - 4, 4);
+        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, 4, 4);
+        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row + 4, col, tile_height - 4, 4);
     } else if (tile_height > 4 && tile_width < 4) {
-        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, 4, tile_width);
-        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row + 4, col, tile_height - 4, tile_width);
+        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, 4, tile_width);
+        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row + 4, col, tile_height - 4, tile_width);
     } else if (tile_height == 4 && tile_width == 4) {
-        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, 4, 4);
+        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, 4, 4);
     } else {
-        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, lshape, rshape, lstride, rstride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, tile_height, tile_width);
+        strided_tiled_gemm3d_HxW<T, R, HxW>(ndim, l_shape, r_shape, l_stride, r_stride, offset_lhs, offset_rhs, offset_output, M, K, N, batch, row, col, tile_height, tile_width);
     }
 }
 

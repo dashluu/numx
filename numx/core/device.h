@@ -3,6 +3,8 @@
 #include "../utils.h"
 
 namespace nx::core {
+    using namespace nx::utils;
+
     enum struct DeviceType {
         CPU,
         MPS
@@ -30,10 +32,10 @@ namespace nx::core {
         }
 
     public:
-        Device() = delete;
         Device(DeviceType type, isize id) : m_type(type), m_id(id) { init_name_from_type_and_id(); }
-        Device(const Device &device) : Device(device.m_type, device.m_id) { init_name_from_type_and_id(); }
-        Device &operator=(const Device &device) = delete;
+        Device(const Device &) = delete;
+        ~Device() = default;
+        Device &operator=(const Device &) = delete;
         DeviceType get_type() const { return m_type; }
         isize get_id() const { return m_id; }
         const std::string &get_name() const { return m_name; }

@@ -3,6 +3,8 @@
 #include "../utils.h"
 
 namespace nx::core {
+    using namespace nx::utils;
+
     enum struct DtypeName {
         F32,
         F64,
@@ -30,8 +32,8 @@ namespace nx::core {
     public:
         Dtype(DtypeName name, DtypeCategory category, isize size) : m_name(name), m_category(category), m_size(size) {}
         Dtype(const Dtype &) = delete;
-        Dtype &operator=(const Dtype &) = delete;
         virtual ~Dtype() = default;
+        Dtype &operator=(const Dtype &) = delete;
         DtypeName get_name() const { return m_name; }
         DtypeCategory get_category() const { return m_category; }
         virtual const std::string get_name_str() const = 0;

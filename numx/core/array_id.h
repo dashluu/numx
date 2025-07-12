@@ -3,14 +3,16 @@
 #include "../utils.h"
 
 namespace nx::core {
+    using namespace nx::utils;
+
     struct ArrayId {
     private:
         isize m_data;
 
     public:
-        ArrayId() : m_data(0) {}
         ArrayId(isize id) : m_data(id) {}
         ArrayId(const ArrayId &id) : m_data(id.m_data) {}
+        ~ArrayId() = default;
         bool operator==(const ArrayId &id) const { return m_data == id.m_data; }
 
         ArrayId &operator=(const ArrayId &id) {
@@ -29,6 +31,7 @@ namespace nx::core {
     public:
         ArrayIdGenerator() = default;
         ArrayIdGenerator(const ArrayIdGenerator &) = delete;
+        ~ArrayIdGenerator() = default;
         ArrayIdGenerator &operator=(const ArrayIdGenerator &) = delete;
         ArrayId generate() { return ArrayId(s_counter++); }
     };

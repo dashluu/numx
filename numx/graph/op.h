@@ -1,8 +1,11 @@
 #pragma once
 
-#include "array_descriptor.h"
+#include "../core/array_iter.h"
 
-namespace nx::core {
+namespace nx::graph {
+    using namespace nx::utils;
+    using namespace nx::core;
+
     enum struct Opcode {
         NOP,
         EMPTY,
@@ -60,30 +63,44 @@ namespace nx::core {
     };
 
     struct Op : public std::enable_shared_from_this<Op> {
+        using OpPtr = std::shared_ptr<Op>;
+
     protected:
+        ArrayData m_data;
+        OpPtr m_partial_grad, m_grad;
         // Note: m_grad_enabled cannot be used to set gradient flow once the computational graph is compiled or forwarded
         bool m_grad_enabled;
-        ArrayDescriptor m_descriptor;
+
+        OpPtr nonconst_from_this() const { return std::const_pointer_cast<Op>(std::static_pointer_cast<const Op>(shared_from_this())); }
+        OpPtr detach_this() const;
 
     public:
-        Op(const ArrayDescriptor &descriptor) : m_descriptor(descriptor) { m_grad_enabled = descriptor.get_dtype()->is_float(); }
+        Op(const ArrayData &data) : m_data(data) { m_grad_enabled = m_data.get_dtype()->is_float(); }
         Op(const Op &) = delete;
         virtual ~Op() = default;
         Op &operator=(const Op &) = delete;
         virtual Opcode get_opcode() const = 0;
-        virtual const std::string &get_opname() const = 0;
         virtual Optype get_optype() const = 0;
-        const ArrayDescriptor &get_descriptor() const { return m_descriptor; }
+        virtual const std::string &get_opname() const = 0;
+        ArrayData &get_data() { return m_data; }
+        OpPtr get_grad() const { return m_grad; }
+        OpPtr get_partial_grad() const { return m_partial_grad; }
         bool is_grad_enabled() const { return m_grad_enabled; }
 
-        // Leave this as virtual, some ops need to disable enabling grad since they are not differentiable
         virtual void enable_grad(bool enabled) {
-            if (!m_descriptor.get_dtype()->is_float() && enabled) {
-                throw std::runtime_error(std::format("Only floating-point arrays can have gradients but array {} has type {}.", m_descriptor.get_id().str(), m_descriptor.get_dtype()->str()));
+            if (!m_data.get_dtype()->is_float() && enabled) {
+                throw std::runtime_error(std::format("Only floating-point arrays can have gradients but array {} has type {}.", m_data.get_id().str(), m_data.get_dtype()->str()));
             }
+
             m_grad_enabled = enabled;
         }
 
+        void zero_grad();
+        void one_grad();
+        void iadd_grad(OpPtr grad);
+        void isub_grad(OpPtr grad);
+        void slice_grad(OpPtr grad, const RangeVec &ranges);
+        virtual void grad_fn() const {}
         virtual const std::string str() const { return std::format("opname: {}", get_opname()); }
     };
 
@@ -91,14 +108,14 @@ namespace nx::core {
 
     struct InitializerOp : public Op {
     public:
-        InitializerOp(const ArrayDescriptor &descriptor) : Op(descriptor) {}
+        InitializerOp(const ArrayData &data) : Op(data) {}
         Optype get_optype() const override { return Optype::INITIALIZER; }
     };
 
     struct Nop : public InitializerOp {
     public:
         inline static const std::string s_opname = "nop";
-        Nop(const ArrayDescriptor &descriptor) : InitializerOp(descriptor) {}
+        Nop(const ArrayData &data) : InitializerOp(data) {}
         Opcode get_opcode() const override { return Opcode::NOP; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -106,7 +123,7 @@ namespace nx::core {
     struct EmptyOp : public InitializerOp {
     public:
         inline static const std::string s_opname = "empty";
-        EmptyOp(const ArrayDescriptor &descriptor) : InitializerOp(descriptor) {}
+        EmptyOp(const ArrayData &data) : InitializerOp(data) {}
         Opcode get_opcode() const override { return Opcode::EMPTY; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -119,7 +136,7 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "arange";
-        ArangeOp(const ArrayDescriptor &descriptor, const ShapeView &view, isize start, isize step) : InitializerOp(descriptor), m_view(view), m_start(start), m_step(step) {}
+        ArangeOp(const ArrayData &data, const ShapeView &view, isize start, isize step) : InitializerOp(data), m_view(view), m_start(start), m_step(step) {}
         Opcode get_opcode() const override { return Opcode::ARANGE; }
         const std::string &get_opname() const override { return s_opname; }
         const ShapeView &get_view() const { return m_view; }
@@ -135,12 +152,12 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "full";
-        FullOp(const ArrayDescriptor &descriptor, const ShapeView &view, isize constant, DtypePtr dtype) : InitializerOp(descriptor), m_view(view), m_const(constant) {}
+        FullOp(const ArrayData &data, const ShapeView &view, isize constant) : InitializerOp(data), m_view(view), m_const(constant) {}
         Opcode get_opcode() const override { return Opcode::FULL; }
         const std::string &get_opname() const override { return s_opname; }
         const ShapeView &get_view() const { return m_view; }
         isize get_const() const { return m_const; }
-        const std::string str() const override { return std::format("{}, view: {}, value: {}", InitializerOp::str(), join_nums(m_view), m_descriptor.get_dtype()->value_str(m_const)); }
+        const std::string str() const override { return std::format("{}, view: {}, value: {}", InitializerOp::str(), join_nums(m_view), m_data.get_dtype()->value_str(m_const)); }
     };
 
     struct UnaryOp : public Op {
@@ -149,25 +166,26 @@ namespace nx::core {
         OpPtr m_operand;
 
     public:
-        UnaryOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : Op(descriptor), m_operand(operand), m_in_place(in_place) {}
+        UnaryOp(const ArrayData &data, OpPtr operand, bool in_place) : Op(data), m_operand(operand), m_in_place(in_place) {}
         Optype get_optype() const override { return Optype::UNARY; }
-        OpPtr get_operand() const { return m_operand; }
+        OpPtr get_operand() { return m_operand; }
         bool is_in_place() const { return m_in_place; }
-        const std::string str() const override { return std::format("{}, operand: {}, in-place: {}", Op::str(), m_operand->get_descriptor().get_id().str(), m_in_place); }
+        const std::string str() const override { return std::format("{}, in-place: {}, operand: {}", Op::str(), m_in_place, m_operand->get_data().get_id().str()); }
     };
 
     struct BinaryOp : public Op {
     protected:
         OpPtr m_lhs;
         OpPtr m_rhs;
+        BinaryMode m_mode;
 
     public:
-        BinaryOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : Op(descriptor), m_lhs(lhs), m_rhs(rhs) {}
+        BinaryOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, BinaryMode mode) : Op(data), m_lhs(lhs), m_rhs(rhs), m_mode(mode) {}
         Optype get_optype() const override { return Optype::BINARY; }
-        virtual BinaryMode get_mode() const = 0;
-        OpPtr get_lhs() const { return m_lhs; }
-        OpPtr get_rhs() const { return m_rhs; }
-        const std::string str() const override { return std::format("{}, lhs: {}, rhs: {}", Op::str(), m_lhs->get_descriptor().get_id().str(), m_rhs->get_descriptor().get_id().str()); }
+        OpPtr get_lhs() { return m_lhs; }
+        OpPtr get_rhs() { return m_rhs; }
+        BinaryMode get_mode() const { return m_mode; }
+        const std::string str() const override { return std::format("{}, lhs: {}, rhs: {}", Op::str(), m_lhs->get_data().get_id().str(), m_rhs->get_data().get_id().str()); }
     };
 
     struct ElmwiseBinaryOp : public BinaryOp {
@@ -175,17 +193,14 @@ namespace nx::core {
         bool m_in_place;
 
     public:
-        ElmwiseBinaryOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : BinaryOp(descriptor, lhs, rhs), m_in_place(in_place) {}
-        BinaryMode get_mode() const override { return BinaryMode::ELMWISE; }
+        ElmwiseBinaryOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : BinaryOp(data, lhs, rhs, BinaryMode::ELMWISE), m_in_place(in_place) {}
         bool is_in_place() const { return m_in_place; }
-        const std::string str() const override { return std::format("{}, in-place: {}", BinaryOp::str(), m_in_place); }
+        const std::string str() const override { return std::format("{}, in-place: {}, lhs: {}, rhs: {}", Op::str(), m_in_place, m_lhs->get_data().get_id().str(), m_rhs->get_data().get_id().str()); }
     };
 
     struct CmpOp : public BinaryOp {
     public:
-        CmpOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : BinaryOp(descriptor, lhs, rhs) {}
-        BinaryMode get_mode() const override { return BinaryMode::CMP; }
-        void enable_grad(bool enabled) override { m_grad_enabled = false; }
+        CmpOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : BinaryOp(data, lhs, rhs, BinaryMode::CMP) {}
     };
 
     struct TransformOp : public Op {
@@ -193,10 +208,10 @@ namespace nx::core {
         OpPtr m_operand;
 
     public:
-        TransformOp(const ArrayDescriptor &descriptor, OpPtr operand) : Op(descriptor), m_operand(operand) {}
+        TransformOp(const ArrayData &data, OpPtr operand) : Op(data), m_operand(operand) {}
         Optype get_optype() const override { return Optype::TRANSFORM; }
-        OpPtr get_operand() const { return m_operand; }
-        const std::string str() const override { return std::format("{}, operand: {}", Op::str(), m_operand->get_descriptor().get_id().str()); }
+        OpPtr get_operand() { return m_operand; }
+        const std::string str() const override { return std::format("{}, operand: {}", Op::str(), m_operand->get_data().get_id().str()); }
     };
 
     struct ReduceOp : public Op {
@@ -206,50 +221,54 @@ namespace nx::core {
         ShapeDims m_reduce_dims;
 
     public:
-        ReduceOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : Op(descriptor), m_operand(operand), m_remaining_dims(remaining_dims), m_reduce_dims(reduce_dims) {}
+        ReduceOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : Op(data), m_operand(operand), m_remaining_dims(remaining_dims), m_reduce_dims(reduce_dims) {}
         Optype get_optype() const override { return Optype::REDUCE; }
-        OpPtr get_operand() const { return m_operand; }
+        OpPtr get_operand() { return m_operand; }
         const ShapeDims &get_remaining_dims() const { return m_remaining_dims; }
         const ShapeDims &get_reduce_dims() const { return m_reduce_dims; }
-        const std::string str() const override { return std::format("{}, operand: {}, kept dims: {}, reduce dims: {}", Op::str(), m_operand->get_descriptor().get_id().str(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
+        const std::string str() const override { return std::format("{}, operand: {}, kept dims: {}, reduce dims: {}", Op::str(), m_operand->get_data().get_id().str(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
     };
 
     struct AddOp : public ElmwiseBinaryOp {
     public:
         inline static const std::string s_opname = "add";
-        AddOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(descriptor, lhs, rhs, in_place) {}
+        AddOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(data, lhs, rhs, in_place) {}
         Opcode get_opcode() const override { return Opcode::ADD; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct SubOp : public ElmwiseBinaryOp {
     public:
         inline static const std::string s_opname = "sub";
-        SubOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(descriptor, lhs, rhs, in_place) {}
+        SubOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(data, lhs, rhs, in_place) {}
         Opcode get_opcode() const override { return Opcode::SUB; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct MulOp : public ElmwiseBinaryOp {
     public:
         inline static const std::string s_opname = "mul";
-        MulOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(descriptor, lhs, rhs, in_place) {}
+        MulOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(data, lhs, rhs, in_place) {}
         Opcode get_opcode() const override { return Opcode::MUL; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct DivOp : public ElmwiseBinaryOp {
     public:
         inline static const std::string s_opname = "div";
-        DivOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(descriptor, lhs, rhs, in_place) {}
+        DivOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(data, lhs, rhs, in_place) {}
         Opcode get_opcode() const override { return Opcode::DIV; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct EqOp : public CmpOp {
     public:
         inline static const std::string s_opname = "eq";
-        EqOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : CmpOp(descriptor, lhs, rhs) {}
+        EqOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : CmpOp(data, lhs, rhs) {}
         Opcode get_opcode() const override { return Opcode::EQ; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -257,7 +276,7 @@ namespace nx::core {
     struct NeqOp : public CmpOp {
     public:
         inline static const std::string s_opname = "neq";
-        NeqOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : CmpOp(descriptor, lhs, rhs) {}
+        NeqOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : CmpOp(data, lhs, rhs) {}
         Opcode get_opcode() const override { return Opcode::NEQ; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -265,7 +284,7 @@ namespace nx::core {
     struct LtOp : public CmpOp {
     public:
         inline static const std::string s_opname = "lt";
-        LtOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : CmpOp(descriptor, lhs, rhs) {}
+        LtOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : CmpOp(data, lhs, rhs) {}
         Opcode get_opcode() const override { return Opcode::LT; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -273,7 +292,7 @@ namespace nx::core {
     struct GtOp : public CmpOp {
     public:
         inline static const std::string s_opname = "gt";
-        GtOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : CmpOp(descriptor, lhs, rhs) {}
+        GtOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : CmpOp(data, lhs, rhs) {}
         Opcode get_opcode() const override { return Opcode::GT; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -281,7 +300,7 @@ namespace nx::core {
     struct LeqOp : public CmpOp {
     public:
         inline static const std::string s_opname = "leq";
-        LeqOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : CmpOp(descriptor, lhs, rhs) {}
+        LeqOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : CmpOp(data, lhs, rhs) {}
         Opcode get_opcode() const override { return Opcode::LEQ; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -289,7 +308,7 @@ namespace nx::core {
     struct GeqOp : public CmpOp {
     public:
         inline static const std::string s_opname = "geq";
-        GeqOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : CmpOp(descriptor, lhs, rhs) {}
+        GeqOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : CmpOp(data, lhs, rhs) {}
         Opcode get_opcode() const override { return Opcode::GEQ; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -297,82 +316,91 @@ namespace nx::core {
     struct MinimumOp : public ElmwiseBinaryOp {
     public:
         inline static const std::string s_opname = "minimum";
-        MinimumOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(descriptor, lhs, rhs, in_place) {}
+        MinimumOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(data, lhs, rhs, in_place) {}
         Opcode get_opcode() const override { return Opcode::MINIMUM; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct MaximumOp : public ElmwiseBinaryOp {
     public:
         inline static const std::string s_opname = "maximum";
-        MaximumOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(descriptor, lhs, rhs, in_place) {}
+        MaximumOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : ElmwiseBinaryOp(data, lhs, rhs, in_place) {}
         Opcode get_opcode() const override { return Opcode::MAXIMUM; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct MatmulOp : public BinaryOp {
     public:
         inline static const std::string s_opname = "matmul";
-        MatmulOp(const ArrayDescriptor &descriptor, OpPtr lhs, OpPtr rhs) : BinaryOp(descriptor, lhs, rhs) {}
+        MatmulOp(const ArrayData &data, OpPtr lhs, OpPtr rhs) : BinaryOp(data, lhs, rhs, BinaryMode::MATMUL) {}
         Opcode get_opcode() const override { return Opcode::MATMUL; }
-        BinaryMode get_mode() const override { return BinaryMode::MATMUL; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct SqOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "sq";
-        SqOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : UnaryOp(descriptor, operand, in_place) {}
+        SqOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::SQ; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct SqrtOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "sqrt";
-        SqrtOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : UnaryOp(descriptor, operand, in_place) {}
+        SqrtOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::SQRT; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct NegOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "neg";
-        NegOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : UnaryOp(descriptor, operand, in_place) {}
+        NegOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::NEG; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct CopyOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "copy";
-        CopyOp(const ArrayDescriptor &descriptor, OpPtr operand) : UnaryOp(descriptor, operand, false) {}
+        CopyOp(const ArrayData &data, OpPtr operand) : UnaryOp(data, operand, false) {}
         Opcode get_opcode() const override { return Opcode::COPY; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct ExpOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "exp";
-        ExpOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : UnaryOp(descriptor, operand, in_place) {}
+        ExpOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::EXP; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct LogOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "log";
-        LogOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : UnaryOp(descriptor, operand, in_place) {}
+        LogOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::LOG; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct RecipOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "recip";
-        RecipOp(const ArrayDescriptor &descriptor, OpPtr operand, bool in_place) : UnaryOp(descriptor, operand, in_place) {}
+        RecipOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::RECIP; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct ReshapeOp : public TransformOp {
@@ -381,27 +409,30 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "reshape";
-        ReshapeOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeView &view) : TransformOp(descriptor, operand), m_view(view) {}
+        ReshapeOp(const ArrayData &data, OpPtr operand, const ShapeView &view) : TransformOp(data, operand), m_view(view) {}
         const ShapeView &get_view() const { return m_view; }
         Opcode get_opcode() const override { return Opcode::RESHAPE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, view: ({})", TransformOp::str(), join_nums(m_view)); }
+        void grad_fn() const override;
     };
 
     struct SliceOp : public TransformOp {
     private:
-        RangeVec m_ranges;
+        std::vector<Range> m_ranges;
 
     public:
         inline static const std::string s_opname = "slice";
-        SliceOp(const ArrayDescriptor &descriptor, OpPtr operand, const RangeVec &ranges) : TransformOp(descriptor, operand), m_ranges(ranges) {}
-        const RangeVec &get_ranges() const { return m_ranges; }
+        SliceOp(const ArrayData &data, OpPtr operand, const std::vector<Range> &ranges) : TransformOp(data, operand), m_ranges(ranges) {}
+        const std::vector<Range> &get_ranges() const { return m_ranges; }
         Opcode get_opcode() const override { return Opcode::SLICE; }
         const std::string &get_opname() const override { return s_opname; }
 
         const std::string str() const override {
             return std::format("{}, ranges: ({})", TransformOp::str(), join<Range>(m_ranges, [](Range range) { return range.str(); }));
         }
+
+        void grad_fn() const override;
     };
 
     struct PermuteOp : public TransformOp {
@@ -410,11 +441,12 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "permute";
-        PermuteOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &dims) : TransformOp(descriptor, operand), m_dims(dims) {}
+        PermuteOp(const ArrayData &data, OpPtr operand, const ShapeDims &dims) : TransformOp(data, operand), m_dims(dims) {}
         const ShapeDims &get_perm() const { return m_dims; }
         Opcode get_opcode() const override { return Opcode::PERMUTE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, permutation: ({})", TransformOp::str(), join_nums(m_dims)); }
+        void grad_fn() const override;
     };
 
     struct BroadcastOp : public TransformOp {
@@ -425,13 +457,14 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "broadcast";
-        BroadcastOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeView &input_view, const ShapeView &output_view, const ShapeDims &dims) : TransformOp(descriptor, operand), m_input_view(input_view), m_output_view(output_view), m_dims(dims) {}
+        BroadcastOp(const ArrayData &data, OpPtr operand, const ShapeView &input_view, const ShapeView &output_view, const ShapeDims &dims) : TransformOp(data, operand), m_input_view(input_view), m_output_view(output_view), m_dims(dims) {}
         const ShapeView &get_input_view() const { return m_input_view; }
         const ShapeView &get_output_view() const { return m_output_view; }
         const ShapeDims &get_dims() const { return m_dims; }
         Opcode get_opcode() const override { return Opcode::BROADCAST; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, input view: ({}), output view: ({})", TransformOp::str(), join_nums(m_input_view), join_nums(m_output_view)); }
+        void grad_fn() const override;
     };
 
     struct SqueezeOp : public TransformOp {
@@ -440,11 +473,12 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "squeeze";
-        SqueezeOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &dims) : TransformOp(descriptor, operand), m_dims(dims) {}
+        SqueezeOp(const ArrayData &data, OpPtr operand, const ShapeDims &dims) : TransformOp(data, operand), m_dims(dims) {}
         const ShapeDims &get_dims() const { return m_dims; }
         Opcode get_opcode() const override { return Opcode::SQUEEZE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dims: ({})", TransformOp::str(), join_nums(m_dims)); }
+        void grad_fn() const override;
     };
 
     struct UnsqueezeOp : public TransformOp {
@@ -453,11 +487,12 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "unsqueeze";
-        UnsqueezeOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &dims) : TransformOp(descriptor, operand), m_dims(dims) {}
+        UnsqueezeOp(const ArrayData &data, OpPtr operand, const ShapeDims &dims) : TransformOp(data, operand), m_dims(dims) {}
         const ShapeDims &get_dims() const { return m_dims; }
         Opcode get_opcode() const override { return Opcode::UNSQUEEZE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dims: ({})", TransformOp::str(), join_nums(m_dims)); }
+        void grad_fn() const override;
     };
 
     struct AstypeOp : public TransformOp {
@@ -466,53 +501,53 @@ namespace nx::core {
 
     public:
         inline static const std::string s_opname = "astype";
-        AstypeOp(const ArrayDescriptor &descriptor, OpPtr operand, DtypePtr dtype) : TransformOp(descriptor, operand), m_dtype(dtype) {}
+        AstypeOp(const ArrayData &data, OpPtr operand, DtypePtr dtype) : TransformOp(data, operand), m_dtype(dtype) {}
         DtypePtr get_dtype() const { return m_dtype; }
         Opcode get_opcode() const override { return Opcode::ASTYPE; }
         const std::string &get_opname() const override { return s_opname; }
-        void enable_grad(bool enabled) override { m_grad_enabled = false; }
         const std::string str() const override { return std::format("{}, dtype: {}", TransformOp::str(), m_dtype->str()); }
     };
 
     struct SumOp : public ReduceOp {
     public:
         inline static const std::string s_opname = "sum";
-        SumOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(descriptor, operand, remaining_dims, reduce_dims) {}
+        SumOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(data, operand, remaining_dims, reduce_dims) {}
         Opcode get_opcode() const override { return Opcode::SUM; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct MaxOp : public ReduceOp {
     public:
         inline static const std::string s_opname = "max";
-        MaxOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(descriptor, operand, remaining_dims, reduce_dims) {}
+        MaxOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(data, operand, remaining_dims, reduce_dims) {}
         Opcode get_opcode() const override { return Opcode::MAX; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct MinOp : public ReduceOp {
     public:
         inline static const std::string s_opname = "min";
-        MinOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(descriptor, operand, remaining_dims, reduce_dims) {}
+        MinOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(data, operand, remaining_dims, reduce_dims) {}
         Opcode get_opcode() const override { return Opcode::MIN; }
         const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
     };
 
     struct ArgmaxOp : public ReduceOp {
     public:
         inline static const std::string s_opname = "argmax";
-        ArgmaxOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(descriptor, operand, remaining_dims, reduce_dims) {}
+        ArgmaxOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(data, operand, remaining_dims, reduce_dims) {}
         Opcode get_opcode() const override { return Opcode::ARGMAX; }
         const std::string &get_opname() const override { return s_opname; }
-        void enable_grad(bool enabled) override { m_grad_enabled = false; }
     };
 
     struct ArgminOp : public ReduceOp {
     public:
         inline static const std::string s_opname = "argmin";
-        ArgminOp(const ArrayDescriptor &descriptor, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(descriptor, operand, remaining_dims, reduce_dims) {}
+        ArgminOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : ReduceOp(data, operand, remaining_dims, reduce_dims) {}
         Opcode get_opcode() const override { return Opcode::ARGMIN; }
         const std::string &get_opname() const override { return s_opname; }
-        void enable_grad(bool enabled) override { m_grad_enabled = false; }
     };
-} // namespace nx::core
+} // namespace nx::graph

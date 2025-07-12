@@ -3,6 +3,8 @@
 #include "../utils.h"
 
 namespace nx::core {
+    using namespace nx::utils;
+
     struct Range {
     private:
         isize m_start;

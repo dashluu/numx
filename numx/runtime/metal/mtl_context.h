@@ -1,14 +1,14 @@
 #pragma once
 
-#include "../../core/dtype.h"
-#include "../runner_context.h"
-#include "mtl_allocator.h"
+#include "../../graph/op.h"
+#include "../../memory/metal/mtl_allocator.h"
+#include "../runtime_context.h"
 #include "mtl_kernel.h"
 
 namespace nx::runtime::metal {
-    using namespace nx::core;
+    using namespace nx::memory::metal;
 
-    class MTLContext : public RunnerContext {
+    class MTLContext : public RuntimeContext {
     private:
         NS::SharedPtr<MTL::Device> m_device;
         NS::SharedPtr<MTL::Library> m_lib;
@@ -16,8 +16,8 @@ namespace nx::runtime::metal {
         std::unordered_map<std::string, MTLKernelPtr> m_kernel_by_name;
 
         void init_kernel(const std::string &name);
-        void init_kernels(const std::vector<std::string> &opnames, DtypeCategory dtype_category);
-        void init_kernels(const std::string &opname, DtypeCategory dtype_category);
+        void init_kernels(const std::vector<std::string> &names, DtypeCategory dtype_category);
+        void init_kernels(const std::string &name, DtypeCategory dtype_category);
         void init_initializer_kernels();
         void init_unary_kernels();
         void init_binary_kernels();
@@ -27,6 +27,7 @@ namespace nx::runtime::metal {
 
     public:
         MTLContext(MTL::Device *mtl_device, const std::string &lib_path);
+        void init_kernels();
         bool register_kernel(const std::string &name, MTLKernelPtr kernel);
         NS::SharedPtr<MTL::Device> get_device() const { return m_device; }
         NS::SharedPtr<MTL::CommandQueue> get_cmd_queue() const { return m_cmd_queue; }

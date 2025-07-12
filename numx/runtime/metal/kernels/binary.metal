@@ -5,18 +5,18 @@ kernel void binary(
     const constant isize &ndim [[buffer(0)]],
     const constant isize *offset [[buffer(1)]],
     const constant isize *shape [[buffer(2)]],
-    const constant isize *lstride [[buffer(3)]],
-    const constant isize *rstride [[buffer(4)]],
-    const constant isize *outstride [[buffer(5)]],
+    const constant isize *l_stride [[buffer(3)]],
+    const constant isize *r_stride [[buffer(4)]],
+    const constant isize *out_stride [[buffer(5)]],
     const constant bool *strided [[buffer(6)]],
     const device T *lhs [[buffer(7)]],
     const device T *rhs [[buffer(8)]],
     device R *output [[buffer(9)]],
     uint id [[thread_position_in_grid]])
 {
-    isize lloc = strided[0] ? get_elm_loc(id, ndim, shape, lstride) : id;
-    isize rloc = strided[1] ? get_elm_loc(id, ndim, shape, rstride) : id;
-    isize oloc = strided[2] ? get_elm_loc(id, ndim, shape, outstride) : id;
+    isize lloc = strided[0] ? get_elm_loc(id, ndim, shape, l_stride) : id;
+    isize rloc = strided[1] ? get_elm_loc(id, ndim, shape, r_stride) : id;
+    isize oloc = strided[2] ? get_elm_loc(id, ndim, shape, out_stride) : id;
     output[offset[2] + oloc] = Op()(lhs[offset[0] + lloc], rhs[offset[1] + rloc]);
 }
 
