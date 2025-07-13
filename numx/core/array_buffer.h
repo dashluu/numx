@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../memory/allocator.h"
+#include "../memory/block.h"
 
 namespace nx::core {
     using namespace nx::utils;
@@ -8,28 +8,32 @@ namespace nx::core {
 
     struct ArrayBuffer {
     private:
-        MemoryBlock m_block;
-        AllocatorPtr m_allocator = nullptr;
+        Block m_block;
+        // A buffer is primary when it is an original buffer and not just a view
+        bool m_is_primary;
 
     public:
         ArrayBuffer() = default;
-        ArrayBuffer(AllocatorPtr allocator, isize size) : m_allocator(allocator) { m_block = allocator->alloc(size); }
-        ArrayBuffer(uint8_t *ptr, isize size) : m_block(ptr, size) {}
-        ArrayBuffer(const ArrayBuffer &buffer) : m_block(buffer.m_block) {}
-
-        ~ArrayBuffer() {
-            if (m_allocator) {
-                m_allocator->free(m_block);
-            }
-        }
+        ArrayBuffer(uint8_t *ptr, isize size, bool is_primary) : m_block(ptr, size), m_is_primary(is_primary) {}
+        ArrayBuffer(const Block &block, bool is_primary) : m_block(block), m_is_primary(is_primary) {}
+        ArrayBuffer(const ArrayBuffer &buffer) : m_block(buffer.m_block), m_is_primary(buffer.m_is_primary) {}
+        ~ArrayBuffer() = default;
 
         ArrayBuffer &operator=(const ArrayBuffer &buffer) {
             m_block = buffer.m_block;
+            m_is_primary = buffer.m_is_primary;
             return *this;
         }
 
-        MemoryBlock get_block() const { return m_block; }
+        const Block &get_block() const { return m_block; }
         uint8_t *get_ptr() const { return m_block.get_ptr(); }
         isize get_size() const { return m_block.get_size(); }
+        bool is_valid() const { return m_block.get_ptr() != nullptr; }
+        bool is_primary() const { return m_is_primary && is_valid(); }
+
+        void invalidate() {
+            m_block = Block();
+            m_is_primary = false;
+        }
     };
 } // namespace nx::core

@@ -16,7 +16,7 @@ namespace nx::graph {
 
     OpPtr detach(OpPtr op) {
         const ArrayData &data = op->get_data();
-        return from_buffer(data.get_buffer_ptr(), data.get_buffer_size(), data.get_shape(), data.get_dtype(), data.get_device());
+        return from_buffer(data.m_buffer.get_ptr(), data.m_buffer.get_size(), data.get_shape(), data.get_dtype(), data.get_device());
     }
 
     OpPtr from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) {

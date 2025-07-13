@@ -5,13 +5,13 @@
 namespace nx::memory::metal {
     class MTLAllocator : public Allocator {
     public:
-        MemoryBlock alloc(isize size) override {
+        Block alloc(isize size) override {
             auto ptr = new uint8_t[size];
             std::memset(ptr, 0, size);
-            return MemoryBlock(ptr, size);
+            return Block(ptr, size);
         }
 
-        void free(const MemoryBlock &block) override {
+        void free(const Block &block) override {
             delete[] block.get_ptr();
         }
     };

@@ -19,7 +19,7 @@ namespace nx::array {
         Array() = default;
         Array(OpPtr op) : m_op(op) {}
         Array(const Array &array) : m_op(array.m_op), m_graph(array.m_graph), m_runner(array.m_runner) {}
-        ~Array() = default;
+        ~Array();
 
         Array &operator=(const Array &array) {
             m_op = array.m_op;
@@ -61,6 +61,11 @@ namespace nx::array {
         const std::string str() {
             eval();
             return m_op->get_data().str();
+        }
+
+        const std::string graph_str() {
+            eval();
+            return m_graph->str();
         }
 
         void eval();

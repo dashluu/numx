@@ -134,10 +134,13 @@ namespace nx::runtime::metal {
 
     void MTLRunner::alloc_array_buffer(OpPtr op) {
         ArrayData &data = op->get_data();
-        data.m_buffer = ArrayBuffer(m_ctx->get_allocator(), op->get_data().get_nbytes());
+
+        if (!data.m_buffer.is_valid()) {
+            data.m_buffer = ArrayBuffer(m_ctx->get_allocator()->alloc(data.get_nbytes()), true);
+        }
     }
 
     void MTLRunner::share_array_buffer(OpPtr l_op, OpPtr r_op) {
-        l_op->get_data().m_buffer = r_op->get_data().m_buffer;
+        l_op->get_data().m_buffer = ArrayBuffer(r_op->get_data().m_buffer.get_block(), false);
     }
 } // namespace nx::runtime::metal

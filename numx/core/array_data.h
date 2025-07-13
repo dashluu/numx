@@ -21,11 +21,12 @@ namespace nx::core {
         ArrayBuffer m_buffer;
 
         ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.generate()), m_shape(shape), m_dtype(dtype), m_device(device) {}
-        ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.generate()), m_shape(shape), m_dtype(dtype), m_device(device) { m_buffer = ArrayBuffer(ptr, size); }
-        ArrayData(const ArrayData &data) : m_id(s_id_gen.generate()), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
+        ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.generate()), m_shape(shape), m_dtype(dtype), m_device(device) { m_buffer = ArrayBuffer(ptr, size, false); }
+        ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
         ~ArrayData() = default;
 
         ArrayData &operator=(const ArrayData &data) {
+            m_id = data.m_id;
             m_shape = data.m_shape;
             m_dtype = data.m_dtype;
             m_device = data.m_device;
@@ -45,9 +46,7 @@ namespace nx::core {
         DtypePtr get_dtype() const { return m_dtype; }
         DevicePtr get_device() const { return m_device; }
         const std::string &get_device_name() const { return m_device->get_name(); }
-        uint8_t *get_buffer_ptr() const { return m_buffer.get_ptr(); }
         uint8_t *get_ptr() const { return m_buffer.get_ptr() + get_offset() * get_itemsize(); }
-        isize get_buffer_size() const { return m_buffer.get_size(); }
         isize get_numel() const { return m_shape.get_numel(); }
         isize get_ndim() const { return m_shape.get_ndim(); }
         isize get_itemsize() const { return m_dtype->get_size(); }

@@ -29,7 +29,7 @@ namespace nx::runtime::metal {
 
         void encode_view(const ArrayData &data) { encode_mtl_buffer(data.get_view().data(), sizeof(isize) * data.get_ndim()); }
         void encode_stride(const ArrayData &data) { encode_mtl_buffer(data.get_stride().data(), sizeof(isize) * data.get_ndim()); }
-        void encode_array_buffer(const ArrayData &data) { encode_mtl_buffer(data.get_buffer_ptr(), data.get_buffer_size()); }
+        void encode_array_buffer(const ArrayData &data) { encode_mtl_buffer(data.m_buffer.get_ptr(), data.m_buffer.get_size()); }
 
         void set_pipeline_state(const std::string &kernel_name) {
             MTLKernelPtr kernel = m_ctx->get_kernel(kernel_name);
