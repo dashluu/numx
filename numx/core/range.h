@@ -27,8 +27,18 @@ namespace nx::core {
         isize get_start() const { return m_start; }
         isize get_stop() const { return m_stop; }
         isize get_step() const { return m_step; }
-        std::string str() const { return std::format("({},{},{})", m_start, m_stop, m_step); }
+        const std::string str() const { return std::format("({},{},{})", m_start, m_stop, m_step); }
+        friend std::ostream &operator<<(std::ostream &os, const Range &range) { return os << range.str(); }
     };
 
     using RangeVec = std::vector<Range>;
 } // namespace nx::core
+
+namespace std {
+    template <>
+    struct formatter<nx::core::Range> : formatter<string> {
+        auto format(const nx::core::Range &range, format_context &ctx) const {
+            return formatter<string>::format(range.str(), ctx);
+        }
+    };
+} // namespace std

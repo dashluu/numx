@@ -20,6 +20,7 @@ namespace nx::graph {
             OpPtr operand = unary_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
+            num_fw_edges++;
             break;
         }
         case Optype::BINARY: {
@@ -29,6 +30,7 @@ namespace nx::graph {
             fw_toposort(lhs);
             fw_toposort(rhs);
             m_fw_tape.push_back(op);
+            num_fw_edges += 2;
             break;
         }
         case Optype::TRANSFORM: {
@@ -36,6 +38,7 @@ namespace nx::graph {
             OpPtr operand = transform_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
+            num_fw_edges++;
             break;
         }
         default: {
@@ -44,6 +47,7 @@ namespace nx::graph {
             OpPtr operand = reduce_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
+            num_fw_edges++;
             break;
         }
         }
@@ -68,6 +72,7 @@ namespace nx::graph {
             OpPtr operand = unary_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
+            num_bw_edges++;
             break;
         }
         case Optype::BINARY: {
@@ -77,6 +82,7 @@ namespace nx::graph {
             bw_toposort(lhs);
             bw_toposort(rhs);
             m_bw_tape.push_back(op);
+            num_bw_edges += 2;
             break;
         }
         case Optype::TRANSFORM: {
@@ -84,6 +90,7 @@ namespace nx::graph {
             OpPtr operand = transform_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
+            num_bw_edges++;
             break;
         }
         default: {
@@ -92,6 +99,7 @@ namespace nx::graph {
             OpPtr operand = reduce_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
+            num_bw_edges++;
             break;
         }
         }
@@ -110,7 +118,7 @@ namespace nx::graph {
 
         if (m_bw_tape.empty()) {
             if (m_output->get_data().get_numel() > 1) {
-                throw std::runtime_error(std::format("Array {} must be a singleton to do gradient backpropation.", m_output->get_data().get_id().str()));
+                throw std::runtime_error(std::format("Array {} must be a singleton to do gradient backpropation.", m_output->get_data().get_id()));
             }
 
             // Initialize output's gradient with 1's

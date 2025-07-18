@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../graph/op.h"
 #include "../../memory/metal/mtl_allocator.h"
 #include "../runtime_context.h"
 #include "mtl_kernel.h"

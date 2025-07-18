@@ -39,6 +39,6 @@ namespace nx::runtime::metal {
         void share_array_buffer(OpPtr l_op, OpPtr r_op);
 
     public:
-        MTLRunner(GraphPtr graph, RuntimeContextPtr ctx) : Runner(graph, ctx) {}
+        MTLRunner(GraphPtr graph, RuntimeContextPtr ctx, ProfilerPtr profiler) : Runner(graph, ctx, profiler) {}
     };
 } // namespace nx::runtime::metal

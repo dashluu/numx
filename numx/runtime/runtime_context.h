@@ -1,12 +1,13 @@
 #pragma once
 
+#include "../graph/graph.h"
 #include "../memory/allocator.h"
 
 namespace nx::runtime {
     using namespace nx::utils;
     using namespace nx::core;
-    using namespace nx::memory;
     using namespace nx::graph;
+    using namespace nx::memory;
 
     class RuntimeContext : public std::enable_shared_from_this<RuntimeContext> {
     protected:

@@ -60,7 +60,7 @@ namespace nx::graph {
 
     template <Numeric T>
     OpPtr full(const ShapeView &view, T constant, DtypePtr dtype, DevicePtr device) {
-        return std::make_shared<FullOp>(ArrayData(Shape(view), dtype, device), view, dtype_bitcast_numeric(dtype, constant));
+        return std::make_shared<FullOp>(ArrayData(Shape(view), dtype, device), dtype_bitcast_numeric(dtype, constant));
     }
 
     template <class T>
@@ -287,7 +287,7 @@ namespace nx::graph {
             auto iter = std::find(remaining_dims.begin(), remaining_dims.end(), dim);
 
             if (iter == remaining_dims.end()) {
-                throw std::invalid_argument(std::format("Invalid reduction dimension {} on array {}, either it does not exist or is duplicated.", dim, in_data.get_id().str()));
+                throw std::invalid_argument(std::format("Invalid reduction dimension {} on array {}, either it does not exist or is duplicated.", dim, in_data.get_id()));
             } else {
                 remaining_dims.erase(iter);
                 reduce_dims.push_back(dim);

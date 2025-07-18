@@ -41,8 +41,18 @@ namespace nx::core {
         const std::string &get_name() const { return m_name; }
         bool operator==(const Device &device) const { return m_type == device.m_type && m_id == device.m_id; }
         const std::string str() const { return get_name(); }
+        friend std::ostream &operator<<(std::ostream &os, const Device &device) { return os << device.str(); }
     };
 
     using DevicePtr = std::shared_ptr<Device>;
     const std::string default_device_name = "mps:0";
 } // namespace nx::core
+
+namespace std {
+    template <>
+    struct formatter<nx::core::Device> : formatter<string> {
+        auto format(const nx::core::Device &device, format_context &ctx) const {
+            return formatter<string>::format(device.str(), ctx);
+        }
+    };
+} // namespace std

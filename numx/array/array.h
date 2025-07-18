@@ -9,7 +9,7 @@ namespace nx::array {
         GraphPtr m_graph = nullptr;
         RunnerPtr m_runner = nullptr;
 
-        static Backend &get_backend();
+        static Backend &get_backend() { return Backend::get_instance(); }
         static DevicePtr get_device_by_name(const std::string &name) { return get_backend().get_device_by_name(name); }
         RuntimeContextPtr get_context() const { return get_backend().get_context_by_device_name(m_op->get_data().get_device_name()); }
         RunnerFactory get_runner_factory() const { return get_backend().get_runner_factory_by_device_name(m_op->get_data().get_device_name()); }
@@ -29,6 +29,7 @@ namespace nx::array {
         }
 
         OpPtr get_op() const { return m_op; }
+        GraphPtr get_graph() const { return m_graph; }
         const ArrayData &get_data() const { return m_op->get_data(); }
         const ArrayId &get_id() const { return get_data().get_id(); }
         const Shape &get_shape() const { return get_data().get_shape(); }
@@ -58,18 +59,19 @@ namespace nx::array {
             return nx::graph::item(m_op);
         }
 
-        const std::string str() {
-            eval();
-            return m_op->get_data().str();
-        }
-
         const std::string graph_str() {
             eval();
             return m_graph->str();
         }
 
+        const std::string str() {
+            eval();
+            return m_op->get_data().str();
+        }
+
         void eval();
         void backward();
+        friend std::ostream &operator<<(std::ostream &os, Array &array) { return os << array.str(); }
         Array detach() const { return Array(nx::graph::detach(m_op)); }
 
         static Array from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
@@ -294,3 +296,12 @@ namespace nx::array {
 
     using ArrayVec = std::vector<Array>;
 } // namespace nx::array
+
+namespace std {
+    template <>
+    struct formatter<nx::array::Array> : formatter<string> {
+        auto format(nx::array::Array &array, format_context &ctx) const {
+            return formatter<string>::format(array.str(), ctx);
+        }
+    };
+} // namespace std

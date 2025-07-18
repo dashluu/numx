@@ -70,7 +70,7 @@ namespace nx::runtime::metal {
             std::shared_ptr<ReshapeOp> reshape_op = std::static_pointer_cast<ReshapeOp>(op);
             OpPtr operand = reshape_op->get_operand();
 
-            if (!operand->get_data().copy_when_reshape(reshape_op->get_view())) {
+            if (!operand->get_data().copy_when_reshape(reshape_op->get_data().get_view())) {
                 share_array_buffer(op, operand);
             } else {
                 alloc_array_buffer(op);
@@ -137,6 +137,10 @@ namespace nx::runtime::metal {
 
         if (!data.m_buffer.is_valid()) {
             data.m_buffer = ArrayBuffer(m_ctx->get_allocator()->alloc(data.get_nbytes()), true);
+
+            if (m_profiler) {
+                m_profiler->record_alloc(data);
+            }
         }
     }
 

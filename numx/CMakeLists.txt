@@ -25,8 +25,8 @@ file(GLOB HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/array/*.h"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.h"
     # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.h"
+    # "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.h"
 )
 
 file(GLOB SRC_FILES
@@ -34,8 +34,8 @@ file(GLOB SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/array/*.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.cpp"
     # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp"
+    # "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.cpp"
 )
 
 if(APPLE)

@@ -55,8 +55,20 @@ namespace nx::core {
         // TODO: handle more cases to reduce copying?
         bool copy_when_reshape(const ShapeView &view) const { return !is_contiguous(); }
         uint8_t *get_elm_ptr(isize index) const;
+        bool operator==(const ArrayData &data) const { return m_id == data.m_id; }
+        auto operator<=>(const ArrayData &data) const { return m_id <=> data.m_id; }
         const std::string str() const;
+        friend std::ostream &operator<<(std::ostream &os, const ArrayData &data) { return os << data.str(); }
     };
 
     inline ArrayIdGenerator ArrayData::s_id_gen = ArrayIdGenerator();
 }; // namespace nx::core
+
+namespace std {
+    template <>
+    struct formatter<nx::core::ArrayData> : formatter<string> {
+        auto format(const nx::core::ArrayData &data, format_context &ctx) const {
+            return formatter<string>::format(data.str(), ctx);
+        }
+    };
+} // namespace std

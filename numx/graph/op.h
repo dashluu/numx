@@ -81,6 +81,7 @@ namespace nx::graph {
         Op &operator=(const Op &) = delete;
         virtual Opcode get_opcode() const = 0;
         virtual Optype get_optype() const = 0;
+        virtual const std::string optype_str() const = 0;
         virtual const std::string &get_opname() const = 0;
         ArrayData &get_data() { return m_data; }
         OpPtr get_grad() const { return m_grad; }
@@ -89,7 +90,7 @@ namespace nx::graph {
 
         virtual void enable_grad(bool enabled) {
             if (!m_data.get_dtype()->is_float() && enabled) {
-                throw std::runtime_error(std::format("Only floating-point arrays can have gradients but array {} has type {}.", m_data.get_id().str(), m_data.get_dtype()->str()));
+                throw std::runtime_error(std::format("Only floating-point arrays can have gradients but array {} has type {}.", m_data.get_id(), m_data.get_dtype()->str()));
             }
 
             m_grad_enabled = enabled;
@@ -101,7 +102,9 @@ namespace nx::graph {
         void isub_grad(OpPtr grad);
         void slice_grad(OpPtr grad, const RangeVec &ranges);
         virtual void grad_fn() const {}
-        virtual const std::string str() const { return std::format("opname: {}", get_opname()); }
+        virtual const std::string str() const { return std::format("{}: {}, view: ({}), dtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }
+        virtual const std::string repr() const { return std::format("{}: {}\\nView: ({})\\nDtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }
+        friend std::ostream &operator<<(std::ostream &os, OpPtr op) { return os << op->str(); }
     };
 
     using OpPtr = std::shared_ptr<Op>;
@@ -110,6 +113,7 @@ namespace nx::graph {
     public:
         InitializerOp(const ArrayData &data) : Op(data) {}
         Optype get_optype() const override { return Optype::INITIALIZER; }
+        const std::string optype_str() const override { return "initializer"; }
     };
 
     struct Nop : public InitializerOp {
@@ -130,34 +134,32 @@ namespace nx::graph {
 
     struct ArangeOp : public InitializerOp {
     private:
-        ShapeView m_view;
         isize m_start;
         isize m_step;
 
     public:
         inline static const std::string s_opname = "arange";
-        ArangeOp(const ArrayData &data, const ShapeView &view, isize start, isize step) : InitializerOp(data), m_view(view), m_start(start), m_step(step) {}
+        ArangeOp(const ArrayData &data, isize start, isize step) : InitializerOp(data), m_start(start), m_step(step) {}
         Opcode get_opcode() const override { return Opcode::ARANGE; }
         const std::string &get_opname() const override { return s_opname; }
-        const ShapeView &get_view() const { return m_view; }
         isize get_start() const { return m_start; }
         isize get_step() const { return m_step; }
-        const std::string str() const override { return std::format("{}, view: {}, start: {}, step: {}", InitializerOp::str(), join_nums(m_view), m_start, m_step); }
+        const std::string str() const override { return std::format("{}, start: {}, step: {}", InitializerOp::str(), m_start, m_step); }
+        const std::string repr() const override { return std::format("{}\\nStart: {}\\nStep: {}", InitializerOp::repr(), m_start, m_step); }
     };
 
     struct FullOp : public InitializerOp {
     private:
-        ShapeView m_view;
         isize m_const;
 
     public:
         inline static const std::string s_opname = "full";
-        FullOp(const ArrayData &data, const ShapeView &view, isize constant) : InitializerOp(data), m_view(view), m_const(constant) {}
+        FullOp(const ArrayData &data, isize constant) : InitializerOp(data), m_const(constant) {}
         Opcode get_opcode() const override { return Opcode::FULL; }
         const std::string &get_opname() const override { return s_opname; }
-        const ShapeView &get_view() const { return m_view; }
         isize get_const() const { return m_const; }
-        const std::string str() const override { return std::format("{}, view: {}, value: {}", InitializerOp::str(), join_nums(m_view), m_data.get_dtype()->value_str(m_const)); }
+        const std::string str() const override { return std::format("{}, value: {}", InitializerOp::str(), m_data.get_dtype()->value_str(m_const)); }
+        const std::string repr() const override { return std::format("{}\\nValue: {}", InitializerOp::repr(), m_data.get_dtype()->value_str(m_const)); }
     };
 
     struct UnaryOp : public Op {
@@ -168,9 +170,11 @@ namespace nx::graph {
     public:
         UnaryOp(const ArrayData &data, OpPtr operand, bool in_place) : Op(data), m_operand(operand), m_in_place(in_place) {}
         Optype get_optype() const override { return Optype::UNARY; }
+        const std::string optype_str() const override { return "unary"; }
         OpPtr get_operand() { return m_operand; }
         bool is_in_place() const { return m_in_place; }
-        const std::string str() const override { return std::format("{}, in-place: {}, operand: {}", Op::str(), m_in_place, m_operand->get_data().get_id().str()); }
+        const std::string str() const override { return std::format("{}, in-place: {}, operand: {}", Op::str(), m_in_place, m_operand->get_data().get_id()); }
+        const std::string repr() const override { return std::format("{}\\nIn-place: {}\\nOperand: {}", Op::repr(), m_in_place, m_operand->get_data().get_id()); }
     };
 
     struct BinaryOp : public Op {
@@ -182,10 +186,12 @@ namespace nx::graph {
     public:
         BinaryOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, BinaryMode mode) : Op(data), m_lhs(lhs), m_rhs(rhs), m_mode(mode) {}
         Optype get_optype() const override { return Optype::BINARY; }
+        const std::string optype_str() const override { return "binary"; }
         OpPtr get_lhs() { return m_lhs; }
         OpPtr get_rhs() { return m_rhs; }
         BinaryMode get_mode() const { return m_mode; }
-        const std::string str() const override { return std::format("{}, lhs: {}, rhs: {}", Op::str(), m_lhs->get_data().get_id().str(), m_rhs->get_data().get_id().str()); }
+        const std::string str() const override { return std::format("{}, lhs: {}, rhs: {}", Op::str(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
+        const std::string repr() const override { return std::format("{}\\nLHS: {}\\nRHS: {}", Op::repr(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
     };
 
     struct ElmwiseBinaryOp : public BinaryOp {
@@ -195,7 +201,8 @@ namespace nx::graph {
     public:
         ElmwiseBinaryOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : BinaryOp(data, lhs, rhs, BinaryMode::ELMWISE), m_in_place(in_place) {}
         bool is_in_place() const { return m_in_place; }
-        const std::string str() const override { return std::format("{}, in-place: {}, lhs: {}, rhs: {}", Op::str(), m_in_place, m_lhs->get_data().get_id().str(), m_rhs->get_data().get_id().str()); }
+        const std::string str() const override { return std::format("{}, in-place: {}, lhs: {}, rhs: {}", Op::str(), m_in_place, m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
+        const std::string repr() const override { return std::format("{}\\nIn-place: {}\\nLHS: {}\\nRHS: {}", Op::repr(), m_in_place, m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
     };
 
     struct CmpOp : public BinaryOp {
@@ -210,8 +217,10 @@ namespace nx::graph {
     public:
         TransformOp(const ArrayData &data, OpPtr operand) : Op(data), m_operand(operand) {}
         Optype get_optype() const override { return Optype::TRANSFORM; }
+        const std::string optype_str() const override { return "transform"; }
         OpPtr get_operand() { return m_operand; }
-        const std::string str() const override { return std::format("{}, operand: {}", Op::str(), m_operand->get_data().get_id().str()); }
+        const std::string str() const override { return std::format("{}, operand: {}", Op::str(), m_operand->get_data().get_id()); }
+        const std::string repr() const override { return std::format("{}\\nOperand: {}", Op::repr(), m_operand->get_data().get_id()); }
     };
 
     struct ReduceOp : public Op {
@@ -223,10 +232,12 @@ namespace nx::graph {
     public:
         ReduceOp(const ArrayData &data, OpPtr operand, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) : Op(data), m_operand(operand), m_remaining_dims(remaining_dims), m_reduce_dims(reduce_dims) {}
         Optype get_optype() const override { return Optype::REDUCE; }
+        const std::string optype_str() const override { return "reduce"; }
         OpPtr get_operand() { return m_operand; }
         const ShapeDims &get_remaining_dims() const { return m_remaining_dims; }
         const ShapeDims &get_reduce_dims() const { return m_reduce_dims; }
-        const std::string str() const override { return std::format("{}, operand: {}, kept dims: {}, reduce dims: {}", Op::str(), m_operand->get_data().get_id().str(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
+        const std::string str() const override { return std::format("{}, operand: {}, remaining dims: {}, reduce dims: {}", Op::str(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
+        const std::string repr() const override { return std::format("{}\\nOperand: {}\\nRemaining dims: {}\\nReduce dims: {}", Op::repr(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
     };
 
     struct AddOp : public ElmwiseBinaryOp {
@@ -404,16 +415,11 @@ namespace nx::graph {
     };
 
     struct ReshapeOp : public TransformOp {
-    private:
-        ShapeView m_view;
-
     public:
         inline static const std::string s_opname = "reshape";
-        ReshapeOp(const ArrayData &data, OpPtr operand, const ShapeView &view) : TransformOp(data, operand), m_view(view) {}
-        const ShapeView &get_view() const { return m_view; }
+        ReshapeOp(const ArrayData &data, OpPtr operand) : TransformOp(data, operand) {}
         Opcode get_opcode() const override { return Opcode::RESHAPE; }
         const std::string &get_opname() const override { return s_opname; }
-        const std::string str() const override { return std::format("{}, view: ({})", TransformOp::str(), join_nums(m_view)); }
         void grad_fn() const override;
     };
 
@@ -432,6 +438,10 @@ namespace nx::graph {
             return std::format("{}, ranges: ({})", TransformOp::str(), join<Range>(m_ranges, [](Range range) { return range.str(); }));
         }
 
+        const std::string repr() const override {
+            return std::format("{}\\nRanges: ({})", TransformOp::repr(), join<Range>(m_ranges, [](Range range) { return range.str(); }));
+        }
+
         void grad_fn() const override;
     };
 
@@ -446,24 +456,24 @@ namespace nx::graph {
         Opcode get_opcode() const override { return Opcode::PERMUTE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, permutation: ({})", TransformOp::str(), join_nums(m_dims)); }
+        const std::string repr() const override { return std::format("{}\\nPermutation: ({})", TransformOp::repr(), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
     struct BroadcastOp : public TransformOp {
     private:
         ShapeView m_input_view;
-        ShapeView m_output_view;
         ShapeDims m_dims;
 
     public:
         inline static const std::string s_opname = "broadcast";
-        BroadcastOp(const ArrayData &data, OpPtr operand, const ShapeView &input_view, const ShapeView &output_view, const ShapeDims &dims) : TransformOp(data, operand), m_input_view(input_view), m_output_view(output_view), m_dims(dims) {}
+        BroadcastOp(const ArrayData &data, OpPtr operand, const ShapeView &input_view, const ShapeDims &dims) : TransformOp(data, operand), m_input_view(input_view), m_dims(dims) {}
         const ShapeView &get_input_view() const { return m_input_view; }
-        const ShapeView &get_output_view() const { return m_output_view; }
         const ShapeDims &get_dims() const { return m_dims; }
         Opcode get_opcode() const override { return Opcode::BROADCAST; }
         const std::string &get_opname() const override { return s_opname; }
-        const std::string str() const override { return std::format("{}, input view: ({}), output view: ({})", TransformOp::str(), join_nums(m_input_view), join_nums(m_output_view)); }
+        const std::string str() const override { return std::format("{}, input view: ({}), dims: ({})", TransformOp::str(), join_nums(m_input_view), join_nums(m_dims)); }
+        const std::string repr() const override { return std::format("{}\\nInput view: ({})\\nDims: ({})", TransformOp::repr(), join_nums(m_input_view), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -478,6 +488,7 @@ namespace nx::graph {
         Opcode get_opcode() const override { return Opcode::SQUEEZE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dims: ({})", TransformOp::str(), join_nums(m_dims)); }
+        const std::string repr() const override { return std::format("{}\\nDims: ({})", TransformOp::repr(), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -492,6 +503,7 @@ namespace nx::graph {
         Opcode get_opcode() const override { return Opcode::UNSQUEEZE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dims: ({})", TransformOp::str(), join_nums(m_dims)); }
+        const std::string repr() const override { return std::format("{}\\nDims: ({})", TransformOp::repr(), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -506,6 +518,7 @@ namespace nx::graph {
         Opcode get_opcode() const override { return Opcode::ASTYPE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dtype: {}", TransformOp::str(), m_dtype->str()); }
+        const std::string repr() const override { return std::format("{}\\nDtype: {}", TransformOp::repr(), m_dtype->str()); }
     };
 
     struct SumOp : public ReduceOp {
@@ -551,3 +564,12 @@ namespace nx::graph {
         const std::string &get_opname() const override { return s_opname; }
     };
 } // namespace nx::graph
+
+namespace std {
+    template <>
+    struct formatter<nx::graph::OpPtr> : formatter<string> {
+        auto format(nx::graph::OpPtr op, format_context &ctx) const {
+            return formatter<string>::format(op->str(), ctx);
+        }
+    };
+} // namespace std

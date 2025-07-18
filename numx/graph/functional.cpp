@@ -5,7 +5,7 @@ namespace nx::graph {
         const ArrayData &data = op->get_data();
 
         if (data.get_numel() != 1) {
-            throw std::runtime_error(std::format("Array {} must have exactly one element but has {} elements.", data.get_id().str(), data.get_numel()));
+            throw std::runtime_error(std::format("Array {} must have exactly one element but has {} elements.", data.get_id(), data.get_numel()));
         }
 
         ArrayIterator iter(data);
@@ -40,7 +40,7 @@ namespace nx::graph {
     OpPtr ones_like(OpPtr in_op) { return full_like(in_op, 1); }
 
     OpPtr arange(const ShapeView &view, isize start, isize step, DtypePtr dtype, DevicePtr device) {
-        return std::make_shared<ArangeOp>(ArrayData(Shape(view), dtype, device), view, start, step);
+        return std::make_shared<ArangeOp>(ArrayData(Shape(view), dtype, device), start, step);
     }
 
     OpPtr broadcast(OpPtr in_op, const ShapeView &view) {
@@ -59,7 +59,7 @@ namespace nx::graph {
         }
 
         const ArrayData out_data(broadcast_shape, in_data.get_dtype(), in_data.get_device());
-        return std::make_shared<BroadcastOp>(out_data, in_op, in_view, view, broadcast_dims);
+        return std::make_shared<BroadcastOp>(out_data, in_op, in_view, broadcast_dims);
     }
 
     OpPtr broadcast_to(OpPtr in_op, const ShapeView &view) {
@@ -78,7 +78,7 @@ namespace nx::graph {
         }
 
         const ArrayData out_data(broadcast_shape, in_data.get_dtype(), in_data.get_device());
-        return std::make_shared<BroadcastOp>(out_data, in_op, in_view, view, broadcast_dims);
+        return std::make_shared<BroadcastOp>(out_data, in_op, in_view, broadcast_dims);
     }
 
     OpPtr slice(OpPtr in_op, const RangeVec &ranges) {
@@ -189,7 +189,7 @@ namespace nx::graph {
         }
 
         const ArrayData out_data(in_data.get_shape().reshape(view), in_data.get_dtype(), in_data.get_device());
-        return std::make_shared<ReshapeOp>(out_data, in_op, view);
+        return std::make_shared<ReshapeOp>(out_data, in_op);
     }
 
     OpPtr permute(OpPtr in_op, const ShapeDims &dims) {

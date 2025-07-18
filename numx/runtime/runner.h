@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graph/graph.h"
+#include "profiler.h"
 #include "runtime_context.h"
 
 namespace nx::runtime {
@@ -8,6 +8,7 @@ namespace nx::runtime {
     protected:
         GraphPtr m_graph;
         RuntimeContextPtr m_ctx;
+        ProfilerPtr m_profiler;
 
         virtual void run_full_kernel(OpPtr op, isize constant) = 0;
         virtual void run_arange_kernel(OpPtr op, isize start, isize step) = 0;
@@ -25,10 +26,11 @@ namespace nx::runtime {
         void run_op(OpPtr op);
 
     public:
-        Runner(GraphPtr graph, RuntimeContextPtr ctx) : m_graph(graph), m_ctx(ctx) {}
+        Runner(GraphPtr graph, RuntimeContextPtr ctx, ProfilerPtr profiler) : m_graph(graph), m_ctx(ctx), m_profiler(profiler) {}
         Runner(const Runner &) = delete;
         virtual ~Runner() = default;
         Runner &operator=(const Runner &) = delete;
+        ProfilerPtr get_profiler() { return m_profiler; }
         void forward();
         void backward();
     };

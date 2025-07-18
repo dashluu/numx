@@ -8,8 +8,19 @@
 #endif
 
 namespace nx::array {
+    Backend &Backend::get_instance() {
+        static Backend instance;
+        instance.init();
+        return instance;
+    }
+
+    void Backend::use_profiler(ProfilerPtr profiler) {
+        get_instance().m_profiler = profiler;
+    }
+
     void Backend::init() {
         if (m_device_by_name.size() > 0) {
+            // This ensures backend is initialized once
             return;
         }
 
@@ -46,15 +57,15 @@ namespace nx::array {
             ctx->init_kernels();
             m_ctx_by_device_name.emplace(device->get_name(), ctx);
 
-            m_runner_factory_by_device_name.emplace(device->get_name(), [](GraphPtr graph, RuntimeContextPtr ctx) -> RunnerPtr {
-                return std::make_shared<nx::runtime::metal::MTLRunner>(graph, ctx);
+            m_runner_factory_by_device_name.emplace(device->get_name(), [](GraphPtr graph, RuntimeContextPtr ctx, ProfilerPtr profiler) -> RunnerPtr {
+                return std::make_shared<nx::runtime::metal::MTLRunner>(graph, ctx, profiler);
             });
 
             m_graph_factory_by_device_name.emplace(device->get_name(), [](OpPtr op) -> GraphPtr {
                 return std::make_shared<nx::graph::Graph>(op);
             });
 
-            std::println("Initialized device {}...", device->get_name());
+            std::println("Initialized device {}...", *device);
         }
 
         pool->release();

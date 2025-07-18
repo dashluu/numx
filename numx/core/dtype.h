@@ -24,7 +24,9 @@ namespace nx::core {
     };
 
     struct Dtype {
-    private:
+        using DtypePtr = const Dtype *;
+
+    protected:
         DtypeName m_name;
         DtypeCategory m_category;
         isize m_size;
@@ -44,7 +46,8 @@ namespace nx::core {
         bool is_numeric() const { return has_category(DtypeCategory::NUMERIC); }
         isize get_size() const { return m_size; }
         bool operator==(const Dtype &dtype) const { return m_name == dtype.m_name; }
-        std::string str() const { return get_name_str(); }
+        const std::string str() const { return get_name_str(); }
+        friend std::ostream &operator<<(std::ostream &os, DtypePtr dtype) { return os << dtype->str(); }
         virtual std::string value_str(uint8_t *ptr) const = 0;
         virtual std::string value_str(isize val) const = 0;
         virtual isize bit_cast(uint8_t *ptr) const = 0;
@@ -52,6 +55,8 @@ namespace nx::core {
         virtual isize max() const = 0;
         virtual isize min() const = 0;
     };
+
+    using DtypePtr = const Dtype *;
 
     template <class T>
     struct Float : public Dtype {
@@ -137,8 +142,6 @@ namespace nx::core {
         isize min() const override { return std::numeric_limits<bool>::min(); }
     };
 
-    using DtypePtr = const Dtype *;
-
     inline const F32 f32;
     inline const F64 f64;
     inline const I8 i8;
@@ -175,3 +178,12 @@ namespace nx::core {
         return static_cast<bool>(constant);
     }
 } // namespace nx::core
+
+namespace std {
+    template <>
+    struct formatter<nx::core::DtypePtr> : formatter<string> {
+        auto format(nx::core::DtypePtr dtype, format_context &ctx) const {
+            return formatter<string>::format(dtype->str(), ctx);
+        }
+    };
+} // namespace std

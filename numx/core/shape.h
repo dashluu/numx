@@ -1,7 +1,6 @@
 #pragma once
 
 #include "range.h"
-#include <set>
 
 namespace nx::core {
     using ShapeView = std::vector<isize>;
@@ -435,10 +434,20 @@ namespace nx::core {
 
         bool operator==(const Shape &shape) const { return m_view == shape.m_view; }
         isize operator[](isize dim) const { return m_view[dim]; }
-        const std::string str() const { return std::format("offset: {}, view: ({}), stride: ({})", m_offset, join_nums(m_view), join_nums(m_stride)); }
         ShapeView::const_iterator cbegin() const { return m_view.cbegin(); }
         ShapeView::const_iterator cend() const { return m_view.cend(); }
         ShapeView::const_reverse_iterator crbegin() const { return m_view.crbegin(); }
         ShapeView::const_reverse_iterator crend() const { return m_view.crend(); }
+        const std::string str() const { return std::format("offset: {}, view: ({}), stride: ({})", m_offset, join_nums(m_view), join_nums(m_stride)); }
+        friend std::ostream &operator<<(std::ostream &os, const Shape &shape) { return os << shape.str(); }
     };
 } // namespace nx::core
+
+namespace std {
+    template <>
+    struct formatter<nx::core::Shape> : formatter<string> {
+        auto format(const nx::core::Shape &shape, format_context &ctx) const {
+            return formatter<string>::format(shape.str(), ctx);
+        }
+    };
+} // namespace std
