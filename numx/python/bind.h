@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../array/array.h"
+#include "../nn/nn.h"
+#include "../nn/optim.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -15,6 +16,10 @@ namespace nx::bind {
 
 namespace nb = nanobind;
 namespace nxc = nx::core;
+namespace nxr = nx::runtime;
+namespace nxp = nx::profiler;
 namespace nxa = nx::array;
+namespace nxn = nx::nn;
+namespace nxo = nx::optim;
 namespace nxb = nx::bind;
 using namespace nb::literals;

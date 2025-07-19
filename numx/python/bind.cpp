@@ -1,7 +1,11 @@
 #include "array.h"
+#include "optim.h"
 
 NB_MODULE(arrayx, m) {
     auto m_core = m.def_submodule("core", "Core module");
+    auto m_profiler = m.def_submodule("profiler", "Profiler module");
+    auto m_nn = m.def_submodule("nn", "Neural network module");
+    auto m_optim = m.def_submodule("optim", "Optimizer module");
 
     // Dtype class and operations
     nb::enum_<nxc::DtypeCategory>(m_core, "DtypeCategory")
@@ -44,6 +48,18 @@ NB_MODULE(arrayx, m) {
         .def_prop_ro("id", &nxc::Device::get_id, "Get device's ID")
         .def_prop_ro("name", &nxc::Device::get_name, "Get device's name")
         .def("__str__", &nxc::Device::str, "String representation of device");
+
+    nb::class_<nxp::Profiler>(m_profiler, "Profiler")
+        .def(nb::init<>(), "Profiler")
+        .def("record_alloc", &nxp::Profiler::record_alloc, "Record array's memory allocation")
+        .def("record_free", &nxp::Profiler::record_free, "Record array's memory deallocation")
+        .def("print_memory_profile", &nxp::Profiler::print_memory_profile, "Log memory profile to the console")
+        .def("print_graph_profile", &nxp::Profiler::print_graph_profile, "Log computational graph profile to the console")
+        .def("write_memory_profile", &nxp::Profiler::write_memory_profile, "Log memory profile to a file")
+        .def("write_graph_profile", &nxp::Profiler::write_graph_profile, "Log computational graph profile to a file");
+
+    nb::class_<nxa::Backend>(m_core, "Backend")
+        .def_static("use_profiler", &nxa::Backend::use_profiler, "profiler"_a, "Configure profiler for the backend");
 
     // Array class
     nb::class_<nxa::Array>(m_core, "Array")
@@ -142,4 +158,18 @@ NB_MODULE(arrayx, m) {
 
         // String representation
         .def("__str__", &nxa::Array::str, "String representation of array");
+
+    nb::class_<nxo::Optimizer, nxb::PyOptimizer>(m_optim, "Optimizer")
+        .def(nb::init<float>(), "lr"_a = 1e-3, "Base optimizer")
+        .def("forward", &nxo::Optimizer::forward, "Parameter update function")
+        .def("update", &nxo::Optimizer::update, "arrays"_a, "Update module parameters");
+
+    nb::class_<nxo::GradientDescent, nxo::Optimizer>(m_optim, "GradientDescent")
+        .def(nb::init<float>(), "lr"_a = 1e-3, "Gradient Descent optimizer");
+
+    m_nn.def("linear", &nxn::linear, "x"_a, "weight"_a, "Functional linear without bias");
+    m_nn.def("linear_with_bias", &nxn::linear_with_bias, "x"_a, "weight"_a, "bias"_a, "Functional linear with bias");
+    m_nn.def("relu", &nxn::relu, "x"_a, "ReLU activation function");
+    m_nn.def("onehot", &nxn::onehot, "x"_a, "num_classes"_a = -1, "One-hot encode input array");
+    m_nn.def("cross_entropy_loss", &nxn::cross_entropy_loss, "x"_a, "y"_a, "Compute cross-entropy loss between input x and target y");
 }

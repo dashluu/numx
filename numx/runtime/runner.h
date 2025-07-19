@@ -1,9 +1,11 @@
 #pragma once
 
-#include "profiler.h"
+#include "../profiler/profiler.h"
 #include "runtime_context.h"
 
 namespace nx::runtime {
+    using namespace nx::profiler;
+
     class Runner : public std::enable_shared_from_this<Runner> {
     protected:
         GraphPtr m_graph;

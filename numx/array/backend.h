@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../profiler/profiler.h"
 #include "../runtime/runner.h"
 #include "../runtime/runtime_context.h"
 
@@ -8,6 +9,7 @@ namespace nx::array {
     using namespace nx::core;
     using namespace nx::graph;
     using namespace nx::runtime;
+    using namespace nx::profiler;
     using RunnerFactory = std::function<RunnerPtr(GraphPtr, RuntimeContextPtr, ProfilerPtr)>;
     using GraphFactory = std::function<GraphPtr(OpPtr)>;
 

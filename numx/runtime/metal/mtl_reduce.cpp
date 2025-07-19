@@ -77,7 +77,7 @@ namespace nx::runtime::metal {
         permutation_dims.reserve(remaining_dims.size() + reduce_dims.size());
         permutation_dims.insert(permutation_dims.end(), remaining_dims.begin(), remaining_dims.end());
         permutation_dims.insert(permutation_dims.end(), reduce_dims.begin(), reduce_dims.end());
-        // Detach input op so the computation graph is not affected
+        // Detach input op so the computational graph is not affected
         OpPtr permutation_op = permute(detach(in_op), permutation_dims);
         const ArrayData &permutation_data = permutation_op->get_data();
         share_array_buffer(permutation_op, in_op);
