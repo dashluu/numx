@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../nn/nn.h"
-#include "../nn/optim.h"
+#include "../nn/functional.h"
+#include "../optim/optim.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
