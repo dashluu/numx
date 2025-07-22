@@ -43,6 +43,10 @@ namespace nx::graph {
         return std::make_shared<ArangeOp>(ArrayData(Shape(view), dtype, device), start, step);
     }
 
+    OpPtr uniform(const ShapeView &view, const RandomState &state, isize low, isize high, DtypePtr dtype, DevicePtr device) {
+        return std::make_shared<UniformOp>(ArrayData(Shape(view), dtype, device), state, low, high);
+    }
+
     OpPtr broadcast(OpPtr in_op, const ShapeView &view) {
         const ArrayData &in_data = in_op->get_data();
         const Shape &in_shape = in_data.get_shape();

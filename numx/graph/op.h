@@ -9,8 +9,8 @@ namespace nx::graph {
     enum struct Opcode {
         NOP,
         EMPTY,
-        RANDN,
         ARANGE,
+        UNIFORM,
         FULL,
         ADD,
         SUB,
@@ -160,6 +160,44 @@ namespace nx::graph {
         isize get_const() const { return m_const; }
         const std::string str() const override { return std::format("{}, value: {}", InitializerOp::str(), m_data.get_dtype()->value_str(m_const)); }
         const std::string repr() const override { return std::format("{}\\nValue: {}", InitializerOp::repr(), m_data.get_dtype()->value_str(m_const)); }
+    };
+
+    struct RandomState {
+        isize m_key, m_ctr;
+
+    public:
+        RandomState(isize key, isize ctr) : m_key(key), m_ctr(ctr) {}
+        RandomState(const RandomState &state) : m_key(state.m_key), m_ctr(state.m_ctr) {}
+        ~RandomState() = default;
+
+        RandomState &operator=(const RandomState &state) {
+            m_key = state.m_key;
+            m_ctr = state.m_ctr;
+            return *this;
+        }
+
+        isize get_key() const { return m_key; }
+        isize get_ctr() const { return m_ctr; }
+        const std::string str() const { return std::format("key: {}, ctr: {}", m_key, m_ctr); }
+        const std::string repr() const { return std::format("Key: {}\\nCtr: {}", m_key, m_ctr); }
+    };
+
+    struct UniformOp : public InitializerOp {
+    private:
+        RandomState m_state;
+        isize m_low;
+        isize m_high;
+
+    public:
+        inline static const std::string s_opname = "uniform";
+        UniformOp(const ArrayData &data, const RandomState &state, isize low, isize high) : InitializerOp(data), m_state(state), m_low(low), m_high(high) {}
+        Opcode get_opcode() const override { return Opcode::UNIFORM; }
+        const RandomState &get_state() const { return m_state; }
+        isize get_low() const { return m_low; }
+        isize get_high() const { return m_high; }
+        const std::string &get_opname() const override { return s_opname; }
+        const std::string str() const override { return std::format("{}, {}, low: {}, high: {}", InitializerOp::str(), m_state.str(), m_low, m_high); }
+        const std::string repr() const override { return std::format("{}\\n{}\\nLow: {}\\nHigh: {}", InitializerOp::repr(), m_state.repr(), m_low, m_high); }
     };
 
     struct UnaryOp : public Op {

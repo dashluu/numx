@@ -30,4 +30,7 @@ namespace nx::runtime::metal {
         encoder.wait_to_complete();
         pool->release();
     }
+
+    void MTLRunner::run_uniform_kernel(OpPtr op) {
+    }
 } // namespace nx::runtime::metal

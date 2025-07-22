@@ -16,6 +16,7 @@ namespace nx::graph {
     OpPtr ones_like(OpPtr in_op, DtypePtr dtype, DevicePtr device);
     OpPtr ones_like(OpPtr in_op);
     OpPtr arange(const ShapeView &view, isize start, isize step, DtypePtr dtype, DevicePtr device);
+    OpPtr uniform(const ShapeView &view, DtypePtr dtype, DevicePtr device);
     OpPtr broadcast(OpPtr in_op, const ShapeView &view);
     OpPtr broadcast_to(OpPtr in_op, const ShapeView &view);
     OpPtr slice(OpPtr in_op, const RangeVec &ranges);

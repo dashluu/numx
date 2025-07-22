@@ -15,6 +15,11 @@ namespace nx::runtime::metal {
             run_arange_kernel(op, arange_op->get_start(), arange_op->get_step());
             break;
         }
+        case Opcode::UNIFORM: {
+            alloc_array_buffer(op);
+            run_uniform_kernel(op);
+            break;
+        }
         case Opcode::EMPTY: {
             alloc_array_buffer(op);
             break;

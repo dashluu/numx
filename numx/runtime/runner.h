@@ -14,6 +14,7 @@ namespace nx::runtime {
 
         virtual void run_full_kernel(OpPtr op, isize constant) = 0;
         virtual void run_arange_kernel(OpPtr op, isize start, isize step) = 0;
+        virtual void run_uniform_kernel(OpPtr op) = 0;
         virtual void run_binary_kernel(OpPtr l_op, OpPtr r_op, OpPtr out_op) = 0;
         virtual void run_gemm_kernel(OpPtr l_op, OpPtr r_op, OpPtr out_op) = 0;
         virtual void run_unary_kernel(OpPtr in_op, OpPtr out_op) = 0;
