@@ -1,6 +1,6 @@
 #include "array_iter.h"
 
-namespace nx::core {
+namespace nx::primitive {
     uint8_t *ArrayData::get_elm_ptr(isize index) const {
         if (is_contiguous()) {
             return get_ptr() + index * get_itemsize();
@@ -65,4 +65,4 @@ namespace nx::core {
 
         return s;
     }
-} // namespace nx::core
+} // namespace nx::primitive

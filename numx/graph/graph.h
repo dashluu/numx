@@ -1,8 +1,11 @@
 #pragma once
 
-#include "functional.h"
+#include "../primitive/functional.h"
 
 namespace nx::graph {
+    using namespace nx::utils;
+    using namespace nx::primitive;
+
     class Graph : public std::enable_shared_from_this<Graph> {
     protected:
         OpPtr m_output;

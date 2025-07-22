@@ -3,8 +3,8 @@
 #include "../graph/graph.h"
 #include "../memory/block.h"
 
-namespace nx::profiler {
-    using namespace nx::core;
+namespace nx::instrument {
+    using namespace nx::primitive;
     using namespace nx::graph;
     using namespace nx::memory;
 
@@ -46,4 +46,4 @@ namespace nx::profiler {
             m_alive = false;
         }
     };
-} // namespace nx::profiler
+} // namespace nx::instrument

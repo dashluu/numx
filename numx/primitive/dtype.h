@@ -2,7 +2,7 @@
 
 #include "../utils.h"
 
-namespace nx::core {
+namespace nx::primitive {
     using namespace nx::utils;
 
     enum struct DtypeName {
@@ -177,12 +177,12 @@ namespace nx::core {
 
         return static_cast<bool>(constant);
     }
-} // namespace nx::core
+} // namespace nx::primitive
 
 namespace std {
     template <>
-    struct formatter<nx::core::DtypePtr> : formatter<string> {
-        auto format(nx::core::DtypePtr dtype, format_context &ctx) const {
+    struct formatter<nx::primitive::DtypePtr> : formatter<string> {
+        auto format(nx::primitive::DtypePtr dtype, format_context &ctx) const {
             return formatter<string>::format(dtype->str(), ctx);
         }
     };

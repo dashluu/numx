@@ -2,7 +2,7 @@
 
 #include "op.h"
 
-namespace nx::graph {
+namespace nx::primitive {
     isize item(OpPtr op);
     OpPtr detach(OpPtr op);
     OpPtr from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device);
@@ -301,4 +301,4 @@ namespace nx::graph {
         out_op = std::make_shared<O>(out_data, in_op, remaining_dims, reduce_dims);
         return out_op;
     }
-}
+} // namespace nx::primitive

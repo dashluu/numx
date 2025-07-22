@@ -2,7 +2,7 @@
 
 #include "memory_snapshot_info.h"
 
-namespace nx::profiler {
+namespace nx::instrument {
     class Profiler : public std::enable_shared_from_this<Profiler> {
     private:
         size_t peak_memory = 0;
@@ -30,4 +30,4 @@ namespace nx::profiler {
     };
 
     using ProfilerPtr = std::shared_ptr<Profiler>;
-} // namespace nx::profiler
+} // namespace nx::instrument

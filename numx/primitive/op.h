@@ -1,11 +1,8 @@
 #pragma once
 
-#include "../core/array_iter.h"
+#include "array_iter.h"
 
-namespace nx::graph {
-    using namespace nx::utils;
-    using namespace nx::core;
-
+namespace nx::primitive {
     enum struct Opcode {
         NOP,
         EMPTY,
@@ -601,12 +598,12 @@ namespace nx::graph {
         Opcode get_opcode() const override { return Opcode::ARGMIN; }
         const std::string &get_opname() const override { return s_opname; }
     };
-} // namespace nx::graph
+} // namespace nx::primitive
 
 namespace std {
     template <>
-    struct formatter<nx::graph::OpPtr> : formatter<string> {
-        auto format(nx::graph::OpPtr op, format_context &ctx) const {
+    struct formatter<nx::primitive::OpPtr> : formatter<string> {
+        auto format(nx::primitive::OpPtr op, format_context &ctx) const {
             return formatter<string>::format(op->str(), ctx);
         }
     };

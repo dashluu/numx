@@ -1,7 +1,7 @@
 #include "op.h"
 #include "functional.h"
 
-namespace nx::graph {
+namespace nx::primitive {
     void Op::zero_grad() {
         if (!m_grad) {
             m_grad = zeros_like(nonconst_from_this());
@@ -280,4 +280,4 @@ namespace nx::graph {
         }
     }
 
-} // namespace nx::graph
+} // namespace nx::primitive

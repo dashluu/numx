@@ -2,7 +2,7 @@
 
 #include "../utils.h"
 
-namespace nx::core {
+namespace nx::primitive {
     using namespace nx::utils;
 
     enum struct DeviceType {
@@ -46,12 +46,12 @@ namespace nx::core {
 
     using DevicePtr = std::shared_ptr<Device>;
     const std::string default_device_name = "mps:0";
-} // namespace nx::core
+} // namespace nx::primitive
 
 namespace std {
     template <>
-    struct formatter<nx::core::Device> : formatter<string> {
-        auto format(const nx::core::Device &device, format_context &ctx) const {
+    struct formatter<nx::primitive::Device> : formatter<string> {
+        auto format(const nx::primitive::Device &device, format_context &ctx) const {
             return formatter<string>::format(device.str(), ctx);
         }
     };

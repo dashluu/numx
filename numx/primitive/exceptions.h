@@ -3,7 +3,7 @@
 #include "../utils.h"
 #include <stdexcept>
 
-namespace nx::core {
+namespace nx::primitive {
     using namespace nx::utils;
 
     class IncompatShapesForOp : public std::invalid_argument {
@@ -35,4 +35,4 @@ namespace nx::core {
     public:
         NanobindInvalidArgumentType(const std::string input_argtype, const std::string &expected_argtype) : std::invalid_argument(std::format("Expected an argument of type {} but received an argument of type {}.", expected_argtype, input_argtype)) {}
     };
-} // namespace nx::core
+} // namespace nx::primitive

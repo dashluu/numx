@@ -15,10 +15,10 @@ namespace nx::bind {
 }
 
 namespace nb = nanobind;
-namespace nxc = nx::core;
+namespace nxp = nx::primitive;
 namespace nxr = nx::runtime;
-namespace nxp = nx::profiler;
-namespace nxa = nx::array;
+namespace nxi = nx::instrument;
+namespace nxc = nx::core;
 namespace nxn = nx::nn;
 namespace nxo = nx::optim;
 namespace nxb = nx::bind;

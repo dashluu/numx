@@ -2,7 +2,7 @@
 
 #include "range.h"
 
-namespace nx::core {
+namespace nx::primitive {
     using ShapeView = std::vector<isize>;
     using ShapeStride = std::vector<isize>;
     using ShapeDims = std::vector<isize>;
@@ -441,12 +441,12 @@ namespace nx::core {
         const std::string str() const { return std::format("offset: {}, view: ({}), stride: ({})", m_offset, join_nums(m_view), join_nums(m_stride)); }
         friend std::ostream &operator<<(std::ostream &os, const Shape &shape) { return os << shape.str(); }
     };
-} // namespace nx::core
+} // namespace nx::primitive
 
 namespace std {
     template <>
-    struct formatter<nx::core::Shape> : formatter<string> {
-        auto format(const nx::core::Shape &shape, format_context &ctx) const {
+    struct formatter<nx::primitive::Shape> : formatter<string> {
+        auto format(const nx::primitive::Shape &shape, format_context &ctx) const {
             return formatter<string>::format(shape.str(), ctx);
         }
     };

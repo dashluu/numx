@@ -8,7 +8,7 @@
 #include "range.h"
 #include "shape.h"
 
-namespace nx::core {
+namespace nx::primitive {
     struct ArrayData {
     private:
         static ArrayIdGenerator s_id_gen;
@@ -62,12 +62,12 @@ namespace nx::core {
     };
 
     inline ArrayIdGenerator ArrayData::s_id_gen = ArrayIdGenerator();
-}; // namespace nx::core
+}; // namespace nx::primitive
 
 namespace std {
     template <>
-    struct formatter<nx::core::ArrayData> : formatter<string> {
-        auto format(const nx::core::ArrayData &data, format_context &ctx) const {
+    struct formatter<nx::primitive::ArrayData> : formatter<string> {
+        auto format(const nx::primitive::ArrayData &data, format_context &ctx) const {
             return formatter<string>::format(data.str(), ctx);
         }
     };

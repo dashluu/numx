@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../array/array.h"
+#include "../core/array.h"
 
 namespace nx::optim {
-    using namespace nx::array;
+    using namespace nx::core;
 
     class Optimizer {
     protected:

@@ -2,7 +2,7 @@
 
 #include "backend.h"
 
-namespace nx::array {
+namespace nx::core {
     struct Array {
     private:
         OpPtr m_op = nullptr;
@@ -295,12 +295,12 @@ namespace nx::array {
     }
 
     using ArrayVec = std::vector<Array>;
-} // namespace nx::array
+} // namespace nx::core
 
 namespace std {
     template <>
-    struct formatter<nx::array::Array> : formatter<string> {
-        auto format(nx::array::Array &array, format_context &ctx) const {
+    struct formatter<nx::core::Array> : formatter<string> {
+        auto format(nx::core::Array &array, format_context &ctx) const {
             return formatter<string>::format(array.str(), ctx);
         }
     };

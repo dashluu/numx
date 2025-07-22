@@ -2,7 +2,7 @@
 
 #include "../utils.h"
 
-namespace nx::core {
+namespace nx::primitive {
     using namespace nx::utils;
 
     struct ArrayId {
@@ -39,21 +39,21 @@ namespace nx::core {
     };
 
     inline isize ArrayIdGenerator::s_counter = 1;
-} // namespace nx::core
+} // namespace nx::primitive
 
 namespace std {
     template <>
-    struct hash<nx::core::ArrayId> {
-        std::size_t operator()(const nx::core::ArrayId &id) const {
-            return std::hash<nx::core::isize>()(id.get_data());
+    struct hash<nx::primitive::ArrayId> {
+        std::size_t operator()(const nx::primitive::ArrayId &id) const {
+            return std::hash<nx::primitive::isize>()(id.get_data());
         }
     };
 } // namespace std
 
 namespace std {
     template <>
-    struct formatter<nx::core::ArrayId> : formatter<string> {
-        auto format(const nx::core::ArrayId &id, format_context &ctx) const {
+    struct formatter<nx::primitive::ArrayId> : formatter<string> {
+        auto format(const nx::primitive::ArrayId &id, format_context &ctx) const {
             return formatter<string>::format(id.str(), ctx);
         }
     };

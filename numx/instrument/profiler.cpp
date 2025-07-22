@@ -1,6 +1,6 @@
 #include "profiler.h"
 
-namespace nx::profiler {
+namespace nx::instrument {
     void Profiler::stream_node(std::ostream &stream, OpPtr op) {
         const ArrayData &data = op->get_data();
         stream << "{";
@@ -193,4 +193,4 @@ namespace nx::profiler {
 
         stream << "]}";
     }
-} // namespace nx::profiler
+} // namespace nx::instrument

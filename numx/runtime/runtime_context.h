@@ -5,7 +5,7 @@
 
 namespace nx::runtime {
     using namespace nx::utils;
-    using namespace nx::core;
+    using namespace nx::primitive;
     using namespace nx::graph;
     using namespace nx::memory;
 

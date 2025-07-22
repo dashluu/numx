@@ -1,6 +1,6 @@
 #include "array.h"
 
-namespace nx::array {
+namespace nx::core {
     Array::~Array() {
         if (m_graph) {
             AllocatorPtr allocator = get_context()->get_allocator();
@@ -58,4 +58,4 @@ namespace nx::array {
         m_graph->backward();
         m_runner->backward();
     }
-} // namespace nx::array
+} // namespace nx::core

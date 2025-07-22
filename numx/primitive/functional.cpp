@@ -1,6 +1,6 @@
 #include "functional.h"
 
-namespace nx::graph {
+namespace nx::primitive {
     isize item(OpPtr op) {
         const ArrayData &data = op->get_data();
 
@@ -259,4 +259,4 @@ namespace nx::graph {
         out_op = permute(out_op, out_view);
         return out_op;
     }
-} // namespace nx::graph
+} // namespace nx::primitive

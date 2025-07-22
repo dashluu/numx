@@ -2,7 +2,7 @@
 
 #include "array_data.h"
 
-namespace nx::core {
+namespace nx::primitive {
     struct ArrayIterator {
     private:
         ArrayData m_data;
@@ -24,4 +24,4 @@ namespace nx::core {
             return m_ptr;
         }
     };
-} // namespace nx::core
+} // namespace nx::primitive

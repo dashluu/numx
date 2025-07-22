@@ -2,7 +2,7 @@
 
 #include "../utils.h"
 
-namespace nx::core {
+namespace nx::primitive {
     using namespace nx::utils;
 
     struct Range {
@@ -32,12 +32,12 @@ namespace nx::core {
     };
 
     using RangeVec = std::vector<Range>;
-} // namespace nx::core
+} // namespace nx::primitive
 
 namespace std {
     template <>
-    struct formatter<nx::core::Range> : formatter<string> {
-        auto format(const nx::core::Range &range, format_context &ctx) const {
+    struct formatter<nx::primitive::Range> : formatter<string> {
+        auto format(const nx::primitive::Range &range, format_context &ctx) const {
             return formatter<string>::format(range.str(), ctx);
         }
     };

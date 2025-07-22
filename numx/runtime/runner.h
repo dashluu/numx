@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../profiler/profiler.h"
+#include "../instrument/profiler.h"
 #include "runtime_context.h"
 
 namespace nx::runtime {
-    using namespace nx::profiler;
+    using namespace nx::instrument;
 
     class Runner : public std::enable_shared_from_this<Runner> {
     protected:

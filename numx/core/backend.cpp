@@ -7,7 +7,7 @@
 #include "../runtime/metal/mtl_runner.h"
 #endif
 
-namespace nx::array {
+namespace nx::core {
     Backend &Backend::get_instance() {
         static Backend instance;
         instance.init();
@@ -103,4 +103,4 @@ namespace nx::array {
 
         return m_graph_factory_by_device_name.at(device_name);
     }
-} // namespace nx::array
+} // namespace nx::core

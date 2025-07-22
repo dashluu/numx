@@ -1,6 +1,7 @@
-#include "array/array.h"
+#include "core/array.h"
 
-using namespace nx::array;
+using namespace nx::core;
+using namespace nx::instrument;
 
 void run_test(ProfilerPtr profiler, const std::string &file_name) {
     auto x1 = Array::full({2, 3, 4}, 3);

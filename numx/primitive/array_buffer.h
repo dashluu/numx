@@ -2,7 +2,7 @@
 
 #include "../memory/block.h"
 
-namespace nx::core {
+namespace nx::primitive {
     using namespace nx::utils;
     using namespace nx::memory;
 
@@ -36,4 +36,4 @@ namespace nx::core {
             m_primary = false;
         }
     };
-} // namespace nx::core
+} // namespace nx::primitive

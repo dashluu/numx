@@ -1,15 +1,15 @@
 #pragma once
 
-#include "../profiler/profiler.h"
+#include "../instrument/profiler.h"
 #include "../runtime/runner.h"
 #include "../runtime/runtime_context.h"
 
-namespace nx::array {
+namespace nx::core {
     using namespace nx::utils;
-    using namespace nx::core;
+    using namespace nx::primitive;
     using namespace nx::graph;
     using namespace nx::runtime;
-    using namespace nx::profiler;
+    using namespace nx::instrument;
     using RunnerFactory = std::function<RunnerPtr(GraphPtr, RuntimeContextPtr, ProfilerPtr)>;
     using GraphFactory = std::function<GraphPtr(OpPtr)>;
 
@@ -37,4 +37,4 @@ namespace nx::array {
         static Backend &get_instance();
         static void use_profiler(ProfilerPtr profiler);
     };
-} // namespace nx::array
+} // namespace nx::core

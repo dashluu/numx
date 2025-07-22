@@ -3,82 +3,82 @@
 
 NB_MODULE(arrayx, m) {
     auto m_core = m.def_submodule("core", "Core module");
-    auto m_profiler = m.def_submodule("profiler", "Profiler module");
+    auto m_instrument = m.def_submodule("instrument", "Instrument module");
     auto m_nn = m.def_submodule("nn", "Neural network module");
     auto m_optim = m.def_submodule("optim", "Optimizer module");
 
     // Dtype class and operations
-    nb::enum_<nxc::DtypeCategory>(m_core, "DtypeCategory")
-        .value("BOOL", nxc::DtypeCategory::BOOL)
-        .value("INT", nxc::DtypeCategory::INT)
-        .value("FLOAT", nxc::DtypeCategory::FLOAT);
+    nb::enum_<nxp::DtypeCategory>(m_core, "DtypeCategory")
+        .value("BOOL", nxp::DtypeCategory::BOOL)
+        .value("INT", nxp::DtypeCategory::INT)
+        .value("FLOAT", nxp::DtypeCategory::FLOAT);
 
-    nb::class_<nxc::Dtype>(m_core, "Dtype")
-        .def_prop_ro("name", &nxc::Dtype::get_name_str, "Get data type's name as string")
-        .def_prop_ro("size", &nxc::Dtype::get_size, "Get data type's size in bytes")
-        .def_prop_ro("category", &nxc::Dtype::get_category, "Get data type's category")
-        .def("__str__", &nxc::Dtype::str, "String representation of dtype");
+    nb::class_<nxp::Dtype>(m_core, "Dtype")
+        .def_prop_ro("name", &nxp::Dtype::get_name_str, "Get data type's name as string")
+        .def_prop_ro("size", &nxp::Dtype::get_size, "Get data type's size in bytes")
+        .def_prop_ro("category", &nxp::Dtype::get_category, "Get data type's category")
+        .def("__str__", &nxp::Dtype::str, "String representation of dtype");
 
     // Derived dtype classes
-    nb::class_<nxc::F32, nxc::Dtype>(m_core, "F32", "32-bit floating point dtype");
-    nb::class_<nxc::I32, nxc::Dtype>(m_core, "I32", "32-bit integer dtype");
-    nb::class_<nxc::Bool, nxc::Dtype>(m_core, "Bool", "Boolean dtype");
+    nb::class_<nxp::F32, nxp::Dtype>(m_core, "F32", "32-bit floating point dtype");
+    nb::class_<nxp::I32, nxp::Dtype>(m_core, "I32", "32-bit integer dtype");
+    nb::class_<nxp::Bool, nxp::Dtype>(m_core, "Bool", "Boolean dtype");
 
     // Global dtype instances
-    m_core.attr("f32") = &nxc::f32;
-    m_core.attr("i32") = &nxc::i32;
-    m_core.attr("b8") = &nxc::b8;
+    m_core.attr("f32") = &nxp::f32;
+    m_core.attr("i32") = &nxp::i32;
+    m_core.attr("b8") = &nxp::b8;
 
     // Shape class
-    nb::class_<nxc::Shape>(m_core, "Shape")
-        .def_prop_ro("offset", &nxc::Shape::get_offset, "Get shape's offset")
-        .def_prop_ro("view", &nxc::Shape::get_view, "Get shape's view")
-        .def_prop_ro("stride", &nxc::Shape::get_stride, "Get shape's stride")
-        .def_prop_ro("ndim", &nxc::Shape::get_ndim, "Get shape's number of dimensions")
-        .def_prop_ro("numel", &nxc::Shape::get_numel, "Get shape's total number of elements")
-        .def("__str__", &nxc::Shape::str, "String representation of shape");
+    nb::class_<nxp::Shape>(m_core, "Shape")
+        .def_prop_ro("offset", &nxp::Shape::get_offset, "Get shape's offset")
+        .def_prop_ro("view", &nxp::Shape::get_view, "Get shape's view")
+        .def_prop_ro("stride", &nxp::Shape::get_stride, "Get shape's stride")
+        .def_prop_ro("ndim", &nxp::Shape::get_ndim, "Get shape's number of dimensions")
+        .def_prop_ro("numel", &nxp::Shape::get_numel, "Get shape's total number of elements")
+        .def("__str__", &nxp::Shape::str, "String representation of shape");
 
     // Device class
-    nb::enum_<nxc::DeviceType>(m_core, "DeviceType")
-        .value("CPU", nxc::DeviceType::CPU)
-        .value("MPS", nxc::DeviceType::MPS);
+    nb::enum_<nxp::DeviceType>(m_core, "DeviceType")
+        .value("CPU", nxp::DeviceType::CPU)
+        .value("MPS", nxp::DeviceType::MPS);
 
-    nb::class_<nxc::Device>(m_core, "Device")
-        .def_prop_ro("type", &nxc::Device::get_type, "Get device's type")
-        .def_prop_ro("id", &nxc::Device::get_id, "Get device's ID")
-        .def_prop_ro("name", &nxc::Device::get_name, "Get device's name")
-        .def("__str__", &nxc::Device::str, "String representation of device");
+    nb::class_<nxp::Device>(m_core, "Device")
+        .def_prop_ro("type", &nxp::Device::get_type, "Get device's type")
+        .def_prop_ro("id", &nxp::Device::get_id, "Get device's ID")
+        .def_prop_ro("name", &nxp::Device::get_name, "Get device's name")
+        .def("__str__", &nxp::Device::str, "String representation of device");
 
-    nb::class_<nxp::Profiler>(m_profiler, "Profiler")
+    nb::class_<nxi::Profiler>(m_instrument, "Profiler")
         .def(nb::init<>(), "Profiler")
-        .def("record_alloc", &nxp::Profiler::record_alloc, "Record array's memory allocation")
-        .def("record_free", &nxp::Profiler::record_free, "Record array's memory deallocation")
-        .def("print_memory_profile", &nxp::Profiler::print_memory_profile, "Log memory profile to the console")
-        .def("print_graph_profile", &nxp::Profiler::print_graph_profile, "Log computational graph profile to the console")
-        .def("write_memory_profile", &nxp::Profiler::write_memory_profile, "Log memory profile to a file")
-        .def("write_graph_profile", &nxp::Profiler::write_graph_profile, "Log computational graph profile to a file");
+        .def("record_alloc", &nxi::Profiler::record_alloc, "Record array's memory allocation")
+        .def("record_free", &nxi::Profiler::record_free, "Record array's memory deallocation")
+        .def("print_memory_profile", &nxi::Profiler::print_memory_profile, "Log memory profile to the console")
+        .def("print_graph_profile", &nxi::Profiler::print_graph_profile, "Log computational graph profile to the console")
+        .def("write_memory_profile", &nxi::Profiler::write_memory_profile, "Log memory profile to a file")
+        .def("write_graph_profile", &nxi::Profiler::write_graph_profile, "Log computational graph profile to a file");
 
-    nb::class_<nxa::Backend>(m_core, "Backend")
-        .def_static("use_profiler", &nxa::Backend::use_profiler, "profiler"_a, "Configure profiler for the backend");
+    nb::class_<nxc::Backend>(m_core, "Backend")
+        .def_static("use_profiler", &nxc::Backend::use_profiler, "profiler"_a, "Configure profiler for the backend");
 
     // Array class
-    nb::class_<nxa::Array>(m_core, "Array")
+    nb::class_<nxc::Array>(m_core, "Array")
         // Properties
-        .def_prop_ro("id", [](const nxa::Array &array) { return array.get_id().str(); }, "Get array's ID")
-        .def_prop_ro("shape", &nxa::Array::get_shape, "Get array's shape")
-        .def_prop_ro("dtype", &nxa::Array::get_dtype, "Get array's data type")
-        .def_prop_ro("device", &nxa::Array::get_device, "Get array's device")
-        .def_prop_ro("grad", &nxa::Array::get_grad, "Get array's gradient")
-        .def_prop_ro("ndim", &nxa::Array::get_ndim, "Get array's number of dimensions")
-        .def_prop_ro("numel", &nxa::Array::get_numel, "Get array's total number of elements")
-        .def_prop_ro("offset", &nxa::Array::get_offset, "Get array's offset")
-        .def_prop_ro("view", &nxa::Array::get_view, "Get array's view")
-        .def_prop_ro("stride", &nxa::Array::get_stride, "Get array's stride")
-        .def_prop_ro("ptr", &nxa::Array::get_ptr, "Get array's raw data pointer")
-        .def_prop_ro("itemsize", &nxa::Array::get_itemsize, "Get array's element size in bytes")
-        .def_prop_ro("nbytes", &nxa::Array::get_nbytes, "Get array's total size in bytes")
-        .def_prop_ro("is_contiguous", &nxa::Array::is_contiguous, "Check if array is contiguous")
-        .def_prop_rw("grad_enabled", &nxa::Array::is_grad_enabled, &nxa::Array::enable_grad, "enabled"_a, "Get/set array's gradient tracking, setter can only be used before compilation and forwarding, otherwise, there is no effect")
+        .def_prop_ro("id", [](const nxc::Array &array) { return array.get_id().str(); }, "Get array's ID")
+        .def_prop_ro("shape", &nxc::Array::get_shape, "Get array's shape")
+        .def_prop_ro("dtype", &nxc::Array::get_dtype, "Get array's data type")
+        .def_prop_ro("device", &nxc::Array::get_device, "Get array's device")
+        .def_prop_ro("grad", &nxc::Array::get_grad, "Get array's gradient")
+        .def_prop_ro("ndim", &nxc::Array::get_ndim, "Get array's number of dimensions")
+        .def_prop_ro("numel", &nxc::Array::get_numel, "Get array's total number of elements")
+        .def_prop_ro("offset", &nxc::Array::get_offset, "Get array's offset")
+        .def_prop_ro("view", &nxc::Array::get_view, "Get array's view")
+        .def_prop_ro("stride", &nxc::Array::get_stride, "Get array's stride")
+        .def_prop_ro("ptr", &nxc::Array::get_ptr, "Get array's raw data pointer")
+        .def_prop_ro("itemsize", &nxc::Array::get_itemsize, "Get array's element size in bytes")
+        .def_prop_ro("nbytes", &nxc::Array::get_nbytes, "Get array's total size in bytes")
+        .def_prop_ro("is_contiguous", &nxc::Array::is_contiguous, "Check if array is contiguous")
+        .def_prop_rw("grad_enabled", &nxc::Array::is_grad_enabled, &nxc::Array::enable_grad, "enabled"_a, "Get/set array's gradient tracking, setter can only be used before compilation and forwarding, otherwise, there is no effect")
 
         // N-dimensional array
         .def("numpy", &nxb::array_to_numpy, nb::rv_policy::reference_internal, "Convert array to numpy array")
@@ -86,16 +86,16 @@ NB_MODULE(arrayx, m) {
         .def("torch", &nxb::array_to_torch, nb::rv_policy::reference_internal, "Convert array to Pytorch tensor")
         // .def_static("from_torch", &nxb::array_from_torch, "tensor"_a, "Convert Pytorch tensor to array")
         .def("item", &nxb::item, "Get array's only value")
-        .def("graph", &nxa::Array::graph_str, "Get array's computation graph representation")
+        .def("graph", &nxc::Array::graph_str, "Get array's computation graph representation")
 
         // Initializer operations
-        .def_static("full", &nxb::full, "view"_a, "c"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array filled with specified value")
-        .def_static("full_like", &nxb::full_like, "other"_a, "c"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array filled with specified value with same shape as the input array")
-        .def_static("zeros", &nxa::Array::zeros, "view"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array filled with zeros")
-        .def_static("ones", &nxa::Array::ones, "view"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array filled with ones")
-        .def_static("arange", &nxa::Array::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array with evenly spaced values")
-        .def_static("zeros_like", &nxa::Array::zeros_like, "other"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array of zeros with same shape as input")
-        .def_static("ones_like", &nxa::Array::ones_like, "other"_a, "dtype"_a = &nxc::f32, "device"_a = nxc::default_device_name, "Create a new array of ones with same shape as input")
+        .def_static("full", &nxb::full, "view"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value")
+        .def_static("full_like", &nxb::full_like, "other"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value with same shape as the input array")
+        .def_static("zeros", &nxc::Array::zeros, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with zeros")
+        .def_static("ones", &nxc::Array::ones, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with ones")
+        .def_static("arange", &nxc::Array::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with evenly spaced values")
+        .def_static("zeros_like", &nxc::Array::zeros_like, "other"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of zeros with same shape as input")
+        .def_static("ones_like", &nxc::Array::ones_like, "other"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of ones with same shape as input")
 
         // Element-wise operations
         .def("__add__", &nxb::add, "rhs"_a, "Add two arrays element-wise")
@@ -110,15 +110,15 @@ NB_MODULE(arrayx, m) {
         .def("__isub__", &nxb::isub, "rhs"_a, "In-place subtract two arrays element-wise")
         .def("__imul__", &nxb::imul, "rhs"_a, "In-place multiply two arrays element-wise")
         .def("__itruediv__", &nxb::idiv, "rhs"_a, "In-place divide two arrays element-wise")
-        .def("__matmul__", &nxa::Array::matmul, "rhs"_a, "Matrix multiply two arrays")
-        .def("detach", &nxa::Array::detach, "Detach array from computation graph")
-        .def("exp", &nxa::Array::exp, "in_place"_a = false, "Compute exponential of array elements")
-        .def("log", &nxa::Array::log, "in_place"_a = false, "Compute natural logarithm of array elements")
-        .def("sqrt", &nxa::Array::sqrt, "in_place"_a = false, "Compute square root of array elements")
-        .def("sq", &nxa::Array::sq, "in_place"_a = false, "Compute square of array elements")
-        .def("neg", &nxa::Array::neg, "in_place"_a = false, "Compute negative of array elements")
+        .def("__matmul__", &nxc::Array::matmul, "rhs"_a, "Matrix multiply two arrays")
+        .def("detach", &nxc::Array::detach, "Detach array from computation graph")
+        .def("exp", &nxc::Array::exp, "in_place"_a = false, "Compute exponential of array elements")
+        .def("log", &nxc::Array::log, "in_place"_a = false, "Compute natural logarithm of array elements")
+        .def("sqrt", &nxc::Array::sqrt, "in_place"_a = false, "Compute square root of array elements")
+        .def("sq", &nxc::Array::sq, "in_place"_a = false, "Compute square of array elements")
+        .def("neg", &nxc::Array::neg, "in_place"_a = false, "Compute negative of array elements")
         .def("__neg__", &nxb::neg, "Compute negative of array elements")
-        .def("recip", &nxa::Array::recip, "in_place"_a = false, "Compute reciprocal of array elements")
+        .def("recip", &nxc::Array::recip, "in_place"_a = false, "Compute reciprocal of array elements")
 
         // Comparison operations
         .def("__eq__", &nxb::eq, "rhs"_a, "Element-wise equality comparison")
@@ -131,33 +131,33 @@ NB_MODULE(arrayx, m) {
         .def("maximum", &nxb::maximum, "rhs"_a, "Element-wise maximum comparison")
 
         // Reduction operations
-        .def("sum", &nxb::sum, "dims"_a = nxc::ShapeDims{}, "Sum array elements along specified dimensions")
-        .def("mean", &nxb::mean, "dims"_a = nxc::ShapeDims{}, "Mean value along specified dimensions")
-        .def("max", &nxb::max, "dims"_a = nxc::ShapeDims{}, "Maximum value along specified dimensions")
-        .def("min", &nxb::min, "dims"_a = nxc::ShapeDims{}, "Minimum value along specified dimensions")
-        .def("argmax", &nxb::argmax, "dims"_a = nxc::ShapeDims{}, "Indices of maximum values along specified dimensions")
-        .def("argmin", &nxb::argmin, "dims"_a = nxc::ShapeDims{}, "Indices of minimum values along specified dimensions")
+        .def("sum", &nxb::sum, "dims"_a = nxp::ShapeDims{}, "Sum array elements along specified dimensions")
+        .def("mean", &nxb::mean, "dims"_a = nxp::ShapeDims{}, "Mean value along specified dimensions")
+        .def("max", &nxb::max, "dims"_a = nxp::ShapeDims{}, "Maximum value along specified dimensions")
+        .def("min", &nxb::min, "dims"_a = nxp::ShapeDims{}, "Minimum value along specified dimensions")
+        .def("argmax", &nxb::argmax, "dims"_a = nxp::ShapeDims{}, "Indices of maximum values along specified dimensions")
+        .def("argmin", &nxb::argmin, "dims"_a = nxp::ShapeDims{}, "Indices of minimum values along specified dimensions")
 
         // Shape operations
-        .def("broadcast", &nxa::Array::broadcast, "view"_a, "Broadcast array to new shape")
-        .def("broadcast_to", &nxa::Array::broadcast_to, "view"_a, "Broadcast array to target shape")
+        .def("broadcast", &nxc::Array::broadcast, "view"_a, "Broadcast array to new shape")
+        .def("broadcast_to", &nxc::Array::broadcast_to, "view"_a, "Broadcast array to target shape")
         .def("__getitem__", &nxb::slice, "index"_a, "Slice array along specified dimensions")
-        .def("reshape", &nxa::Array::reshape, "view"_a, "Reshape array to new dimensions")
+        .def("reshape", &nxc::Array::reshape, "view"_a, "Reshape array to new dimensions")
         .def("flatten", &nxb::flatten, "start_dim"_a = 0, "end_dim"_a = -1, "Flatten dimensions from start to end")
-        .def("squeeze", &nxb::squeeze, "dims"_a = nxc::ShapeDims{}, "Remove single-dimensional entry from array")
-        .def("unsqueeze", &nxb::unsqueeze, "dims"_a = nxc::ShapeDims{}, "Add single-dimensional entry to array")
+        .def("squeeze", &nxb::squeeze, "dims"_a = nxp::ShapeDims{}, "Remove single-dimensional entry from array")
+        .def("unsqueeze", &nxb::unsqueeze, "dims"_a = nxp::ShapeDims{}, "Add single-dimensional entry to array")
         .def("permute", &nxb::permute, "dims"_a, "Permute array dimensions")
         .def("transpose", &nxb::transpose, "start_dim"_a = -2, "end_dim"_a = -1, "Transpose array dimensions")
 
         // Type operations
-        .def("astype", &nxa::Array::astype, "dtype"_a, "Cast array to specified dtype")
+        .def("astype", &nxc::Array::astype, "dtype"_a, "Cast array to specified dtype")
 
         // Evaluation and backward
-        .def("eval", &nxa::Array::eval, "Evaluate array and materialize values")
-        .def("backward", &nxa::Array::backward, "Compute gradients through backpropagation")
+        .def("eval", &nxc::Array::eval, "Evaluate array and materialize values")
+        .def("backward", &nxc::Array::backward, "Compute gradients through backpropagation")
 
         // String representation
-        .def("__str__", &nxa::Array::str, "String representation of array");
+        .def("__str__", &nxc::Array::str, "String representation of array");
 
     nb::class_<nxo::Optimizer, nxb::PyOptimizer>(m_optim, "Optimizer")
         .def(nb::init<float>(), "lr"_a = 1e-3, "Base optimizer")
