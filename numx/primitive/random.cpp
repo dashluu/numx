@@ -1,9 +1,19 @@
-#include "utils.h"
+#include "random.h"
 
-namespace nx::random {
+namespace nx::primitive {
+    void RandomKeyGenerator::update_counter() {
+        uint32_t ctr_x = m_counter + 1;
+        uint32_t ctr_y = ctr_x + 1;
+        m_counter = static_cast<uint64_t>(ctr_x) << 32 | ctr_y;
+    }
+
     uint64_t RandomKeyGenerator::next() {
-        m_key = threefry2x32(m_key, 0);
-        return m_key;
+        uint64_t key1 = threefry2x32(m_key, m_counter);
+        update_counter();
+        uint64_t key2 = threefry2x32(m_key, m_counter);
+        update_counter();
+        m_key = key1;
+        return key2;
     }
 
     uint64_t get_current_time_seed() {
@@ -37,4 +47,4 @@ namespace nx::random {
 
         return static_cast<uint64_t>(X_x) << 32 | X_y;
     }
-} // namespace nx::random
+} // namespace nx::primitive

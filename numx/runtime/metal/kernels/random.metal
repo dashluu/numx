@@ -59,7 +59,6 @@ void rand(
     const constant F &low,
     const constant F &high,
     const constant isize &numel,
-    const constant isize &offset,
     device uint64_t *output,
     uint id)
 {
@@ -75,7 +74,7 @@ void rand(
     isize size = numel * sizeof(F);
     
     if (id < size / 8) {
-        output[id + offset] = result;
+        output[id] = result;
         return;
     }
     
@@ -86,7 +85,7 @@ void rand(
         mask = (mask << 8) | 0xff;
     }
     
-    output[id + offset] = (output[id + offset] & ~mask) | (result & mask);
+    output[id] = (output[id] & ~mask) | (result & mask);
 }
 
 template<class F, class I>
@@ -95,11 +94,10 @@ kernel void uniform(
     const constant F &low [[buffer(1)]],
     const constant F &high [[buffer(2)]],
     const constant isize &numel [[buffer(3)]],
-    const constant isize &offset [[buffer(4)]],
-    device uint64_t *output [[buffer(5)]],
+    device uint64_t *output [[buffer(4)]],
     uint id [[thread_position_in_grid]])
 {
-    rand<F, I>(uint2((key >> 32) & 0xffffffff, key & 0xffffffff), low, high, numel, offset, output, id);
+    rand<F, I>(uint2((key >> 32) & 0xffffffff, key & 0xffffffff), low, high, numel, output, id);
 }
 
 #define def_uniform() \

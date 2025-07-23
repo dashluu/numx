@@ -5,7 +5,7 @@
 namespace nx::core {
     inline DeviceContextPtr get_device_context_by_name(const std::string &name) { return Backend::get_instance().get_device_context_by_name(name); }
     inline DevicePtr get_device_by_name(const std::string &name) { return get_device_context_by_name(name)->get_device(); }
-    inline RandomKeyGeneratorPtr get_random_key_generator_by_name(const std::string &name) { return get_device_context_by_name(name)->get_random_key_generator(); }
+    inline RandomKeyGeneratorPtr get_random_key_generator_by_device_name(const std::string &name) { return get_device_context_by_name(name)->get_random_key_generator(); }
 
     struct Array {
     private:
@@ -168,6 +168,8 @@ namespace nx::core {
         Array neg(bool in_place = false) const { return Array(nx::graph::neg(m_op, in_place)); }
         Array operator-() const { return Array(nx::graph::neg(m_op)); }
         Array recip(bool in_place = false) const { return Array(nx::graph::recip(m_op, in_place)); }
+        Array sin(bool in_place = false) const { return Array(nx::graph::sin(m_op, in_place)); }
+        Array cos(bool in_place = false) const { return Array(nx::graph::cos(m_op, in_place)); }
         Array operator==(const Array &rhs) const { return Array(nx::graph::eq(m_op, rhs.m_op)); }
         Array operator!=(const Array &rhs) const { return Array(nx::graph::neq(m_op, rhs.m_op)); }
         Array operator<(const Array &rhs) const { return Array(nx::graph::lt(m_op, rhs.m_op)); }
@@ -261,7 +263,7 @@ namespace nx::core {
     template <NumericOrBool T>
     Array full_like(const Array &array, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
         DevicePtr device = get_device_by_name(device_name);
-        return Array(nx::graph::full_like(array.m_op, constant, dtype, device));
+        return Array(nx::graph::full_like(array.get_op(), constant, dtype, device));
     }
 
     inline Array arange(const ShapeView &view, isize start, isize step, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {

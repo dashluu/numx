@@ -16,7 +16,7 @@ kernel void arange(
     device T *output [[buffer(2)]],
     uint id [[thread_position_in_grid]])
 {
-    output[id] = *start + static_cast<int>(id) * *step;
+    output[id] = start + static_cast<int>(id) * step;
 }
 
 #define def_initializer_kernels(opname, op, dtype, T)   \

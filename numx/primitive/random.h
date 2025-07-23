@@ -1,11 +1,14 @@
 #include "../utils.h"
 
-namespace nx::random {
+namespace nx::primitive {
     using namespace nx::utils;
 
     struct RandomKeyGenerator : public std::enable_shared_from_this<RandomKeyGenerator> {
     private:
         uint64_t m_key;
+        uint64_t m_counter = 1;
+
+        void update_counter();
 
     public:
         RandomKeyGenerator(uint64_t seed) : m_key(seed) {}
@@ -30,4 +33,4 @@ namespace nx::random {
     inline static constexpr uint s_rot2x32[] = {13, 15, 26, 6, 17, 29, 16, 24};
     inline uint rotl32(uint x, uint N) { return (x << (N & 31)) | (x >> ((32 - N) & 31)); }
     uint64_t threefry2x32(uint64_t key, uint64_t counter);
-} // namespace nx::random
+} // namespace nx::primitive

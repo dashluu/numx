@@ -29,6 +29,8 @@ namespace nx::primitive {
         EXP,
         LOG,
         RECIP,
+        SIN,
+        COS,
         RESHAPE,
         PERMUTE,
         BROADCAST,
@@ -443,6 +445,24 @@ namespace nx::primitive {
         inline static const std::string s_opname = "recip";
         RecipOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
         Opcode get_opcode() const override { return Opcode::RECIP; }
+        const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
+    };
+
+    struct SinOp : public UnaryOp {
+    public:
+        inline static const std::string s_opname = "sin";
+        SinOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
+        Opcode get_opcode() const override { return Opcode::SIN; }
+        const std::string &get_opname() const override { return s_opname; }
+        void grad_fn() const override;
+    };
+
+    struct CosOp : public UnaryOp {
+    public:
+        inline static const std::string s_opname = "cos";
+        CosOp(const ArrayData &data, OpPtr operand, bool in_place) : UnaryOp(data, operand, in_place) {}
+        Opcode get_opcode() const override { return Opcode::COS; }
         const std::string &get_opname() const override { return s_opname; }
         void grad_fn() const override;
     };

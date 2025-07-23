@@ -211,6 +211,24 @@ namespace nx::primitive {
         }
     }
 
+    void SinOp::grad_fn() const {
+        // z = sin(x)
+        // dx += dz * cos(x)
+        if (m_operand->is_grad_enabled()) {
+            m_operand->zero_grad();
+            m_operand->iadd_grad(mul(m_grad, cos(detach(m_operand))));
+        }
+    }
+
+    void CosOp::grad_fn() const {
+        // z = cos(x)
+        // dx -= dz * sin(x)
+        if (m_operand->is_grad_enabled()) {
+            m_operand->zero_grad();
+            m_operand->isub_grad(mul(m_grad, sin(detach(m_operand))));
+        }
+    }
+
     void SliceOp::grad_fn() const {
         if (m_operand->is_grad_enabled()) {
             m_operand->zero_grad();
@@ -279,5 +297,4 @@ namespace nx::primitive {
             m_operand->iadd_grad(mul(astype(mask, m_operand->get_data().get_dtype()), expand(m_grad, operand_view, m_remaining_dims, m_reduce_dims)));
         }
     }
-
 } // namespace nx::primitive

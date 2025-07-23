@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../instrument/profiler.h"
-#include "../random/utils.h"
+#include "../primitive/random.h"
 #include "../runtime/runner.h"
 #include "../runtime/runtime_context.h"
 
@@ -11,7 +11,6 @@ namespace nx::core {
     using namespace nx::graph;
     using namespace nx::runtime;
     using namespace nx::instrument;
-    using namespace nx::random;
     using RunnerBuilder = std::function<RunnerPtr(GraphPtr, RuntimeContextPtr)>;
     using GraphBuilder = std::function<GraphPtr(OpPtr)>;
 

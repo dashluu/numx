@@ -47,6 +47,8 @@ namespace nx::primitive {
     OpPtr exp(OpPtr in_op, bool in_place = false);
     OpPtr log(OpPtr in_op, bool in_place = false);
     OpPtr recip(OpPtr in_op, bool in_place = false);
+    OpPtr sin(OpPtr in_op, bool in_place = false);
+    OpPtr cos(OpPtr in_op, bool in_place = false);
     OpPtr reshape(OpPtr in_op, const ShapeView &view);
     OpPtr permute(OpPtr in_op, const ShapeDims &dims);
     OpPtr transpose(OpPtr in_op, isize start_dim, isize end_dim);

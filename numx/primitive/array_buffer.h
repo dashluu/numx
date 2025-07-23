@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../memory/block.h"
+#include "block.h"
 
 namespace nx::primitive {
     using namespace nx::utils;
-    using namespace nx::memory;
 
     struct ArrayBuffer {
     private:

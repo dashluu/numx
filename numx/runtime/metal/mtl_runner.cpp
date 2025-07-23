@@ -17,7 +17,8 @@ namespace nx::runtime::metal {
         }
         case Opcode::UNIFORM: {
             alloc_array_buffer(op);
-            run_uniform_kernel(op);
+            std::shared_ptr<UniformOp> uniform_op = std::static_pointer_cast<UniformOp>(op);
+            run_uniform_kernel(op, uniform_op->get_key(), uniform_op->get_low(), uniform_op->get_high());
             break;
         }
         case Opcode::EMPTY: {

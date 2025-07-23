@@ -7,7 +7,6 @@ namespace nx::primitive {
 
     enum struct DtypeName {
         F32,
-        F64,
         I8,
         I16,
         I32,
@@ -95,17 +94,6 @@ namespace nx::primitive {
         isize min() const override { return std::bit_cast<int>(-std::numeric_limits<float>::infinity()); }
     };
 
-    struct F64 : public Float<double> {
-    public:
-        F64() : Float<double>(DtypeName::F64, 8) {}
-        const std::string get_name_str() const override { return "f64"; }
-        std::string value_str(isize val) const override { return std::to_string(std::bit_cast<double>(static_cast<int64_t>(val))); }
-        isize bit_cast(uint8_t *ptr) const override { return std::bit_cast<int64_t>(*reinterpret_cast<double *>(ptr)); }
-        isize one() const override { return std::bit_cast<int64_t>(1.0); }
-        isize max() const override { return std::bit_cast<int64_t>(std::numeric_limits<double>::infinity()); }
-        isize min() const override { return std::bit_cast<int64_t>(-std::numeric_limits<double>::infinity()); }
-    };
-
     struct I8 : public Int<int8_t> {
     public:
         I8() : Int<int8_t>(DtypeName::I8, 1) {}
@@ -143,7 +131,6 @@ namespace nx::primitive {
     };
 
     inline const F32 f32;
-    inline const F64 f64;
     inline const I8 i8;
     inline const I16 i16;
     inline const I32 i32;
@@ -157,11 +144,7 @@ namespace nx::primitive {
             return nullptr;
         }
 
-        if (dtype->get_size() == 4) {
-            return &f32;
-        }
-
-        return &f64;
+        return &f32;
     }
 
     template <NumericOrBool T>

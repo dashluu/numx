@@ -24,11 +24,14 @@ namespace nx::runtime::metal {
     void MTLContext::init_initializer_kernels() {
         init_kernels("full", DtypeCategory::ALL);
         init_kernels("arange", DtypeCategory::NUMERIC);
+        init_kernels("uniform", DtypeCategory::FLOAT);
     }
 
     void MTLContext::init_unary_kernels() {
-        std::vector<std::string> unary_names = {"exp", "log", "neg", "recip", "sq", "sqrt"};
+        std::vector<std::string> unary_names = {"neg", "sq"};
+        std::vector<std::string> unary_float_names = {"exp", "log", "recip", "sin", "cos", "sqrt"};
         init_kernels(unary_names, DtypeCategory::NUMERIC);
+        init_kernels(unary_float_names, DtypeCategory::FLOAT);
     }
 
     void MTLContext::init_binary_kernels() {

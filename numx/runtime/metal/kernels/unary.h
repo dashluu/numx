@@ -30,6 +30,20 @@ struct Recip {
     }
 };
 
+struct Sin {
+    template <class T>
+    float operator()(T x) const {
+        return metal::sin(static_cast<float>(x));
+    }
+};
+
+struct Cos {
+    template <class T>
+    float operator()(T x) const {
+        return metal::cos(static_cast<float>(x));
+    }
+};
+
 struct Sqrt {
     template <class T>
     float operator()(T x) const {

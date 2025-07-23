@@ -1,8 +1,10 @@
 #pragma once
 
-#include "block.h"
+#include "../primitive/block.h"
 
 namespace nx::memory {
+    using namespace nx::primitive;
+
     class Allocator : public std::enable_shared_from_this<Allocator> {
     public:
         Allocator() = default;

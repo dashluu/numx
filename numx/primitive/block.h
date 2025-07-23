@@ -2,7 +2,7 @@
 
 #include "../utils.h"
 
-namespace nx::memory {
+namespace nx::primitive {
     using namespace nx::utils;
 
     struct Block {
@@ -25,4 +25,4 @@ namespace nx::memory {
         uint8_t *get_ptr() const { return m_ptr; }
         isize get_size() const { return m_size; }
     };
-} // namespace nx::memory
+} // namespace nx::primitive

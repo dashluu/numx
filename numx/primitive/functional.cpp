@@ -180,6 +180,8 @@ namespace nx::primitive {
     OpPtr exp(OpPtr in_op, bool in_place) { return unary_float<ExpOp>(in_op, in_place); }
     OpPtr log(OpPtr in_op, bool in_place) { return unary_float<LogOp>(in_op, in_place); }
     OpPtr recip(OpPtr in_op, bool in_place) { return unary_float<RecipOp>(in_op, in_place); }
+    OpPtr sin(OpPtr in_op, bool in_place) { return unary_float<SinOp>(in_op, in_place); }
+    OpPtr cos(OpPtr in_op, bool in_place) { return unary_float<CosOp>(in_op, in_place); }
 
     OpPtr reshape(OpPtr in_op, const ShapeView &view) {
         const ArrayData &in_data = in_op->get_data();

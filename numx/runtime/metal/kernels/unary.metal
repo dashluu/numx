@@ -35,5 +35,7 @@ def_unary_float(exp, Exp);
 def_unary_float(log, Log);
 def_unary_all(neg, Neg);
 def_unary_float(recip, Recip);
+def_unary_float(sin, Sin);
+def_unary_float(cos, Cos);
 def_unary_all(sq, Sq);
 def_unary_float(sqrt, Sqrt);

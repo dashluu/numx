@@ -1,12 +1,11 @@
 #pragma once
 
 #include "../graph/graph.h"
-#include "../memory/block.h"
+#include "../primitive/block.h"
 
 namespace nx::instrument {
     using namespace nx::primitive;
     using namespace nx::graph;
-    using namespace nx::memory;
 
     struct MemorySnapshotInfo {
     private:
