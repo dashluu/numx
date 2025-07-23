@@ -2,17 +2,17 @@
 
 template <class T>
 kernel void full(
-    const device T *c [[buffer(0)]],
+    const device T &c [[buffer(0)]],
     device T *output [[buffer(1)]],
     uint id [[thread_position_in_grid]])
 {
-    output[id] = *c;
+    output[id] = c;
 }
 
 template <class T>
 kernel void arange(
-    const device isize *start [[buffer(0)]],
-    const device isize *step [[buffer(1)]],
+    const device isize &start [[buffer(0)]],
+    const device isize &step [[buffer(1)]],
     device T *output [[buffer(2)]],
     uint id [[thread_position_in_grid]])
 {

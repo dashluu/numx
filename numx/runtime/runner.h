@@ -10,11 +10,11 @@ namespace nx::runtime {
     protected:
         GraphPtr m_graph;
         RuntimeContextPtr m_ctx;
-        ProfilerPtr m_profiler;
+        ProfilerPtr m_profiler = nullptr;
 
         virtual void run_full_kernel(OpPtr op, isize constant) = 0;
         virtual void run_arange_kernel(OpPtr op, isize start, isize step) = 0;
-        virtual void run_uniform_kernel(OpPtr op) = 0;
+        virtual void run_uniform_kernel(OpPtr op, isize key, isize low, isize high) = 0;
         virtual void run_binary_kernel(OpPtr l_op, OpPtr r_op, OpPtr out_op) = 0;
         virtual void run_gemm_kernel(OpPtr l_op, OpPtr r_op, OpPtr out_op) = 0;
         virtual void run_unary_kernel(OpPtr in_op, OpPtr out_op) = 0;
@@ -29,11 +29,12 @@ namespace nx::runtime {
         void run_op(OpPtr op);
 
     public:
-        Runner(GraphPtr graph, RuntimeContextPtr ctx, ProfilerPtr profiler) : m_graph(graph), m_ctx(ctx), m_profiler(profiler) {}
+        Runner(GraphPtr graph, RuntimeContextPtr ctx) : m_graph(graph), m_ctx(ctx) {}
         Runner(const Runner &) = delete;
         virtual ~Runner() = default;
         Runner &operator=(const Runner &) = delete;
         ProfilerPtr get_profiler() { return m_profiler; }
+        void hook_profiler(ProfilerPtr profiler) { m_profiler = profiler; }
         void forward();
         void backward();
     };

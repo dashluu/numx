@@ -145,6 +145,8 @@ namespace nx::primitive {
         const std::string repr() const override { return std::format("{}\\nStart: {}\\nStep: {}", InitializerOp::repr(), m_start, m_step); }
     };
 
+    using ArangeOpPtr = std::shared_ptr<ArangeOp>;
+
     struct FullOp : public InitializerOp {
     private:
         isize m_const;
@@ -159,43 +161,27 @@ namespace nx::primitive {
         const std::string repr() const override { return std::format("{}\\nValue: {}", InitializerOp::repr(), m_data.get_dtype()->value_str(m_const)); }
     };
 
-    struct RandomState {
-        isize m_key, m_ctr;
-
-    public:
-        RandomState(isize key, isize ctr) : m_key(key), m_ctr(ctr) {}
-        RandomState(const RandomState &state) : m_key(state.m_key), m_ctr(state.m_ctr) {}
-        ~RandomState() = default;
-
-        RandomState &operator=(const RandomState &state) {
-            m_key = state.m_key;
-            m_ctr = state.m_ctr;
-            return *this;
-        }
-
-        isize get_key() const { return m_key; }
-        isize get_ctr() const { return m_ctr; }
-        const std::string str() const { return std::format("key: {}, ctr: {}", m_key, m_ctr); }
-        const std::string repr() const { return std::format("Key: {}\\nCtr: {}", m_key, m_ctr); }
-    };
+    using FullOpPtr = std::shared_ptr<FullOp>;
 
     struct UniformOp : public InitializerOp {
     private:
-        RandomState m_state;
+        uint64_t m_key;
         isize m_low;
         isize m_high;
 
     public:
         inline static const std::string s_opname = "uniform";
-        UniformOp(const ArrayData &data, const RandomState &state, isize low, isize high) : InitializerOp(data), m_state(state), m_low(low), m_high(high) {}
+        UniformOp(const ArrayData &data, uint64_t key, isize low, isize high) : InitializerOp(data), m_key(key), m_low(low), m_high(high) {}
         Opcode get_opcode() const override { return Opcode::UNIFORM; }
-        const RandomState &get_state() const { return m_state; }
+        uint64_t get_key() const { return m_key; }
         isize get_low() const { return m_low; }
         isize get_high() const { return m_high; }
         const std::string &get_opname() const override { return s_opname; }
-        const std::string str() const override { return std::format("{}, {}, low: {}, high: {}", InitializerOp::str(), m_state.str(), m_low, m_high); }
-        const std::string repr() const override { return std::format("{}\\n{}\\nLow: {}\\nHigh: {}", InitializerOp::repr(), m_state.repr(), m_low, m_high); }
+        const std::string str() const override { return std::format("{}, key: {}, low: {}, high: {}", InitializerOp::str(), m_key, m_low, m_high); }
+        const std::string repr() const override { return std::format("{}\\nKey: {}\\nLow: {}\\nHigh: {}", InitializerOp::repr(), m_key, m_low, m_high); }
     };
+
+    using UniformOpPtr = std::shared_ptr<UniformOp>;
 
     struct UnaryOp : public Op {
     protected:
@@ -211,6 +197,8 @@ namespace nx::primitive {
         const std::string str() const override { return std::format("{}, in-place: {}, operand: {}", Op::str(), m_in_place, m_operand->get_data().get_id()); }
         const std::string repr() const override { return std::format("{}\\nIn-place: {}\\nOperand: {}", Op::repr(), m_in_place, m_operand->get_data().get_id()); }
     };
+
+    using UnaryOpPtr = std::shared_ptr<UnaryOp>;
 
     struct BinaryOp : public Op {
     protected:
@@ -228,6 +216,8 @@ namespace nx::primitive {
         const std::string str() const override { return std::format("{}, lhs: {}, rhs: {}", Op::str(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
         const std::string repr() const override { return std::format("{}\\nLHS: {}\\nRHS: {}", Op::repr(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
     };
+
+    using BinaryOpPtr = std::shared_ptr<BinaryOp>;
 
     struct ElmwiseBinaryOp : public BinaryOp {
     protected:
@@ -258,6 +248,8 @@ namespace nx::primitive {
         const std::string repr() const override { return std::format("{}\\nOperand: {}", Op::repr(), m_operand->get_data().get_id()); }
     };
 
+    using TransformOpPtr = std::shared_ptr<TransformOp>;
+
     struct ReduceOp : public Op {
     protected:
         OpPtr m_operand;
@@ -274,6 +266,8 @@ namespace nx::primitive {
         const std::string str() const override { return std::format("{}, operand: {}, remaining dims: {}, reduce dims: {}", Op::str(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
         const std::string repr() const override { return std::format("{}\\nOperand: {}\\nRemaining dims: {}\\nReduce dims: {}", Op::repr(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
     };
+
+    using ReduceOpPtr = std::shared_ptr<ReduceOp>;
 
     struct AddOp : public ElmwiseBinaryOp {
     public:
@@ -386,6 +380,8 @@ namespace nx::primitive {
         void grad_fn() const override;
     };
 
+    using MatmulOpPtr = std::shared_ptr<MatmulOp>;
+
     struct SqOp : public UnaryOp {
     public:
         inline static const std::string s_opname = "sq";
@@ -421,6 +417,8 @@ namespace nx::primitive {
         const std::string &get_opname() const override { return s_opname; }
         void grad_fn() const override;
     };
+
+    using CopyOpPtr = std::shared_ptr<CopyOp>;
 
     struct ExpOp : public UnaryOp {
     public:

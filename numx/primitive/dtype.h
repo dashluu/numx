@@ -164,7 +164,7 @@ namespace nx::primitive {
         return &f64;
     }
 
-    template <Numeric T>
+    template <NumericOrBool T>
     isize dtype_bitcast_numeric(DtypePtr dtype, T constant) {
         if (dtype->is_float()) {
             switch (dtype->get_size()) {

@@ -14,20 +14,11 @@ namespace nx::core {
         return instance;
     }
 
-    void Backend::use_profiler(ProfilerPtr profiler) {
-        get_instance().m_profiler = profiler;
-    }
-
     void Backend::init() {
-        if (m_device_by_name.size() > 0) {
+        if (count_devices() > 0) {
             // This ensures backend is initialized once
             return;
         }
-
-        // TODO: assume there is a CPU for now
-        auto cpu = std::make_shared<Device>(DeviceType::CPU, 0);
-        m_device_by_name.emplace("cpu", cpu);
-        m_device_by_name.emplace(cpu->get_name(), cpu);
 
 #ifdef __APPLE__
         NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();
@@ -40,7 +31,7 @@ namespace nx::core {
 
         MTL::Device *mtl_device;
         DevicePtr device;
-        nx::runtime::metal::MTLContextPtr ctx;
+        nx::runtime::metal::MTLContextPtr runtime_ctx;
 
 #ifdef PROJECT_ROOT
         const std::string project_root = PROJECT_ROOT;
@@ -52,19 +43,20 @@ namespace nx::core {
         for (NS::UInteger i = 0; i < mtl_devices->count(); ++i) {
             mtl_device = mtl_devices->object<MTL::Device>(i);
             device = std::make_shared<Device>(DeviceType::MPS, i);
-            m_device_by_name.emplace(device->get_name(), device);
-            ctx = std::make_shared<nx::runtime::metal::MTLContext>(mtl_device, lib_path);
-            ctx->init_kernels();
-            m_ctx_by_device_name.emplace(device->get_name(), ctx);
+            runtime_ctx = std::make_shared<nx::runtime::metal::MTLContext>(mtl_device, lib_path);
+            runtime_ctx->init_kernels();
 
-            m_runner_factory_by_device_name.emplace(device->get_name(), [](GraphPtr graph, RuntimeContextPtr ctx, ProfilerPtr profiler) -> RunnerPtr {
-                return std::make_shared<nx::runtime::metal::MTLRunner>(graph, ctx, profiler);
-            });
+            auto runner_builder = [](GraphPtr graph, RuntimeContextPtr runtime_ctx) -> RunnerPtr {
+                return std::make_shared<nx::runtime::metal::MTLRunner>(graph, runtime_ctx);
+            };
 
-            m_graph_factory_by_device_name.emplace(device->get_name(), [](OpPtr op) -> GraphPtr {
+            auto graph_builder = [](OpPtr op) -> GraphPtr {
                 return std::make_shared<nx::graph::Graph>(op);
-            });
+            };
 
+            auto rand_key_gen = std::make_shared<RandomKeyGenerator>(seed());
+            auto device_ctx = std::make_shared<DeviceContext>(device, runtime_ctx, runner_builder, graph_builder, rand_key_gen);
+            m_device_ctx_by_name.emplace(device->get_name(), device_ctx);
             std::println("Initialized device {}...", *device);
         }
 
@@ -72,35 +64,16 @@ namespace nx::core {
 #endif
     }
 
-    DevicePtr Backend::get_device_by_name(const std::string &name) const {
-        if (m_device_by_name.find(name) == m_device_by_name.end()) {
-            throw std::invalid_argument(std::format("No device named {}.", name));
+    DeviceContextPtr Backend::get_device_context_by_name(const std::string &name) const {
+        if (m_device_ctx_by_name.find(name) == m_device_ctx_by_name.end()) {
+            throw std::invalid_argument(std::format("No context found for device named {}.", name));
         }
 
-        return m_device_by_name.at(name);
+        return m_device_ctx_by_name.at(name);
     }
 
-    RuntimeContextPtr Backend::get_context_by_device_name(const std::string &device_name) const {
-        if (m_ctx_by_device_name.find(device_name) == m_ctx_by_device_name.end()) {
-            throw std::invalid_argument(std::format("No context found for device named {}.", device_name));
-        }
-
-        return m_ctx_by_device_name.at(device_name);
-    }
-
-    RunnerFactory Backend::get_runner_factory_by_device_name(const std::string &device_name) const {
-        if (m_runner_factory_by_device_name.find(device_name) == m_runner_factory_by_device_name.end()) {
-            throw std::invalid_argument(std::format("No runner factory found for device named {}.", device_name));
-        }
-
-        return m_runner_factory_by_device_name.at(device_name);
-    }
-
-    GraphFactory Backend::get_graph_factory_by_device_name(const std::string &device_name) const {
-        if (m_graph_factory_by_device_name.find(device_name) == m_graph_factory_by_device_name.end()) {
-            throw std::invalid_argument(std::format("No graph factory found for device named {}.", device_name));
-        }
-
-        return m_graph_factory_by_device_name.at(device_name);
+    void Backend::hook_profiler(const std::string &device_name, ProfilerPtr profiler) {
+        DeviceContextPtr device_ctx = get_instance().get_device_context_by_name(device_name);
+        device_ctx->hook_profiler(profiler);
     }
 } // namespace nx::core

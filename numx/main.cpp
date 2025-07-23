@@ -21,7 +21,7 @@ void run_test(ProfilerPtr profiler, const std::string &file_name) {
 
 int main() {
     auto profiler = std::make_shared<Profiler>();
-    Backend::use_profiler(profiler);
+    Backend::hook_profiler("mps:0", profiler);
     run_test(profiler, "graph.json");
     profiler->write_memory_profile("memory.json");
     return 0;

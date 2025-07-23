@@ -3,17 +3,22 @@
 #include "backend.h"
 
 namespace nx::core {
+    inline DeviceContextPtr get_device_context_by_name(const std::string &name) { return Backend::get_instance().get_device_context_by_name(name); }
+    inline DevicePtr get_device_by_name(const std::string &name) { return get_device_context_by_name(name)->get_device(); }
+    inline RandomKeyGeneratorPtr get_random_key_generator_by_name(const std::string &name) { return get_device_context_by_name(name)->get_random_key_generator(); }
+
     struct Array {
     private:
         OpPtr m_op = nullptr;
         GraphPtr m_graph = nullptr;
         RunnerPtr m_runner = nullptr;
 
-        static Backend &get_backend() { return Backend::get_instance(); }
-        static DevicePtr get_device_by_name(const std::string &name) { return get_backend().get_device_by_name(name); }
-        RuntimeContextPtr get_context() const { return get_backend().get_context_by_device_name(m_op->get_data().get_device_name()); }
-        RunnerFactory get_runner_factory() const { return get_backend().get_runner_factory_by_device_name(m_op->get_data().get_device_name()); }
-        GraphFactory get_graph_factory() { return get_backend().get_graph_factory_by_device_name(m_op->get_data().get_device_name()); }
+        const std::string &get_device_name() const { return m_op->get_data().get_device_name(); }
+        DeviceContextPtr get_device_context() const { return get_device_context_by_name(get_device_name()); }
+        RuntimeContextPtr get_runtime_context() const { return get_device_context()->get_runtime_context(); }
+        RunnerBuilder get_runner_builder() const { return get_device_context()->get_runner_builder(); }
+        GraphBuilder get_graph_builder() { return get_device_context()->get_graph_builder(); }
+        ProfilerPtr get_profiler() const { return get_device_context()->get_profiler(); }
 
     public:
         Array() = default;
@@ -73,61 +78,6 @@ namespace nx::core {
         void backward();
         friend std::ostream &operator<<(std::ostream &os, Array &array) { return os << array.str(); }
         Array detach() const { return Array(nx::graph::detach(m_op)); }
-
-        static Array from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::from_buffer(ptr, size, shape, dtype, device));
-        }
-
-        // Initializer operations
-        template <class T>
-        static Array full(const ShapeView &view, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::full(view, constant, dtype, device));
-        }
-
-        template <class T>
-        static Array full_like(const Array &other, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::full_like(other.m_op, constant, dtype, device));
-        }
-
-        static Array arange(const ShapeView &view, isize start, isize step, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::arange(view, start, step, dtype, device));
-        }
-
-        static Array zeros(const ShapeView &view, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::zeros(view, dtype, device));
-        }
-
-        static Array ones(const ShapeView &view, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::ones(view, dtype, device));
-        }
-
-        static Array zeros_like(const Array &other, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::zeros_like(other.m_op, dtype, device));
-        }
-
-        static Array ones_like(const Array &other, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::ones_like(other.m_op, dtype, device));
-        }
-
-        static Array empty(const ShapeView &view, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::empty(view, dtype, device));
-        }
-
-        static Array empty_like(const Array &other, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
-            DevicePtr device = get_device_by_name(device_name);
-            return Array(nx::graph::empty_like(other.m_op, dtype, device));
-        }
-
-        static Array empty_like(const Array &other) { return Array(nx::graph::empty_like(other.m_op)); }
 
         // Element-wise operations
         Array operator+(const Array &rhs) const { return Array(nx::graph::add(m_op, rhs.m_op)); }
@@ -227,10 +177,10 @@ namespace nx::core {
         Array minimum(const Array &rhs) const { return Array(nx::graph::minimum(m_op, rhs.m_op)); }
         Array maximum(const Array &rhs) const { return Array(nx::graph::maximum(m_op, rhs.m_op)); }
 
-        template <Numeric T>
+        template <NumericOrBool T>
         Array operator==(T constant) const { return Array(nx::graph::eq(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericOrBool T>
         Array operator!=(T constant) const { return Array(nx::graph::neq(m_op, constant)); }
 
         template <Numeric T>
@@ -295,6 +245,61 @@ namespace nx::core {
     }
 
     using ArrayVec = std::vector<Array>;
+
+    inline Array from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::from_buffer(ptr, size, shape, dtype, device));
+    }
+
+    // Initializer operations
+    template <NumericOrBool T>
+    Array full(const ShapeView &view, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::full(view, constant, dtype, device));
+    }
+
+    template <NumericOrBool T>
+    Array full_like(const Array &array, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::full_like(array.m_op, constant, dtype, device));
+    }
+
+    inline Array arange(const ShapeView &view, isize start, isize step, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::arange(view, start, step, dtype, device));
+    }
+
+    inline Array zeros(const ShapeView &view, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::zeros(view, dtype, device));
+    }
+
+    inline Array ones(const ShapeView &view, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::ones(view, dtype, device));
+    }
+
+    inline Array zeros_like(const Array &array, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::zeros_like(array.get_op(), dtype, device));
+    }
+
+    inline Array ones_like(const Array &array, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::ones_like(array.get_op(), dtype, device));
+    }
+
+    inline Array empty(const ShapeView &view, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::empty(view, dtype, device));
+    }
+
+    inline Array empty_like(const Array &array, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
+        DevicePtr device = get_device_by_name(device_name);
+        return Array(nx::graph::empty_like(array.get_op(), dtype, device));
+    }
+
+    inline Array empty_like(const Array &array) { return Array(nx::graph::empty_like(array.get_op())); }
 } // namespace nx::core
 
 namespace std {

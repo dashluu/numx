@@ -1,6 +1,6 @@
 #include "utils.h"
 
-static constexpr constant uint rot2x32[] = {13, 15, 26, 6, 17, 29, 16, 24};
+static constexpr constant uint s_rot2x32[] = {13, 15, 26, 6, 17, 29, 16, 24};
 
 uint rotl32(uint x, uint N) {
     return (x << (N & 31)) | (x >> ((32-N) & 31));
@@ -15,7 +15,7 @@ uint2 threefry2x32(uint2 key, uint2 counter) {
     
     for (short i = 0; i < 20; i++) {
         X.x += X.y;
-        X.y = rotl32(X.y, rot2x32[i % 8]);
+        X.y = rotl32(X.y, s_rot2x32[i % 8]);
         X.y ^= X.x;
         
         if (i % 4 == 3) {
@@ -56,20 +56,20 @@ struct Uniform {
 template<class F, class I>
 void rand(
     const thread uint2 &key,
-    const constant isize &ctr,
-    const constant F *range,
+    const constant F &low,
+    const constant F &high,
     const constant isize &numel,
     const constant isize &offset,
-    const constant isize *shape,
     device uint64_t *output,
     uint id)
 {
     // Compute Threefry hash
-    uint2 hash = threefry2x32(key, uint2(ctr + id * 2, ctr + id * 2 + 1));
+	uint ctr = id * 2;
+    uint2 hash = threefry2x32(key, uint2(ctr, ctr + 1));
     uint64_t hash64 = (static_cast<uint64_t>(hash.x) << 32) | static_cast<uint64_t>(hash.y);
     
     // Transform hash into random float for each block of size TSize
-    uint64_t result = Uniform().template hash_to_float<F, I>(hash64, range[0], range[1]);
+    uint64_t result = Uniform().template hash_to_float<F, I>(hash64, low, high);
     
     // Masking to ensure the overflowed portion of the output is unaffected
     isize size = numel * sizeof(F);
@@ -92,15 +92,14 @@ void rand(
 template<class F, class I>
 kernel void uniform(
     const constant isize &key [[buffer(0)]],
-    const constant isize &ctr [[buffer(1)]],
-    const constant F *range [[buffer(2)]],
+    const constant F &low [[buffer(1)]],
+    const constant F &high [[buffer(2)]],
     const constant isize &numel [[buffer(3)]],
     const constant isize &offset [[buffer(4)]],
-    const constant isize *shape [[buffer(5)]],
-    device uint64_t *output [[buffer(6)]],
+    device uint64_t *output [[buffer(5)]],
     uint id [[thread_position_in_grid]])
 {
-    rand<F, I>(uint2((key >> 32) & 0xffffffff, key & 0xffffffff), ctr, range, numel, offset, shape, output, id);
+    rand<F, I>(uint2((key >> 32) & 0xffffffff, key & 0xffffffff), low, high, numel, offset, output, id);
 }
 
 #define def_uniform() \

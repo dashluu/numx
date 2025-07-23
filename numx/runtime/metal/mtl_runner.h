@@ -11,7 +11,7 @@ namespace nx::runtime::metal {
 
         void run_full_kernel(OpPtr op, isize constant) override;
         void run_arange_kernel(OpPtr op, isize start, isize step) override;
-        void run_uniform_kernel(OpPtr op) override;
+        void run_uniform_kernel(OpPtr op, isize key, isize low, isize high) override;
         void run_binary_kernel(OpPtr l_op, OpPtr r_op, OpPtr out_op) override;
         void run_dot_kernel(MTLEncoder &encoder, OpPtr l_op, OpPtr r_op, OpPtr out_op);
         void run_gemm2d_kernel(MTLEncoder &encoder, OpPtr l_op, OpPtr r_op, OpPtr out_op);
@@ -40,6 +40,6 @@ namespace nx::runtime::metal {
         void share_array_buffer(OpPtr l_op, OpPtr r_op);
 
     public:
-        MTLRunner(GraphPtr graph, RuntimeContextPtr ctx, ProfilerPtr profiler) : Runner(graph, ctx, profiler) {}
+        MTLRunner(GraphPtr graph, RuntimeContextPtr ctx) : Runner(graph, ctx) {}
     };
 } // namespace nx::runtime::metal

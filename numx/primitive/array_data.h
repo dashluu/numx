@@ -20,8 +20,8 @@ namespace nx::primitive {
     public:
         ArrayBuffer m_buffer;
 
-        ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.generate()), m_shape(shape), m_dtype(dtype), m_device(device) {}
-        ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.generate()), m_shape(shape), m_dtype(dtype), m_device(device) { m_buffer = ArrayBuffer(ptr, size, false); }
+        ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {}
+        ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) { m_buffer = ArrayBuffer(ptr, size, false); }
         ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
         ~ArrayData() = default;
 

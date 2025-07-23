@@ -4,6 +4,7 @@
 #include <bit>
 #include <chrono>
 #include <cmath>
+#include <concepts>
 #include <cstdlib>
 #include <format>
 #include <fstream>
@@ -31,6 +32,13 @@ namespace nx::utils {
 
     template <class T>
     concept NumericOrBool = std::is_arithmetic_v<T> || std::is_same_v<T, bool>;
+
+    template <class T>
+    concept Integer = std::integral<T> &&
+                      !std::same_as<T, bool> &&
+                      !std::same_as<T, char> &&
+                      !std::same_as<T, signed char> &&
+                      !std::same_as<T, unsigned char>;
 
     template <class T>
     inline size_t vsize(const std::vector<T> &v) {

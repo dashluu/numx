@@ -59,20 +59,25 @@ namespace nx::primitive {
     OpPtr argmin(OpPtr in_op, const ShapeDims &dims = {});
     OpPtr expand(OpPtr in_op, const ShapeView &reduce_operand_view, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims);
 
-    template <Numeric T>
+    template <NumericOrBool T>
     OpPtr full(const ShapeView &view, T constant, DtypePtr dtype, DevicePtr device) {
         return std::make_shared<FullOp>(ArrayData(Shape(view), dtype, device), dtype_bitcast_numeric(dtype, constant));
     }
 
-    template <class T>
+    template <NumericOrBool T>
     OpPtr full_like(OpPtr in_op, T constant, DtypePtr dtype, DevicePtr device) {
         return full(in_op->get_data().get_view(), constant, dtype, device);
     }
 
-    template <class T>
+    template <NumericOrBool T>
     OpPtr full_like(OpPtr in_op, T constant) {
         const ArrayData &in_data = in_op->get_data();
         return full(in_data.get_view(), constant, in_data.get_dtype(), in_data.get_device());
+    }
+
+    template <Numeric T>
+    OpPtr uniform(const ShapeView &view, isize key, T low, T high, DtypePtr dtype, DevicePtr device) {
+        return std::make_shared<UniformOp>(ArrayData(Shape(view), dtype, device), key, dtype_bitcast_numeric(dtype, low), dtype_bitcast_numeric(dtype, high));
     }
 
     template <Numeric T>

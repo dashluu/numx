@@ -50,72 +50,72 @@ namespace nx::bind {
             'C');
     }
 
-    inline std::string get_pyclass(const nb::object &obj) {
-        auto cls = obj.attr("__class__");
+    inline std::string get_py_class(const nb::object &py_obj) {
+        auto cls = py_obj.attr("__class__");
         auto name = cls.attr("__name__");
         return nb::cast<std::string>(name);
     }
 
     template <class F>
-    nxc::Array binary(const nxc::Array &array, const nb::object &obj, F &&f) {
-        if (nb::isinstance<nxc::Array>(obj)) {
-            return f(array, nb::cast<nxc::Array>(obj));
-        } else if (nb::isinstance<nb::float_>(obj)) {
-            return f(array, nb::cast<float>(obj));
-        } else if (nb::isinstance<nb::int_>(obj)) {
-            return f(array, nb::cast<int>(obj));
-        } else if (nb::isinstance<nb::bool_>(obj)) {
-            return f(array, nb::cast<bool>(obj));
+    nxc::Array binary(const nxc::Array &array, const nb::object &rhs, F &&f) {
+        if (nb::isinstance<nxc::Array>(rhs)) {
+            return f(array, nb::cast<nxc::Array>(rhs));
+        } else if (nb::isinstance<nb::float_>(rhs)) {
+            return f(array, nb::cast<float>(rhs));
+        } else if (nb::isinstance<nb::int_>(rhs)) {
+            return f(array, nb::cast<int>(rhs));
+        } else if (nb::isinstance<nb::bool_>(rhs)) {
+            return f(array, nb::cast<bool>(rhs));
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_pyclass(obj), "float, int, bool, Array");
+        throw nxp::NanobindInvalidArgumentType(get_py_class(rhs), "float, int, bool, Array");
     }
 
     template <class F>
-    nxc::Array in_place_binary(nxc::Array &array, const nb::object &obj, F &&f) {
-        if (nb::isinstance<nxc::Array>(obj)) {
-            return f(array, nb::cast<nxc::Array>(obj));
-        } else if (nb::isinstance<nb::float_>(obj)) {
-            return f(array, nb::cast<float>(obj));
-        } else if (nb::isinstance<nb::int_>(obj)) {
-            return f(array, nb::cast<int>(obj));
-        } else if (nb::isinstance<nb::bool_>(obj)) {
-            return f(array, nb::cast<bool>(obj));
+    nxc::Array in_place_binary(nxc::Array &array, const nb::object &rhs, F &&f) {
+        if (nb::isinstance<nxc::Array>(rhs)) {
+            return f(array, nb::cast<nxc::Array>(rhs));
+        } else if (nb::isinstance<nb::float_>(rhs)) {
+            return f(array, nb::cast<float>(rhs));
+        } else if (nb::isinstance<nb::int_>(rhs)) {
+            return f(array, nb::cast<int>(rhs));
+        } else if (nb::isinstance<nb::bool_>(rhs)) {
+            return f(array, nb::cast<bool>(rhs));
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_pyclass(obj), "float, int, bool, Array");
+        throw nxp::NanobindInvalidArgumentType(get_py_class(rhs), "float, int, bool, Array");
     }
 
-    nxp::isize get_pyindex(nxp::isize len, nxp::isize idx);
-    nxp::ShapeDims get_pyindices(nxp::isize len, nxp::ShapeDims &dims);
-    nxp::Range pyslice_to_range(nxp::isize len, const nb::object &obj);
-    std::vector<nxp::Range> pyslices_to_ranges(const nxc::Array &array, const nb::object &obj);
+    nxp::isize get_py_index(nxp::isize len, nxp::isize idx);
+    nxp::ShapeDims get_py_indices(nxp::isize len, nxp::ShapeDims &dims);
+    nxp::Range py_slice_to_range(nxp::isize len, const nb::object &py_slice);
+    std::vector<nxp::Range> py_slice_to_ranges(const nxc::Array &array, const nb::object &py_slice);
     nxp::DtypePtr dtype_from_nb_dtype(nb::dlpack::dtype nb_dtype);
     const std::string device_from_nb_device(int nb_device_id, int nb_device_type);
     nb::ndarray<nb::numpy> array_to_numpy(nxc::Array &array);
     nxc::Array array_from_numpy(nb::ndarray<nb::numpy> &ndarr);
     nb::ndarray<nb::pytorch> array_to_torch(nxc::Array &array);
     nb::object item(nxc::Array &array);
-    nxc::Array full(const nxp::ShapeView &view, const nb::object &obj, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
-    nxc::Array full_like(const nxc::Array &other, const nb::object &obj, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
+    nxc::Array full(const nxp::ShapeView &view, const nb::object &py_constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
+    nxc::Array full_like(const nxc::Array &array, const nb::object &py_constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
     nxc::Array neg(const nxc::Array &array);
-    nxc::Array add(const nxc::Array &array, const nb::object &obj);
-    nxc::Array iadd(nxc::Array &array, const nb::object &obj);
-    nxc::Array sub(const nxc::Array &array, const nb::object &obj);
-    nxc::Array isub(nxc::Array &array, const nb::object &obj);
-    nxc::Array mul(const nxc::Array &array, const nb::object &obj);
-    nxc::Array imul(nxc::Array &array, const nb::object &obj);
-    nxc::Array div(const nxc::Array &array, const nb::object &obj);
-    nxc::Array idiv(nxc::Array &array, const nb::object &obj);
-    nxc::Array eq(const nxc::Array &array, const nb::object &obj);
-    nxc::Array neq(const nxc::Array &array, const nb::object &obj);
-    nxc::Array lt(const nxc::Array &array, const nb::object &obj);
-    nxc::Array gt(const nxc::Array &array, const nb::object &obj);
-    nxc::Array leq(const nxc::Array &array, const nb::object &obj);
-    nxc::Array geq(const nxc::Array &array, const nb::object &obj);
-    nxc::Array minimum(const nxc::Array &array, const nb::object &obj);
-    nxc::Array maximum(const nxc::Array &array, const nb::object &obj);
-    nxc::Array slice(const nxc::Array &array, const nb::object &obj);
+    nxc::Array add(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array iadd(nxc::Array &array, const nb::object &rhs);
+    nxc::Array sub(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array isub(nxc::Array &array, const nb::object &rhs);
+    nxc::Array mul(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array imul(nxc::Array &array, const nb::object &rhs);
+    nxc::Array div(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array idiv(nxc::Array &array, const nb::object &rhs);
+    nxc::Array eq(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array neq(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array lt(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array gt(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array leq(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array geq(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array minimum(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array maximum(const nxc::Array &array, const nb::object &rhs);
+    nxc::Array slice(const nxc::Array &array, const nb::object &py_slice);
     nxc::Array permute(const nxc::Array &array, nx::primitive::ShapeDims &dims);
     nxc::Array transpose(const nxc::Array &array, nxp::isize start_dim, nxp::isize end_dim);
     nxc::Array flatten(const nxc::Array &array, nxp::isize start_dim, nxp::isize end_dim);

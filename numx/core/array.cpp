@@ -3,7 +3,7 @@
 namespace nx::core {
     Array::~Array() {
         if (m_graph) {
-            AllocatorPtr allocator = get_context()->get_allocator();
+            AllocatorPtr allocator = get_runtime_context()->get_allocator();
             ProfilerPtr profiler = m_runner->get_profiler();
 
             // Free buffers on the forward tape
@@ -44,10 +44,11 @@ namespace nx::core {
 
     void Array::eval() {
         if (!m_runner) {
-            m_graph = get_graph_factory()(m_op);
-            RuntimeContextPtr ctx = get_context();
-            ProfilerPtr profiler = get_backend().get_memory_profiler();
-            m_runner = get_runner_factory()(m_graph, ctx, profiler);
+            m_graph = get_graph_builder()(m_op);
+            RuntimeContextPtr runtime_ctx = get_runtime_context();
+            ProfilerPtr profiler = get_profiler();
+            m_runner = get_runner_builder()(m_graph, runtime_ctx);
+            m_runner->hook_profiler(profiler);
             m_graph->forward();
             m_runner->forward();
         }

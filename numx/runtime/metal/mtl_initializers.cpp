@@ -31,6 +31,19 @@ namespace nx::runtime::metal {
         pool->release();
     }
 
-    void MTLRunner::run_uniform_kernel(OpPtr op) {
+    void MTLRunner::run_uniform_kernel(OpPtr op, isize key, isize low, isize high) {
+        NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();
+        MTLEncoder encoder(m_ctx);
+        const ArrayData &data = op->get_data();
+        encoder.encode_mtl_buffer(&key, sizeof(isize));
+        encoder.encode_mtl_buffer(&low, sizeof(isize));
+        encoder.encode_mtl_buffer(&high, sizeof(isize));
+        encoder.encode_array_buffer(data);
+        const std::string kernel_name = "arange_" + data.get_dtype()->str();
+        encoder.set_pipeline_state(kernel_name);
+        const isize numel = data.get_numel();
+        encoder.dispatch_threads(numel, std::min(numel, s_max_threadgroup_size));
+        encoder.wait_to_complete();
+        pool->release();
     }
 } // namespace nx::runtime::metal

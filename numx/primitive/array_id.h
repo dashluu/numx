@@ -35,7 +35,7 @@ namespace nx::primitive {
         ArrayIdGenerator(const ArrayIdGenerator &) = delete;
         ~ArrayIdGenerator() = default;
         ArrayIdGenerator &operator=(const ArrayIdGenerator &) = delete;
-        ArrayId generate() { return ArrayId(s_counter++); }
+        ArrayId next() { return ArrayId(s_counter++); }
     };
 
     inline isize ArrayIdGenerator::s_counter = 1;

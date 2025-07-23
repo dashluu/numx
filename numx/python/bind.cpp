@@ -58,9 +58,6 @@ NB_MODULE(arrayx, m) {
         .def("write_memory_profile", &nxi::Profiler::write_memory_profile, "Log memory profile to a file")
         .def("write_graph_profile", &nxi::Profiler::write_graph_profile, "Log computational graph profile to a file");
 
-    nb::class_<nxc::Backend>(m_core, "Backend")
-        .def_static("use_profiler", &nxc::Backend::use_profiler, "profiler"_a, "Configure profiler for the backend");
-
     // Array class
     nb::class_<nxc::Array>(m_core, "Array")
         // Properties
@@ -90,12 +87,12 @@ NB_MODULE(arrayx, m) {
 
         // Initializer operations
         .def_static("full", &nxb::full, "view"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value")
-        .def_static("full_like", &nxb::full_like, "other"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value with same shape as the input array")
-        .def_static("zeros", &nxc::Array::zeros, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with zeros")
-        .def_static("ones", &nxc::Array::ones, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with ones")
-        .def_static("arange", &nxc::Array::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with evenly spaced values")
-        .def_static("zeros_like", &nxc::Array::zeros_like, "other"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of zeros with same shape as input")
-        .def_static("ones_like", &nxc::Array::ones_like, "other"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of ones with same shape as input")
+        .def_static("full_like", &nxb::full_like, "array"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value with same shape as the input array")
+        .def_static("zeros", &nxc::zeros, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with zeros")
+        .def_static("ones", &nxc::ones, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with ones")
+        .def_static("arange", &nxc::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with evenly spaced values")
+        .def_static("zeros_like", &nxc::zeros_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of zeros with same shape as input")
+        .def_static("ones_like", &nxc::ones_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of ones with same shape as input")
 
         // Element-wise operations
         .def("__add__", &nxb::add, "rhs"_a, "Add two arrays element-wise")
