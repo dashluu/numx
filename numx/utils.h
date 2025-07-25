@@ -13,6 +13,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <numbers>
 #include <numeric>
 #include <print>
 #include <ranges>
@@ -28,17 +29,16 @@ namespace nx::utils {
     using isize = int64_t;
 
     template <class T>
-    concept Numeric = std::is_arithmetic_v<T>;
+    concept NumericType = std::is_arithmetic_v<T>;
 
     template <class T>
-    concept NumericOrBool = std::is_arithmetic_v<T> || std::is_same_v<T, bool>;
+    concept NumericOrBoolType = std::is_arithmetic_v<T> || std::is_same_v<T, bool>;
 
     template <class T>
-    concept Integer = std::integral<T> &&
-                      !std::same_as<T, bool> &&
-                      !std::same_as<T, char> &&
-                      !std::same_as<T, signed char> &&
-                      !std::same_as<T, unsigned char>;
+    concept IntegerType = std::integral<T> && !std::same_as<T, bool>;
+
+    template <class T>
+    concept FloatType = std::floating_point<T>;
 
     template <class T>
     inline size_t vsize(const std::vector<T> &v) {
@@ -57,7 +57,7 @@ namespace nx::utils {
         return s;
     }
 
-    template <Numeric T>
+    template <NumericType T>
     inline const std::string join_nums(const std::vector<T> &v, const std::string &sep = ",") {
         return join<T>(v, [](T a) { return std::to_string(a); }, sep);
     }

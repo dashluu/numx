@@ -1,6 +1,7 @@
 #pragma once
 
 #include "op.h"
+#include "random.h"
 
 namespace nx::primitive {
     isize item(OpPtr op);
@@ -16,7 +17,6 @@ namespace nx::primitive {
     OpPtr ones_like(OpPtr in_op, DtypePtr dtype, DevicePtr device);
     OpPtr ones_like(OpPtr in_op);
     OpPtr arange(const ShapeView &view, isize start, isize step, DtypePtr dtype, DevicePtr device);
-    OpPtr uniform(const ShapeView &view, DtypePtr dtype, DevicePtr device);
     OpPtr broadcast(OpPtr in_op, const ShapeView &view);
     OpPtr broadcast_to(OpPtr in_op, const ShapeView &view);
     OpPtr slice(OpPtr in_op, const RangeVec &ranges);
@@ -61,28 +61,29 @@ namespace nx::primitive {
     OpPtr argmin(OpPtr in_op, const ShapeDims &dims = {});
     OpPtr expand(OpPtr in_op, const ShapeView &reduce_operand_view, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims);
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     OpPtr full(const ShapeView &view, T constant, DtypePtr dtype, DevicePtr device) {
         return std::make_shared<FullOp>(ArrayData(Shape(view), dtype, device), dtype_bitcast_numeric(dtype, constant));
     }
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     OpPtr full_like(OpPtr in_op, T constant, DtypePtr dtype, DevicePtr device) {
         return full(in_op->get_data().get_view(), constant, dtype, device);
     }
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     OpPtr full_like(OpPtr in_op, T constant) {
         const ArrayData &in_data = in_op->get_data();
         return full(in_data.get_view(), constant, in_data.get_dtype(), in_data.get_device());
     }
 
-    template <Numeric T>
-    OpPtr uniform(const ShapeView &view, isize key, T low, T high, DtypePtr dtype, DevicePtr device) {
+    template <NumericType T>
+    OpPtr uniform(const ShapeView &view, RandomKeyGeneratorPtr rand_key_gen, T low, T high, DtypePtr dtype, DevicePtr device) {
+        uint64_t key = rand_key_gen->next();
         return std::make_shared<UniformOp>(ArrayData(Shape(view), dtype, device), key, dtype_bitcast_numeric(dtype, low), dtype_bitcast_numeric(dtype, high));
     }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr binary_with_scalar(OpPtr l_op, T constant, OpPtr (*op_fn)(OpPtr, OpPtr)) {
         const ArrayData &l_data = l_op->get_data();
         DtypePtr l_dtype = l_data.get_dtype();
@@ -91,7 +92,7 @@ namespace nx::primitive {
         return op_fn(l_op, r_op);
     }
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     OpPtr eq_with_scalar(OpPtr l_op, T constant, OpPtr (*op_fn)(OpPtr, OpPtr)) {
         const ArrayData &l_data = l_op->get_data();
         DtypePtr l_dtype = l_data.get_dtype();
@@ -100,53 +101,62 @@ namespace nx::primitive {
         return op_fn(l_op, r_op);
     }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr add(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, add); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr iadd(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, iadd); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr sub(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, sub); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr isub(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, isub); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr mul(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, mul); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr imul(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, imul); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr div(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, div); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr idiv(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, idiv); }
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     OpPtr eq(OpPtr l_op, T constant) { return eq_with_scalar(l_op, constant, eq); }
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     OpPtr neq(OpPtr l_op, T constant) { return eq_with_scalar(l_op, constant, neq); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr lt(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, lt); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr gt(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, gt); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr leq(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, leq); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr geq(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, geq); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr minimum(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, minimum); }
 
-    template <Numeric T>
+    template <NumericType T>
     OpPtr maximum(OpPtr l_op, T constant) { return binary_with_scalar(l_op, constant, maximum); }
+
+    template <NumericType T>
+    OpPtr normal(const ShapeView &view, RandomKeyGeneratorPtr rand_key_gen, T mean, T std, DtypePtr dtype, DevicePtr device) {
+        // TODO: cache second output by Box-Muller transform for future use?
+        OpPtr lhs = uniform(view, rand_key_gen, 0, 1, dtype, device);
+        OpPtr rhs = uniform(view, rand_key_gen, 0, 1, dtype, device);
+        OpPtr std_normal = mul(sqrt(mul(log(lhs), -2)), cos(mul(rhs, 2 * std::numbers::pi)));
+        return add(mul(std_normal, std), mean);
+    }
 
     template <class O>
     OpPtr elmwise_binary(OpPtr l_op, OpPtr r_op) {

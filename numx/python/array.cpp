@@ -188,6 +188,14 @@ namespace nx::bind {
         return full(array.get_view(), py_constant, dtype, device_name);
     }
 
+    nxc::Array uniform(const nxp::ShapeView &view, const nb::object &py_low, const nb::object &py_high, nxp::DtypePtr dtype, const std::string &device_name) {
+        return nxr::uniform(view, nb::cast<float>(py_low), nb::cast<float>(py_high), dtype, device_name);
+    }
+
+    nxc::Array normal(const nxp::ShapeView &view, const nb::object &py_mean, const nb::object &py_std, nxp::DtypePtr dtype, const std::string &device_name) {
+        return nxr::normal(view, nb::cast<float>(py_mean), nb::cast<float>(py_std), dtype, device_name);
+    }
+
     nxc::Array neg(const nxc::Array &array) {
         return array.neg();
     }

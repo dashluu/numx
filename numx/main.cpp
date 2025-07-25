@@ -17,8 +17,8 @@ void run_basic(nx::instrument::ProfilerPtr profiler, const std::string &file_nam
 }
 
 void run_random() {
-    auto x1 = nx::random::uniform({2, 3, 4}, 2.0, 4.0);
-    auto x2 = x1.sin();
+    auto x1 = nx::random::normal<float>({2, 3, 4});
+    auto x2 = x1.cos();
     std::println("{}", x1);
     std::println("{}", x2);
 }
@@ -29,5 +29,6 @@ int main() {
     // run_basic(profiler, "graph.json");
     // profiler->write_memory_profile("memory.json");
     run_random();
+    profiler->write_memory_profile("memory.json");
     return 0;
 }

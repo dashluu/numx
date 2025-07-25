@@ -82,22 +82,22 @@ namespace nx::core {
         // Element-wise operations
         Array operator+(const Array &rhs) const { return Array(nx::graph::add(m_op, rhs.m_op)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator+(T constant) const { return Array(nx::graph::add(m_op, constant)); }
 
         Array operator-(const Array &rhs) const { return Array(nx::graph::sub(m_op, rhs.m_op)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator-(T constant) const { return Array(nx::graph::sub(m_op, constant)); }
 
         Array operator*(const Array &rhs) const { return Array(nx::graph::mul(m_op, rhs.m_op)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator*(T constant) const { return Array(nx::graph::mul(m_op, constant)); }
 
         Array operator/(const Array &rhs) const { return Array(nx::graph::div(m_op, rhs.m_op)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator/(T constant) const { return Array(nx::graph::div(m_op, constant)); }
 
         Array &operator+=(const Array &rhs) {
@@ -107,7 +107,7 @@ namespace nx::core {
             return *this;
         }
 
-        template <Numeric T>
+        template <NumericType T>
         Array &operator+=(T constant) {
             m_op = nx::graph::iadd(m_op, constant);
             m_graph = nullptr;
@@ -122,7 +122,7 @@ namespace nx::core {
             return *this;
         }
 
-        template <Numeric T>
+        template <NumericType T>
         Array &operator-=(T constant) {
             m_op = nx::graph::isub(m_op, constant);
             m_graph = nullptr;
@@ -137,7 +137,7 @@ namespace nx::core {
             return *this;
         }
 
-        template <Numeric T>
+        template <NumericType T>
         Array &operator*=(T constant) {
             m_op = nx::graph::imul(m_op, constant);
             m_graph = nullptr;
@@ -152,7 +152,7 @@ namespace nx::core {
             return *this;
         }
 
-        template <Numeric T>
+        template <NumericType T>
         Array &operator/=(T constant) {
             m_op = nx::graph::idiv(m_op, constant);
             m_graph = nullptr;
@@ -179,28 +179,28 @@ namespace nx::core {
         Array minimum(const Array &rhs) const { return Array(nx::graph::minimum(m_op, rhs.m_op)); }
         Array maximum(const Array &rhs) const { return Array(nx::graph::maximum(m_op, rhs.m_op)); }
 
-        template <NumericOrBool T>
+        template <NumericOrBoolType T>
         Array operator==(T constant) const { return Array(nx::graph::eq(m_op, constant)); }
 
-        template <NumericOrBool T>
+        template <NumericOrBoolType T>
         Array operator!=(T constant) const { return Array(nx::graph::neq(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator<(T constant) const { return Array(nx::graph::lt(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator>(T constant) const { return Array(nx::graph::gt(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator<=(T constant) const { return Array(nx::graph::leq(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array operator>=(T constant) const { return Array(nx::graph::geq(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array minimum(T constant) const { return Array(nx::graph::minimum(m_op, constant)); }
 
-        template <Numeric T>
+        template <NumericType T>
         Array maximum(T constant) const { return Array(nx::graph::maximum(m_op, constant)); }
 
         // Reduction operations
@@ -226,22 +226,22 @@ namespace nx::core {
         Array astype(DtypePtr dtype) const { return Array(nx::graph::astype(m_op, dtype)); }
     };
 
-    template <Numeric T>
+    template <NumericType T>
     Array operator+(T constant, const Array &array) {
         return array + constant;
     }
 
-    template <Numeric T>
+    template <NumericType T>
     Array operator-(T constant, const Array &array) {
         return array - constant;
     }
 
-    template <Numeric T>
+    template <NumericType T>
     Array operator*(T constant, const Array &array) {
         return array * constant;
     }
 
-    template <Numeric T>
+    template <NumericType T>
     Array operator/(T constant, const Array &array) {
         return array.recip() * constant;
     }
@@ -254,13 +254,13 @@ namespace nx::core {
     }
 
     // Initializer operations
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     Array full(const ShapeView &view, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
         DevicePtr device = get_device_by_name(device_name);
         return Array(nx::graph::full(view, constant, dtype, device));
     }
 
-    template <NumericOrBool T>
+    template <NumericOrBoolType T>
     Array full_like(const Array &array, T constant, DtypePtr dtype = &f32, const std::string &device_name = default_device_name) {
         DevicePtr device = get_device_by_name(device_name);
         return Array(nx::graph::full_like(array.get_op(), constant, dtype, device));

@@ -67,7 +67,7 @@ namespace nx::runtime::metal {
         MTLEncoder encoder(m_ctx);
         const ArrayData &in_data = in_op->get_data();
         const ArrayData &out_data = out_op->get_data();
-        std::shared_ptr<ReduceOp> reduce_op = std::static_pointer_cast<ReduceOp>(out_op);
+        ReduceOpPtr reduce_op = std::static_pointer_cast<ReduceOp>(out_op);
         const ShapeDims &remaining_dims = reduce_op->get_remaining_dims();
         const ShapeDims &reduce_dims = reduce_op->get_reduce_dims();
         const ShapeView &in_view = in_data.get_view();

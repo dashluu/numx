@@ -16,7 +16,7 @@ namespace nx::graph {
             break;
         }
         case Optype::UNARY: {
-            std::shared_ptr<UnaryOp> unary_op = std::static_pointer_cast<UnaryOp>(op);
+            UnaryOpPtr unary_op = std::static_pointer_cast<UnaryOp>(op);
             OpPtr operand = unary_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
@@ -24,7 +24,7 @@ namespace nx::graph {
             break;
         }
         case Optype::BINARY: {
-            std::shared_ptr<BinaryOp> binary_op = std::static_pointer_cast<BinaryOp>(op);
+            BinaryOpPtr binary_op = std::static_pointer_cast<BinaryOp>(op);
             OpPtr lhs = binary_op->get_lhs();
             OpPtr rhs = binary_op->get_rhs();
             fw_toposort(lhs);
@@ -34,7 +34,7 @@ namespace nx::graph {
             break;
         }
         case Optype::TRANSFORM: {
-            std::shared_ptr<TransformOp> transform_op = std::static_pointer_cast<TransformOp>(op);
+            TransformOpPtr transform_op = std::static_pointer_cast<TransformOp>(op);
             OpPtr operand = transform_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
@@ -43,7 +43,7 @@ namespace nx::graph {
         }
         default: {
             // Reduce operation
-            std::shared_ptr<ReduceOp> reduce_op = std::static_pointer_cast<ReduceOp>(op);
+            ReduceOpPtr reduce_op = std::static_pointer_cast<ReduceOp>(op);
             OpPtr operand = reduce_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
@@ -68,7 +68,7 @@ namespace nx::graph {
             break;
         }
         case Optype::UNARY: {
-            std::shared_ptr<UnaryOp> unary_op = std::static_pointer_cast<UnaryOp>(op);
+            UnaryOpPtr unary_op = std::static_pointer_cast<UnaryOp>(op);
             OpPtr operand = unary_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
@@ -76,7 +76,7 @@ namespace nx::graph {
             break;
         }
         case Optype::BINARY: {
-            std::shared_ptr<BinaryOp> binary_op = std::static_pointer_cast<BinaryOp>(op);
+            BinaryOpPtr binary_op = std::static_pointer_cast<BinaryOp>(op);
             OpPtr lhs = binary_op->get_lhs();
             OpPtr rhs = binary_op->get_rhs();
             bw_toposort(lhs);
@@ -86,7 +86,7 @@ namespace nx::graph {
             break;
         }
         case Optype::TRANSFORM: {
-            std::shared_ptr<TransformOp> transform_op = std::static_pointer_cast<TransformOp>(op);
+            TransformOpPtr transform_op = std::static_pointer_cast<TransformOp>(op);
             OpPtr operand = transform_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
@@ -95,7 +95,7 @@ namespace nx::graph {
         }
         default: {
             // Reduce operation
-            std::shared_ptr<ReduceOp> reduce_op = std::static_pointer_cast<ReduceOp>(op);
+            ReduceOpPtr reduce_op = std::static_pointer_cast<ReduceOp>(op);
             OpPtr operand = reduce_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);

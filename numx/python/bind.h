@@ -2,6 +2,7 @@
 
 #include "../nn/functional.h"
 #include "../optim/optim.h"
+#include "../random/random.h"
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/operators.h>
@@ -16,7 +17,7 @@ namespace nx::bind {
 
 namespace nb = nanobind;
 namespace nxp = nx::primitive;
-namespace nxr = nx::runtime;
+namespace nxr = nx::random;
 namespace nxi = nx::instrument;
 namespace nxc = nx::core;
 namespace nxn = nx::nn;

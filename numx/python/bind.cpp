@@ -79,20 +79,10 @@ NB_MODULE(arrayx, m) {
 
         // N-dimensional array
         .def("numpy", &nxb::array_to_numpy, nb::rv_policy::reference_internal, "Convert array to numpy array")
-        .def_static("from_numpy", &nxb::array_from_numpy, "array"_a, "Convert numpy array to array")
         .def("torch", &nxb::array_to_torch, nb::rv_policy::reference_internal, "Convert array to Pytorch tensor")
         // .def_static("from_torch", &nxb::array_from_torch, "tensor"_a, "Convert Pytorch tensor to array")
         .def("item", &nxb::item, "Get array's only value")
         .def("graph", &nxc::Array::graph_str, "Get array's computation graph representation")
-
-        // Initializer operations
-        .def_static("full", &nxb::full, "view"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value")
-        .def_static("full_like", &nxb::full_like, "array"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value with same shape as the input array")
-        .def_static("zeros", &nxc::zeros, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with zeros")
-        .def_static("ones", &nxc::ones, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with ones")
-        .def_static("arange", &nxc::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with evenly spaced values")
-        .def_static("zeros_like", &nxc::zeros_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of zeros with same shape as input")
-        .def_static("ones_like", &nxc::ones_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of ones with same shape as input")
 
         // Element-wise operations
         .def("__add__", &nxb::add, "rhs"_a, "Add two arrays element-wise")
@@ -155,6 +145,17 @@ NB_MODULE(arrayx, m) {
 
         // String representation
         .def("__str__", &nxc::Array::str, "String representation of array");
+
+    m_core.def("full", &nxb::full, "view"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value")
+        .def("full_like", &nxb::full_like, "array"_a, "c"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with specified value with same shape as the input array")
+        .def("zeros", &nxc::zeros, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with zeros")
+        .def("ones", &nxc::ones, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array filled with ones")
+        .def("arange", &nxc::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with evenly spaced values")
+        .def("zeros_like", &nxc::zeros_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of zeros with same shape as input")
+        .def("ones_like", &nxc::ones_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of ones with same shape as input")
+        .def("uniform", &nxb::uniform, "view"_a, "low"_a = 0.0, "high"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a uniform distribution")
+        .def("normal", &nxb::normal, "view"_a, "mean"_a = 0.0, "std"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a normal distribution")
+        .def("from_numpy", &nxb::array_from_numpy, "array"_a, "Convert numpy array to array");
 
     nb::class_<nxo::Optimizer, nxb::PyOptimizer>(m_optim, "Optimizer")
         .def(nb::init<float>(), "lr"_a = 1e-3, "Base optimizer")

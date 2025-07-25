@@ -31,7 +31,7 @@ namespace nx::runtime::metal {
     }
 
     void MTLRunner::run_unary_op(OpPtr op) {
-        std::shared_ptr<UnaryOp> unary_op = std::static_pointer_cast<UnaryOp>(op);
+        UnaryOpPtr unary_op = std::static_pointer_cast<UnaryOp>(op);
         OpPtr operand = unary_op->get_operand();
 
         if (unary_op->is_in_place()) {
@@ -48,7 +48,7 @@ namespace nx::runtime::metal {
     }
 
     void MTLRunner::run_binary_op(OpPtr op) {
-        std::shared_ptr<BinaryOp> binary_op = std::static_pointer_cast<BinaryOp>(op);
+        BinaryOpPtr binary_op = std::static_pointer_cast<BinaryOp>(op);
         OpPtr lop = binary_op->get_lhs();
         OpPtr rop = binary_op->get_rhs();
 
@@ -118,7 +118,7 @@ namespace nx::runtime::metal {
     }
 
     void MTLRunner::run_reduce_op(OpPtr op) {
-        std::shared_ptr<ReduceOp> reduce_op = std::static_pointer_cast<ReduceOp>(op);
+        ReduceOpPtr reduce_op = std::static_pointer_cast<ReduceOp>(op);
         OpPtr operand = reduce_op->get_operand();
         alloc_array_buffer(op);
 

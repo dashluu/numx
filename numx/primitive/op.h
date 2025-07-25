@@ -8,6 +8,7 @@ namespace nx::primitive {
         EMPTY,
         ARANGE,
         UNIFORM,
+        NORMAL,
         FULL,
         ADD,
         SUB,
@@ -102,7 +103,7 @@ namespace nx::primitive {
         void slice_grad(OpPtr grad, const RangeVec &ranges);
         virtual void grad_fn() const {}
         virtual const std::string str() const { return std::format("{}: {}, view: ({}), dtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }
-        virtual const std::string repr() const { return std::format("{}: {}\\nView: ({})\\nDtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }
+        virtual const std::string dump() const { return std::format("{}: {}\\nView: ({})\\nDtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }
         friend std::ostream &operator<<(std::ostream &os, OpPtr op) { return os << op->str(); }
     };
 
@@ -144,10 +145,8 @@ namespace nx::primitive {
         isize get_start() const { return m_start; }
         isize get_step() const { return m_step; }
         const std::string str() const override { return std::format("{}, start: {}, step: {}", InitializerOp::str(), m_start, m_step); }
-        const std::string repr() const override { return std::format("{}\\nStart: {}\\nStep: {}", InitializerOp::repr(), m_start, m_step); }
+        const std::string dump() const override { return std::format("{}\\nStart: {}\\nStep: {}", InitializerOp::dump(), m_start, m_step); }
     };
-
-    using ArangeOpPtr = std::shared_ptr<ArangeOp>;
 
     struct FullOp : public InitializerOp {
     private:
@@ -160,10 +159,8 @@ namespace nx::primitive {
         const std::string &get_opname() const override { return s_opname; }
         isize get_const() const { return m_const; }
         const std::string str() const override { return std::format("{}, value: {}", InitializerOp::str(), m_data.get_dtype()->value_str(m_const)); }
-        const std::string repr() const override { return std::format("{}\\nValue: {}", InitializerOp::repr(), m_data.get_dtype()->value_str(m_const)); }
+        const std::string dump() const override { return std::format("{}\\nValue: {}", InitializerOp::dump(), m_data.get_dtype()->value_str(m_const)); }
     };
-
-    using FullOpPtr = std::shared_ptr<FullOp>;
 
     struct UniformOp : public InitializerOp {
     private:
@@ -180,15 +177,13 @@ namespace nx::primitive {
         isize get_high() const { return m_high; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, key: {}, low: {}, high: {}", InitializerOp::str(), m_key, m_low, m_high); }
-        const std::string repr() const override { return std::format("{}\\nKey: {}\\nLow: {}\\nHigh: {}", InitializerOp::repr(), m_key, m_low, m_high); }
+        const std::string dump() const override { return std::format("{}\\nKey: {}\\nLow: {}\\nHigh: {}", InitializerOp::dump(), m_key, m_low, m_high); }
     };
-
-    using UniformOpPtr = std::shared_ptr<UniformOp>;
 
     struct UnaryOp : public Op {
     protected:
-        bool m_in_place;
         OpPtr m_operand;
+        bool m_in_place;
 
     public:
         UnaryOp(const ArrayData &data, OpPtr operand, bool in_place) : Op(data), m_operand(operand), m_in_place(in_place) {}
@@ -196,8 +191,8 @@ namespace nx::primitive {
         const std::string optype_str() const override { return "unary"; }
         OpPtr get_operand() { return m_operand; }
         bool is_in_place() const { return m_in_place; }
-        const std::string str() const override { return std::format("{}, in-place: {}, operand: {}", Op::str(), m_in_place, m_operand->get_data().get_id()); }
-        const std::string repr() const override { return std::format("{}\\nIn-place: {}\\nOperand: {}", Op::repr(), m_in_place, m_operand->get_data().get_id()); }
+        const std::string str() const override { return std::format("{}, operand: {}, in-place: {}", Op::str(), m_operand->get_data().get_id(), m_in_place); }
+        const std::string dump() const override { return std::format("{}\\nOperand: {}\\nIn-place: {}", Op::dump(), m_operand->get_data().get_id(), m_in_place); }
     };
 
     using UnaryOpPtr = std::shared_ptr<UnaryOp>;
@@ -216,7 +211,7 @@ namespace nx::primitive {
         OpPtr get_rhs() { return m_rhs; }
         BinaryMode get_mode() const { return m_mode; }
         const std::string str() const override { return std::format("{}, lhs: {}, rhs: {}", Op::str(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
-        const std::string repr() const override { return std::format("{}\\nLHS: {}\\nRHS: {}", Op::repr(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
+        const std::string dump() const override { return std::format("{}\\nLHS: {}\\nRHS: {}", Op::dump(), m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
     };
 
     using BinaryOpPtr = std::shared_ptr<BinaryOp>;
@@ -228,8 +223,8 @@ namespace nx::primitive {
     public:
         ElmwiseBinaryOp(const ArrayData &data, OpPtr lhs, OpPtr rhs, bool in_place) : BinaryOp(data, lhs, rhs, BinaryMode::ELMWISE), m_in_place(in_place) {}
         bool is_in_place() const { return m_in_place; }
-        const std::string str() const override { return std::format("{}, in-place: {}, lhs: {}, rhs: {}", Op::str(), m_in_place, m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
-        const std::string repr() const override { return std::format("{}\\nIn-place: {}\\nLHS: {}\\nRHS: {}", Op::repr(), m_in_place, m_lhs->get_data().get_id(), m_rhs->get_data().get_id()); }
+        const std::string str() const override { return std::format("{}, in-place: {}", BinaryOp::str(), m_in_place); }
+        const std::string dump() const override { return std::format("{}\\nIn-place: {}", BinaryOp::dump(), m_in_place); }
     };
 
     struct CmpOp : public BinaryOp {
@@ -247,7 +242,7 @@ namespace nx::primitive {
         const std::string optype_str() const override { return "transform"; }
         OpPtr get_operand() { return m_operand; }
         const std::string str() const override { return std::format("{}, operand: {}", Op::str(), m_operand->get_data().get_id()); }
-        const std::string repr() const override { return std::format("{}\\nOperand: {}", Op::repr(), m_operand->get_data().get_id()); }
+        const std::string dump() const override { return std::format("{}\\nOperand: {}", Op::dump(), m_operand->get_data().get_id()); }
     };
 
     using TransformOpPtr = std::shared_ptr<TransformOp>;
@@ -266,7 +261,7 @@ namespace nx::primitive {
         const ShapeDims &get_remaining_dims() const { return m_remaining_dims; }
         const ShapeDims &get_reduce_dims() const { return m_reduce_dims; }
         const std::string str() const override { return std::format("{}, operand: {}, remaining dims: {}, reduce dims: {}", Op::str(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
-        const std::string repr() const override { return std::format("{}\\nOperand: {}\\nRemaining dims: {}\\nReduce dims: {}", Op::repr(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
+        const std::string dump() const override { return std::format("{}\\nOperand: {}\\nRemaining dims: {}\\nReduce dims: {}", Op::dump(), m_operand->get_data().get_id(), join_nums(m_remaining_dims), join_nums(m_reduce_dims)); }
     };
 
     using ReduceOpPtr = std::shared_ptr<ReduceOp>;
@@ -491,8 +486,8 @@ namespace nx::primitive {
             return std::format("{}, ranges: ({})", TransformOp::str(), join<Range>(m_ranges, [](Range range) { return range.str(); }));
         }
 
-        const std::string repr() const override {
-            return std::format("{}\\nRanges: ({})", TransformOp::repr(), join<Range>(m_ranges, [](Range range) { return range.str(); }));
+        const std::string dump() const override {
+            return std::format("{}\\nRanges: ({})", TransformOp::dump(), join<Range>(m_ranges, [](Range range) { return range.str(); }));
         }
 
         void grad_fn() const override;
@@ -509,7 +504,7 @@ namespace nx::primitive {
         Opcode get_opcode() const override { return Opcode::PERMUTE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, permutation: ({})", TransformOp::str(), join_nums(m_dims)); }
-        const std::string repr() const override { return std::format("{}\\nPermutation: ({})", TransformOp::repr(), join_nums(m_dims)); }
+        const std::string dump() const override { return std::format("{}\\nPermutation: ({})", TransformOp::dump(), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -526,7 +521,7 @@ namespace nx::primitive {
         Opcode get_opcode() const override { return Opcode::BROADCAST; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, input view: ({}), dims: ({})", TransformOp::str(), join_nums(m_input_view), join_nums(m_dims)); }
-        const std::string repr() const override { return std::format("{}\\nInput view: ({})\\nDims: ({})", TransformOp::repr(), join_nums(m_input_view), join_nums(m_dims)); }
+        const std::string dump() const override { return std::format("{}\\nInput view: ({})\\nDims: ({})", TransformOp::dump(), join_nums(m_input_view), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -541,7 +536,7 @@ namespace nx::primitive {
         Opcode get_opcode() const override { return Opcode::SQUEEZE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dims: ({})", TransformOp::str(), join_nums(m_dims)); }
-        const std::string repr() const override { return std::format("{}\\nDims: ({})", TransformOp::repr(), join_nums(m_dims)); }
+        const std::string dump() const override { return std::format("{}\\nDims: ({})", TransformOp::dump(), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -556,7 +551,7 @@ namespace nx::primitive {
         Opcode get_opcode() const override { return Opcode::UNSQUEEZE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dims: ({})", TransformOp::str(), join_nums(m_dims)); }
-        const std::string repr() const override { return std::format("{}\\nDims: ({})", TransformOp::repr(), join_nums(m_dims)); }
+        const std::string dump() const override { return std::format("{}\\nDims: ({})", TransformOp::dump(), join_nums(m_dims)); }
         void grad_fn() const override;
     };
 
@@ -571,7 +566,7 @@ namespace nx::primitive {
         Opcode get_opcode() const override { return Opcode::ASTYPE; }
         const std::string &get_opname() const override { return s_opname; }
         const std::string str() const override { return std::format("{}, dtype: {}", TransformOp::str(), m_dtype->str()); }
-        const std::string repr() const override { return std::format("{}\\nDtype: {}", TransformOp::repr(), m_dtype->str()); }
+        const std::string dump() const override { return std::format("{}\\nDtype: {}", TransformOp::dump(), m_dtype->str()); }
     };
 
     struct SumOp : public ReduceOp {

@@ -5,7 +5,7 @@ namespace nx::instrument {
         const ArrayData &data = op->get_data();
         stream << "{";
         stream << "\"id\": \"" << data.get_id() << "\",";
-        stream << "\"label\": \"" << op->repr() << "\",";
+        stream << "\"label\": \"" << op->dump() << "\",";
         stream << "\"type\": \"" << op->optype_str() << "\",";
         stream << "\"op\": \"" << op->get_opname() << "\",";
         stream << "\"view\": \"(" << join_nums(data.get_view()) << ")\",";
@@ -28,13 +28,13 @@ namespace nx::instrument {
             return false;
         }
         case Optype::UNARY: {
-            std::shared_ptr<UnaryOp> unary_op = std::static_pointer_cast<UnaryOp>(op);
+            UnaryOpPtr unary_op = std::static_pointer_cast<UnaryOp>(op);
             OpPtr operand = unary_op->get_operand();
             stream << "[\"" << id << "\", \"" << operand->get_data().get_id() << "\"]";
             return true;
         }
         case Optype::BINARY: {
-            std::shared_ptr<BinaryOp> binary_op = std::static_pointer_cast<BinaryOp>(op);
+            BinaryOpPtr binary_op = std::static_pointer_cast<BinaryOp>(op);
             OpPtr lhs = binary_op->get_lhs();
             OpPtr rhs = binary_op->get_rhs();
             stream << "[\"" << id << "\", \"" << lhs->get_data().get_id() << "\"],";
@@ -42,13 +42,13 @@ namespace nx::instrument {
             return true;
         }
         case Optype::TRANSFORM: {
-            std::shared_ptr<TransformOp> transform_op = std::static_pointer_cast<TransformOp>(op);
+            TransformOpPtr transform_op = std::static_pointer_cast<TransformOp>(op);
             OpPtr operand = transform_op->get_operand();
             stream << "[\"" << id << "\", \"" << operand->get_data().get_id() << "\"]";
             return true;
         }
         default: {
-            std::shared_ptr<ReduceOp> reduce_op = std::static_pointer_cast<ReduceOp>(op);
+            ReduceOpPtr reduce_op = std::static_pointer_cast<ReduceOp>(op);
             OpPtr operand = reduce_op->get_operand();
             stream << "[\"" << id << "\", \"" << operand->get_data().get_id() << "\"]";
             return true;
