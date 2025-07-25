@@ -27,7 +27,6 @@ namespace nx::runtime::metal {
         void run_binary_op(OpPtr op) override;
         void run_transform_op(OpPtr op) override;
         void run_reduce_op(OpPtr op) override;
-        static isize align_to(isize x, isize target) { return (x + target - 1) / target * target; }
 
         template <class O>
         void run_simple_transform_op(OpPtr op) {

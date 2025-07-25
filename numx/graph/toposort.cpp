@@ -20,7 +20,7 @@ namespace nx::graph {
             OpPtr operand = unary_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
-            num_fw_edges++;
+            m_num_fw_edges++;
             break;
         }
         case Optype::BINARY: {
@@ -30,7 +30,7 @@ namespace nx::graph {
             fw_toposort(lhs);
             fw_toposort(rhs);
             m_fw_tape.push_back(op);
-            num_fw_edges += 2;
+            m_num_fw_edges += 2;
             break;
         }
         case Optype::TRANSFORM: {
@@ -38,7 +38,7 @@ namespace nx::graph {
             OpPtr operand = transform_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
-            num_fw_edges++;
+            m_num_fw_edges++;
             break;
         }
         default: {
@@ -47,7 +47,7 @@ namespace nx::graph {
             OpPtr operand = reduce_op->get_operand();
             fw_toposort(operand);
             m_fw_tape.push_back(op);
-            num_fw_edges++;
+            m_num_fw_edges++;
             break;
         }
         }
@@ -72,7 +72,7 @@ namespace nx::graph {
             OpPtr operand = unary_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
-            num_bw_edges++;
+            m_num_bw_edges++;
             break;
         }
         case Optype::BINARY: {
@@ -82,7 +82,7 @@ namespace nx::graph {
             bw_toposort(lhs);
             bw_toposort(rhs);
             m_bw_tape.push_back(op);
-            num_bw_edges += 2;
+            m_num_bw_edges += 2;
             break;
         }
         case Optype::TRANSFORM: {
@@ -90,7 +90,7 @@ namespace nx::graph {
             OpPtr operand = transform_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
-            num_bw_edges++;
+            m_num_bw_edges++;
             break;
         }
         default: {
@@ -99,7 +99,7 @@ namespace nx::graph {
             OpPtr operand = reduce_op->get_operand();
             bw_toposort(operand);
             m_bw_tape.push_back(op);
-            num_bw_edges++;
+            m_num_bw_edges++;
             break;
         }
         }

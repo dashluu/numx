@@ -67,14 +67,14 @@ namespace nx::instrument {
     void Profiler::record_alloc(const ArrayData &data) {
         const Block &block = data.m_buffer.get_block();
         m_memory_snapshot.emplace(data.get_id(), MemorySnapshotInfo(block));
-        memory_usage += block.get_size();
-        peak_memory = std::max(peak_memory, memory_usage);
+        m_memory_usage += block.get_size();
+        m_peak_memory = std::max(m_peak_memory, m_memory_usage);
     }
 
     void Profiler::record_free(const ArrayData &data) {
         MemorySnapshotInfo &snapshot_info = m_memory_snapshot.at(data.get_id());
         snapshot_info.tock();
-        memory_usage -= snapshot_info.get_block().get_size();
+        m_memory_usage -= snapshot_info.get_block().get_size();
     }
 
     void Profiler::write_memory_profile(const std::string &file_name) {
@@ -100,7 +100,7 @@ namespace nx::instrument {
     }
 
     void Profiler::stream_memory_profile(std::ostream &stream) {
-        stream << "{\"Peak memory\": " << peak_memory << ", \"Memory usage\": {";
+        stream << "{\"Peak memory\": " << m_peak_memory << ", \"Memory usage\": {";
         size_t snapshot_size = m_memory_snapshot.size();
         size_t num_leaks = 0;
         size_t i = 0;

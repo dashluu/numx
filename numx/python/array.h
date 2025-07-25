@@ -86,7 +86,7 @@ namespace nx::bind {
         throw nxp::NanobindInvalidArgumentType(get_py_class(rhs), "float, int, bool, Array");
     }
 
-    nxp::isize get_py_index(nxp::isize len, nxp::isize idx);
+    nxp::isize get_py_index(nxp::isize len, nxp::isize index);
     nxp::ShapeDims get_py_indices(nxp::isize len, nxp::ShapeDims &dims);
     nxp::Range py_slice_to_range(nxp::isize len, const nb::object &py_slice);
     std::vector<nxp::Range> py_slice_to_ranges(const nxc::Array &array, const nb::object &py_slice);

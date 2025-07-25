@@ -142,7 +142,7 @@ namespace nx::runtime::metal {
         ArrayData &data = op->get_data();
 
         if (!data.m_buffer.is_valid()) {
-            data.m_buffer = ArrayBuffer(m_ctx->get_allocator()->alloc(data.get_nbytes()), true);
+            data.m_buffer = ArrayBuffer(m_ctx->get_allocator()->alloc_block(data.get_nbytes()), true);
 
             if (m_profiler) {
                 m_profiler->record_alloc(data);

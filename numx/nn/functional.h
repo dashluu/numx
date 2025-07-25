@@ -27,7 +27,7 @@ namespace nx::nn {
             num_classes = x.max().item() + 1;
         }
 
-        Array arange = Array::arange({num_classes}, 0, 1, &i32);
+        Array arange = nx::core::arange({num_classes}, 0, 1, &i32);
         return (x.unsqueeze() == arange).astype(&i32);
     }
 

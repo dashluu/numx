@@ -1,11 +1,11 @@
 #include "array.h"
 
 namespace nx::bind {
-    nxp::isize get_py_index(nxp::isize len, nxp::isize idx) {
-        if (idx < -len || idx >= len) {
-            throw nxp::OutOfRange(idx, -len, len);
+    nxp::isize get_py_index(nxp::isize len, nxp::isize index) {
+        if (index < -len || index >= len) {
+            throw nxp::OutOfRange(index, -len, len);
         }
-        return idx < 0 ? idx + len : idx;
+        return index < 0 ? index + len : index;
     }
 
     nxp::ShapeDims get_py_indices(nxp::isize len, nxp::ShapeDims &dims) {
@@ -53,8 +53,8 @@ namespace nx::bind {
 
         // py_slice can be an int, a slice, or a sequence of ints or slices
         if (nb::isinstance<nb::int_>(py_slice)) {
-            nxp::isize idx = get_py_index(shape[0], nb::cast<nxp::isize>(py_slice));
-            ranges.emplace_back(idx, idx + 1, 1);
+            nxp::isize index = get_py_index(shape[0], nb::cast<nxp::isize>(py_slice));
+            ranges.emplace_back(index, index + 1, 1);
 
             for (nxp::isize i = 1; i < shape.get_ndim(); i++) {
                 ranges.emplace_back(0, shape[i], 1);
@@ -82,8 +82,8 @@ namespace nx::bind {
                 auto elm = sequence[i];
                 // elm must be a sequence of ints or slices
                 if (nb::isinstance<nb::int_>(elm)) {
-                    nxp::isize idx = get_py_index(shape[i], nb::cast<nxp::isize>(elm));
-                    ranges.emplace_back(idx, idx + 1, 1);
+                    nxp::isize index = get_py_index(shape[i], nb::cast<nxp::isize>(elm));
+                    ranges.emplace_back(index, index + 1, 1);
                 } else if (nb::isinstance<nb::slice>(elm)) {
                     ranges.push_back(py_slice_to_range(shape[i], elm));
                 } else {

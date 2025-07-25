@@ -45,6 +45,8 @@ namespace nx::utils {
         return v.size() * sizeof(T);
     }
 
+    static isize align_to(isize x, isize target) { return (x + target - 1) / target * target; }
+
     template <class T>
     inline const std::string join(const std::vector<T> &v, const std::function<std::string(T)> &f, const std::string &sep = ",") {
         std::string s = "";

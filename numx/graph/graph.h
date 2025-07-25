@@ -12,8 +12,8 @@ namespace nx::graph {
         std::unordered_set<ArrayId> m_marked;
         std::vector<OpPtr> m_fw_tape;
         std::vector<OpPtr> m_bw_tape;
-        isize num_fw_edges = 0;
-        isize num_bw_edges = 0;
+        size_t m_num_fw_edges = 0;
+        size_t m_num_bw_edges = 0;
 
         void fw_toposort(OpPtr op);
         void bw_toposort(OpPtr op);
@@ -24,10 +24,10 @@ namespace nx::graph {
         virtual ~Graph() = default;
         Graph &operator=(const Graph &) = delete;
         OpPtr get_output() const { return m_output; }
-        isize fw_tape_size() const { return m_fw_tape.size(); }
-        isize bw_tape_size() const { return m_bw_tape.size(); }
-        isize count_fw_edges() const { return num_fw_edges; }
-        isize count_bw_edges() const { return num_bw_edges; }
+        size_t fw_tape_size() const { return m_fw_tape.size(); }
+        size_t bw_tape_size() const { return m_bw_tape.size(); }
+        size_t count_fw_edges() const { return m_num_fw_edges; }
+        size_t count_bw_edges() const { return m_num_bw_edges; }
         void forward();
         void backward();
         const std::string str() const;

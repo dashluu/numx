@@ -11,10 +11,8 @@ namespace nx::memory {
         Allocator(const Allocator &) = delete;
         virtual ~Allocator() = default;
         Allocator &operator=(const Allocator &) = delete;
-        void alloc_pool(isize size);
-        void free_pool();
-        virtual Block alloc(isize size) = 0;
-        virtual void free(const Block &block) = 0;
+        virtual Block alloc_block(isize size) = 0;
+        virtual void free_block(const Block &block) = 0;
     };
 
     using AllocatorPtr = std::shared_ptr<Allocator>;

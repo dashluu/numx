@@ -28,7 +28,7 @@ namespace nx::primitive {
 
     class OutOfRange : public std::out_of_range {
     public:
-        OutOfRange(isize idx, isize start, isize stop) : std::out_of_range(std::format("Index {} is not in the range [{}, {}).", idx, start, stop)) {}
+        OutOfRange(isize index, isize start, isize stop) : std::out_of_range(std::format("Index {} is not in the range [{}, {}).", index, start, stop)) {}
     };
 
     class NanobindInvalidArgumentType : public std::invalid_argument {

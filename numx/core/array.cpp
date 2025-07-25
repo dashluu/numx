@@ -15,7 +15,7 @@ namespace nx::core {
                     // Free only the owning buffers, that is, buffers that actually reference
                     // some valid memory allocated by the allocator, not just memory view
                     const Block &block = buffer.get_block();
-                    allocator->free(block);
+                    allocator->free_block(block);
                     buffer.invalidate();
 
                     if (profiler) {
@@ -31,7 +31,7 @@ namespace nx::core {
 
                 if (buffer.is_primary()) {
                     const Block &block = buffer.get_block();
-                    allocator->free(block);
+                    allocator->free_block(block);
                     buffer.invalidate();
 
                     if (profiler) {

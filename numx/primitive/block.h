@@ -24,5 +24,6 @@ namespace nx::primitive {
 
         uint8_t *get_ptr() const { return m_ptr; }
         isize get_size() const { return m_size; }
+        bool is_valid() const { return m_ptr != nullptr && m_size > 0; }
     };
 } // namespace nx::primitive
