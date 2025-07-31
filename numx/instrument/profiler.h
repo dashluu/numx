@@ -1,17 +1,17 @@
 #pragma once
 
-#include "memory_snapshot_info.h"
+#include "memory_snapshot.h"
 
 namespace nx::instrument {
     class Profiler : public std::enable_shared_from_this<Profiler> {
     private:
         size_t m_peak_memory = 0;
         size_t m_memory_usage = 0;
-        std::unordered_map<ArrayId, MemorySnapshotInfo> m_memory_snapshot;
+        std::unordered_map<ArrayId, MemorySnapshot> m_snapshot_by_id;
 
         void stream_node(std::ostream &stream, OpPtr op);
         bool stream_edge(std::ostream &stream, OpPtr op);
-        void stream_memory_snapshot_info(std::ostream &stream, const MemorySnapshotInfo &snapshot_info);
+        void stream_memory_snapshot(std::ostream &stream, const MemorySnapshot &snapshot);
 
     public:
         Profiler() {}

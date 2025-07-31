@@ -176,8 +176,8 @@ namespace nx::primitive {
         isize get_low() const { return m_low; }
         isize get_high() const { return m_high; }
         const std::string &get_opname() const override { return s_opname; }
-        const std::string str() const override { return std::format("{}, key: {}, low: {}, high: {}", InitializerOp::str(), m_key, m_low, m_high); }
-        const std::string dump() const override { return std::format("{}\\nKey: {}\\nLow: {}\\nHigh: {}", InitializerOp::dump(), m_key, m_low, m_high); }
+        const std::string str() const override { return std::format("{}, key: {}, low: {}, high: {}", InitializerOp::str(), m_key, m_data.get_dtype()->value_str(m_low), m_data.get_dtype()->value_str(m_high)); }
+        const std::string dump() const override { return std::format("{}\\nKey: {}\\nLow: {}\\nHigh: {}", InitializerOp::dump(), m_key, m_data.get_dtype()->value_str(m_low), m_data.get_dtype()->value_str(m_high)); }
     };
 
     struct UnaryOp : public Op {

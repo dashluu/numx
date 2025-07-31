@@ -4,25 +4,25 @@ namespace nx::runtime::metal {
     void MTLRunner::run_initializer_op(OpPtr op) {
         switch (op->get_opcode()) {
         case Opcode::FULL: {
-            alloc_array_buffer(op);
+            alloc_buffer(op);
             std::shared_ptr<FullOp> full_op = std::static_pointer_cast<FullOp>(op);
             run_full_kernel(op, full_op->get_const());
             break;
         }
         case Opcode::ARANGE: {
-            alloc_array_buffer(op);
+            alloc_buffer(op);
             std::shared_ptr<ArangeOp> arange_op = std::static_pointer_cast<ArangeOp>(op);
             run_arange_kernel(op, arange_op->get_start(), arange_op->get_step());
             break;
         }
         case Opcode::UNIFORM: {
-            alloc_array_buffer(op);
+            alloc_buffer(op);
             std::shared_ptr<UniformOp> uniform_op = std::static_pointer_cast<UniformOp>(op);
             run_uniform_kernel(op, uniform_op->get_key(), uniform_op->get_low(), uniform_op->get_high());
             break;
         }
         case Opcode::EMPTY: {
-            alloc_array_buffer(op);
+            alloc_buffer(op);
             break;
         }
         default:
@@ -35,9 +35,9 @@ namespace nx::runtime::metal {
         OpPtr operand = unary_op->get_operand();
 
         if (unary_op->is_in_place()) {
-            share_array_buffer(op, operand);
+            share_buffer(op, operand);
         } else {
-            alloc_array_buffer(op);
+            alloc_buffer(op);
         }
 
         if (op->get_opcode() == Opcode::COPY) {
@@ -55,12 +55,12 @@ namespace nx::runtime::metal {
         if (binary_op->get_mode() == BinaryMode::ELMWISE) {
             std::shared_ptr<ElmwiseBinaryOp> elmwise_op = std::static_pointer_cast<ElmwiseBinaryOp>(binary_op);
             if (elmwise_op->is_in_place()) {
-                share_array_buffer(op, lop);
+                share_buffer(op, lop);
             } else {
-                alloc_array_buffer(op);
+                alloc_buffer(op);
             }
         } else {
-            alloc_array_buffer(op);
+            alloc_buffer(op);
         }
 
         if (binary_op->get_mode() == BinaryMode::MATMUL) {
@@ -77,9 +77,9 @@ namespace nx::runtime::metal {
             OpPtr operand = reshape_op->get_operand();
 
             if (!operand->get_data().copy_when_reshape(reshape_op->get_data().get_view())) {
-                share_array_buffer(op, operand);
+                share_buffer(op, operand);
             } else {
-                alloc_array_buffer(op);
+                alloc_buffer(op);
                 run_copy_kernel(operand, op);
             }
 
@@ -108,7 +108,7 @@ namespace nx::runtime::metal {
         case Opcode::ASTYPE: {
             std::shared_ptr<AstypeOp> as_type_op = std::static_pointer_cast<AstypeOp>(op);
             OpPtr operand = as_type_op->get_operand();
-            alloc_array_buffer(op);
+            alloc_buffer(op);
             run_copy_kernel(operand, op);
             break;
         }
@@ -120,7 +120,7 @@ namespace nx::runtime::metal {
     void MTLRunner::run_reduce_op(OpPtr op) {
         ReduceOpPtr reduce_op = std::static_pointer_cast<ReduceOp>(op);
         OpPtr operand = reduce_op->get_operand();
-        alloc_array_buffer(op);
+        alloc_buffer(op);
 
         // Fill up array with default value
         if (reduce_op->get_opcode() == Opcode::MAX) {
@@ -138,11 +138,12 @@ namespace nx::runtime::metal {
         }
     }
 
-    void MTLRunner::alloc_array_buffer(OpPtr op) {
+    void MTLRunner::alloc_buffer(OpPtr op) {
         ArrayData &data = op->get_data();
 
-        if (!data.m_buffer.is_valid()) {
-            data.m_buffer = ArrayBuffer(m_ctx->get_allocator()->alloc_block(data.get_nbytes()), true);
+        if (!data.get_buffer().is_valid()) {
+            MemoryBlock *block = m_ctx->get_memory_manager()->alloc(data.get_nbytes());
+            data.set_buffer(ArrayBuffer(block, true));
 
             if (m_profiler) {
                 m_profiler->record_alloc(data);
@@ -150,7 +151,8 @@ namespace nx::runtime::metal {
         }
     }
 
-    void MTLRunner::share_array_buffer(OpPtr l_op, OpPtr r_op) {
-        l_op->get_data().m_buffer = ArrayBuffer(r_op->get_data().m_buffer.get_block(), false);
+    void MTLRunner::share_buffer(OpPtr l_op, OpPtr r_op) {
+        MemoryBlock *block = r_op->get_data().get_buffer().get_block();
+        l_op->get_data().set_buffer(ArrayBuffer(block, false));
     }
 } // namespace nx::runtime::metal

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <bit>
+#include <bitset>
 #include <chrono>
 #include <cmath>
 #include <concepts>

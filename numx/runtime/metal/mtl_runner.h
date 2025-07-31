@@ -32,11 +32,11 @@ namespace nx::runtime::metal {
         void run_simple_transform_op(OpPtr op) {
             auto transform_op = std::static_pointer_cast<O>(op);
             OpPtr operand = transform_op->get_operand();
-            share_array_buffer(op, operand);
+            share_buffer(op, operand);
         }
 
-        void alloc_array_buffer(OpPtr op);
-        void share_array_buffer(OpPtr l_op, OpPtr r_op);
+        void alloc_buffer(OpPtr op);
+        void share_buffer(OpPtr l_op, OpPtr r_op);
 
     public:
         MTLRunner(GraphPtr graph, RuntimeContextPtr ctx) : Runner(graph, ctx) {}

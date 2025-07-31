@@ -3,20 +3,17 @@
 namespace nx::core {
     Array::~Array() {
         if (m_graph) {
-            AllocatorPtr allocator = get_runtime_context()->get_allocator();
+            MemoryManagerPtr memory_manager = get_runtime_context()->get_memory_manager();
             ProfilerPtr profiler = m_runner->get_profiler();
 
             // Free buffers on the forward tape
             for (auto iter = m_graph->fw_begin(); iter != m_graph->fw_end(); ++iter) {
                 ArrayData &data = (*iter)->get_data();
-                ArrayBuffer &buffer = data.m_buffer;
+                const ArrayBuffer &buffer = data.get_buffer();
 
-                if (buffer.is_primary()) {
-                    // Free only the owning buffers, that is, buffers that actually reference
-                    // some valid memory allocated by the allocator, not just memory view
-                    const Block &block = buffer.get_block();
-                    allocator->free_block(block);
-                    buffer.invalidate();
+                if (buffer.is_persistent()) {
+                    memory_manager->free(buffer.get_block());
+                    data.invalidate_buffer();
 
                     if (profiler) {
                         profiler->record_free(data);
@@ -27,12 +24,11 @@ namespace nx::core {
             // Free buffers on the backward tape
             for (auto iter = m_graph->bw_begin(); iter != m_graph->bw_end(); ++iter) {
                 ArrayData &data = (*iter)->get_data();
-                ArrayBuffer &buffer = data.m_buffer;
+                const ArrayBuffer &buffer = data.get_buffer();
 
-                if (buffer.is_primary()) {
-                    const Block &block = buffer.get_block();
-                    allocator->free_block(block);
-                    buffer.invalidate();
+                if (buffer.is_persistent()) {
+                    memory_manager->free(buffer.get_block());
+                    data.invalidate_buffer();
 
                     if (profiler) {
                         profiler->record_free(data);
@@ -50,6 +46,7 @@ namespace nx::core {
             m_runner = get_runner_builder()(m_graph, runtime_ctx);
             m_runner->hook_profiler(profiler);
             m_graph->forward();
+            std::println("{}", m_graph->str());
             m_runner->forward();
         }
     }

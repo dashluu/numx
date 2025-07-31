@@ -14,15 +14,9 @@ namespace nx::primitive {
 
     public:
         Range(isize start, isize stop, isize step = 1) : m_start(start), m_stop(stop), m_step(step) {}
-        Range(const Range &range) : Range(range.m_start, range.m_stop, range.m_step) {}
-
-        Range &operator=(const Range &range) {
-            m_start = range.m_start;
-            m_stop = range.m_stop;
-            m_step = range.m_step;
-            return *this;
-        }
-
+        Range(const Range &) = default;
+        ~Range() = default;
+        Range &operator=(const Range &) = default;
         bool operator==(const Range &range) const { return m_start == range.m_start && m_stop == range.m_stop && m_step == range.m_step; }
         isize get_start() const { return m_start; }
         isize get_stop() const { return m_stop; }

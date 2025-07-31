@@ -11,14 +11,9 @@ namespace nx::primitive {
 
     public:
         ArrayId(isize val) : m_val(val) {}
-        ArrayId(const ArrayId &id) : m_val(id.m_val) {}
+        ArrayId(const ArrayId &) = default;
         ~ArrayId() = default;
-
-        ArrayId &operator=(const ArrayId &id) {
-            m_val = id.m_val;
-            return *this;
-        }
-
+        ArrayId &operator=(const ArrayId &) = default;
         isize get_data() const { return m_val; }
         bool operator==(const ArrayId &id) const { return m_val == id.m_val; }
         auto operator<=>(const ArrayId &id) const { return m_val <=> id.m_val; }
@@ -44,8 +39,8 @@ namespace nx::primitive {
 namespace std {
     template <>
     struct hash<nx::primitive::ArrayId> {
-        std::size_t operator()(const nx::primitive::ArrayId &id) const {
-            return std::hash<nx::primitive::isize>()(id.get_data());
+        size_t operator()(const nx::primitive::ArrayId &id) const {
+            return hash<nx::primitive::isize>()(id.get_data());
         }
     };
 } // namespace std

@@ -11,10 +11,10 @@ namespace nx::instrument {
         stream << "\"view\": \"(" << join_nums(data.get_view()) << ")\",";
         stream << "\"dtype\": \"" << data.get_dtype()->str() << "\",";
 
-        if (m_memory_snapshot.find(data.get_id()) == m_memory_snapshot.end()) {
+        if (m_snapshot_by_id.find(data.get_id()) == m_snapshot_by_id.end()) {
             stream << "\"size\": 0";
         } else {
-            stream << "\"size\": " << m_memory_snapshot.at(data.get_id()).get_block().get_size();
+            stream << "\"size\": " << m_snapshot_by_id.at(data.get_id()).get_block()->get_size();
         }
 
         stream << "}";
@@ -56,25 +56,25 @@ namespace nx::instrument {
         }
     }
 
-    void Profiler::stream_memory_snapshot_info(std::ostream &stream, const MemorySnapshotInfo &snapshot_info) {
+    void Profiler::stream_memory_snapshot(std::ostream &stream, const MemorySnapshot &snapshot) {
         stream << "{";
-        stream << "\"size\": " << snapshot_info.get_block().get_size() << ",";
-        stream << "\"start\": " << snapshot_info.get_alloc_time().time_since_epoch().count() << ",";
-        stream << "\"end\": " << snapshot_info.get_free_time().time_since_epoch().count();
+        stream << "\"size\": " << snapshot.get_block()->get_size() << ",";
+        stream << "\"start\": " << snapshot.get_alloc_time().time_since_epoch().count() << ",";
+        stream << "\"end\": " << snapshot.get_free_time().time_since_epoch().count();
         stream << "}";
     }
 
     void Profiler::record_alloc(const ArrayData &data) {
-        const Block &block = data.m_buffer.get_block();
-        m_memory_snapshot.emplace(data.get_id(), MemorySnapshotInfo(block));
-        m_memory_usage += block.get_size();
+        MemoryBlock *block = data.get_buffer().get_block();
+        m_snapshot_by_id.emplace(data.get_id(), MemorySnapshot(block));
+        m_memory_usage += block->get_size();
         m_peak_memory = std::max(m_peak_memory, m_memory_usage);
     }
 
     void Profiler::record_free(const ArrayData &data) {
-        MemorySnapshotInfo &snapshot_info = m_memory_snapshot.at(data.get_id());
-        snapshot_info.tock();
-        m_memory_usage -= snapshot_info.get_block().get_size();
+        MemorySnapshot &snapshot = m_snapshot_by_id.at(data.get_id());
+        snapshot.tock();
+        m_memory_usage -= snapshot.get_block()->get_size();
     }
 
     void Profiler::write_memory_profile(const std::string &file_name) {
@@ -101,19 +101,19 @@ namespace nx::instrument {
 
     void Profiler::stream_memory_profile(std::ostream &stream) {
         stream << "{\"Peak memory\": " << m_peak_memory << ", \"Memory usage\": {";
-        size_t snapshot_size = m_memory_snapshot.size();
+        size_t num_snapshots = m_snapshot_by_id.size();
         size_t num_leaks = 0;
         size_t i = 0;
 
-        for (const auto &[id, snapshot_info] : m_memory_snapshot) {
+        for (const auto &[id, snapshot] : m_snapshot_by_id) {
             stream << "\"" << id << "\":";
-            stream_memory_snapshot_info(stream, snapshot_info);
+            stream_memory_snapshot(stream, snapshot);
 
-            if (++i < snapshot_size) {
+            if (++i < num_snapshots) {
                 stream << ",";
             }
 
-            if (snapshot_info.is_alive()) {
+            if (snapshot.is_alive()) {
                 num_leaks++;
             }
         }
@@ -121,10 +121,10 @@ namespace nx::instrument {
         stream << "}, \"Leaks\": {";
         i = 0;
 
-        for (const auto &[id, snapshot_info] : m_memory_snapshot) {
-            if (snapshot_info.is_alive()) {
+        for (const auto &[id, snapshot] : m_snapshot_by_id) {
+            if (snapshot.is_alive()) {
                 stream << "\"" << id << "\":";
-                stream_memory_snapshot_info(stream, snapshot_info);
+                stream_memory_snapshot(stream, snapshot);
 
                 if (++i < num_leaks) {
                     stream << ",";

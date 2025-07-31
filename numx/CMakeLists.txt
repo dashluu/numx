@@ -23,6 +23,7 @@ add_definitions(-DPROJECT_ROOT="${CMAKE_SOURCE_DIR}/..")
 file(GLOB HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/primitive/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/memory/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/random/*.h"
@@ -35,6 +36,7 @@ file(GLOB HEADER_FILES
 file(GLOB SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/primitive/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/memory/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random/*.cpp"
@@ -48,12 +50,14 @@ if(APPLE)
     set(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/llvm/20.1.3/bin/clang++")
     add_subdirectory(runtime/metal/kernels)
     file(GLOB MTL_HEADER_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/memory/metal/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.h"
     )
     file(GLOB MTL_SRC_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/memory/metal/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.cpp"
     )
-    # set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_BUILD_TYPE Debug)
     add_executable(${PROJECT_NAME} main.cpp ${SRC_FILES} ${HEADER_FILES} ${MTL_SRC_FILES} ${MTL_HEADER_FILES})
     # nanobind_add_module(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} ${MTL_SRC_FILES} ${MTL_HEADER_FILES})
     set(MTL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/metal-cpp")

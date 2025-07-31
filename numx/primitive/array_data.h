@@ -16,12 +16,16 @@ namespace nx::primitive {
         Shape m_shape;
         DtypePtr m_dtype;
         DevicePtr m_device;
-
-    public:
         ArrayBuffer m_buffer;
 
+    public:
         ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {}
-        ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) { m_buffer = ArrayBuffer(ptr, size, false); }
+
+        ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {
+            MemoryBlock *block = new MemoryBlock(ptr, size);
+            m_buffer = ArrayBuffer(block, false);
+        }
+
         ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
         ~ArrayData() = default;
 
@@ -51,6 +55,9 @@ namespace nx::primitive {
         isize get_ndim() const { return m_shape.get_ndim(); }
         isize get_itemsize() const { return m_dtype->get_size(); }
         isize get_nbytes() const { return get_numel() * get_itemsize(); }
+        const ArrayBuffer &get_buffer() const { return m_buffer; }
+        void set_buffer(const ArrayBuffer &buffer) { m_buffer = buffer; }
+        void invalidate_buffer() { m_buffer = ArrayBuffer(); }
         bool is_contiguous() const { return m_shape.is_contiguous(); }
         // TODO: handle more cases to reduce copying?
         bool copy_when_reshape(const ShapeView &view) const { return !is_contiguous(); }

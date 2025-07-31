@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../graph/graph.h"
-#include "../memory/allocator.h"
+#include "../memory/cache_manager.h"
 
 namespace nx::runtime {
     using namespace nx::utils;
@@ -11,14 +11,14 @@ namespace nx::runtime {
 
     class RuntimeContext : public std::enable_shared_from_this<RuntimeContext> {
     protected:
-        AllocatorPtr m_allocator;
+        MemoryManagerPtr m_memory_manager;
 
     public:
         RuntimeContext() = default;
         RuntimeContext(const RuntimeContext &) = delete;
         virtual ~RuntimeContext() = default;
         RuntimeContext &operator=(const RuntimeContext &) = delete;
-        AllocatorPtr get_allocator() const { return m_allocator; }
+        MemoryManagerPtr get_memory_manager() const { return m_memory_manager; }
     };
 
     using RuntimeContextPtr = std::shared_ptr<RuntimeContext>;

@@ -5,8 +5,8 @@ namespace nx::runtime::metal {
         isize numel = l_op->get_data().get_numel();
         OpPtr reshaped_l_op = reshape(detach(l_op), {1, numel});
         OpPtr reshaped_r_op = reshape(detach(r_op), {numel, 1});
-        share_array_buffer(reshaped_l_op, l_op);
-        share_array_buffer(reshaped_r_op, r_op);
+        share_buffer(reshaped_l_op, l_op);
+        share_buffer(reshaped_r_op, r_op);
         run_gemm2d_kernel(encoder, reshaped_l_op, reshaped_r_op, out_op);
     }
 

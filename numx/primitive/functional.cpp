@@ -16,7 +16,8 @@ namespace nx::primitive {
 
     OpPtr detach(OpPtr op) {
         const ArrayData &data = op->get_data();
-        return from_buffer(data.m_buffer.get_ptr(), data.m_buffer.get_size(), data.get_shape(), data.get_dtype(), data.get_device());
+        const ArrayBuffer &buffer = data.get_buffer();
+        return from_buffer(buffer.get_ptr(), buffer.get_size(), data.get_shape(), data.get_dtype(), data.get_device());
     }
 
     OpPtr from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) {

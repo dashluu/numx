@@ -1,19 +1,16 @@
 #include "random/random.h"
 
-void run_basic(nx::instrument::ProfilerPtr profiler, const std::string &file_name) {
+void run_basic() {
     auto x1 = nx::core::full({2, 3, 4}, 3);
-    auto x2 = nx::core::ones({1, 3, 1});
-    x1 -= x2;
-    auto x3 = x1.exp();
-    auto x4 = x2.exp();
-    auto x5 = x3 * x4;
-    auto x6 = x5.sum();
-    x6.backward();
+    // auto x2 = nx::core::ones({1, 3, 1});
+    // x1 -= x2;
+    // auto x3 = x1.exp();
+    // auto x4 = x2.exp();
+    // auto x5 = x3 * x4;
+    // auto x6 = x5.sum();
     std::println("{}", x1);
-    std::println("{}", x2);
-    std::println("{}", x5);
-    nx::graph::GraphPtr graph = x6.get_graph();
-    profiler->write_graph_profile(graph, file_name);
+    // std::println("{}", x2);
+    // std::println("{}", x6);
 }
 
 void run_random() {
@@ -28,7 +25,7 @@ int main() {
     nx::core::Backend::hook_profiler("mps:0", profiler);
     // run_basic(profiler, "graph.json");
     // profiler->write_memory_profile("memory.json");
-    run_random();
+    run_basic();
     profiler->write_memory_profile("memory.json");
     return 0;
 }

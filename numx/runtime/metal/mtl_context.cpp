@@ -76,7 +76,8 @@ namespace nx::runtime::metal {
     }
 
     MTLContext::MTLContext(MTL::Device *mtl_device, const std::string &lib_path) {
-        m_allocator = std::make_shared<MTLAllocator>();
+        auto runtime_allocator = std::make_shared<MTLAllocator>();
+        m_memory_manager = std::make_shared<CacheManager>(runtime_allocator);
         m_device = NS::TransferPtr<MTL::Device>(mtl_device);
         NS::String *path = NS::String::string(lib_path.c_str(), NS::ASCIIStringEncoding);
         auto url = NS::URL::fileURLWithPath(path);

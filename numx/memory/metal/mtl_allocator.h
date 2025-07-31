@@ -1,19 +1,14 @@
 #pragma once
 
-#include "../allocator.h"
+#include "../runtime_allocator.h"
 
 namespace nx::memory::metal {
-    class MTLAllocator : public Allocator {
+    class MTLAllocator : public RuntimeAllocator {
     public:
-        Block alloc_block(isize size) override {
-            auto ptr = new uint8_t[size];
-            std::memset(ptr, 0, size);
-            return Block(ptr, size);
-        }
-
-        void free_block(const Block &block) override {
-            delete[] block.get_ptr();
-        }
+        MTLAllocator() = default;
+        ~MTLAllocator() = default;
+        uint8_t *alloc(isize size) override { return new uint8_t[size]; }
+        void free(uint8_t *ptr) override { delete[] ptr; }
     };
 
     using MTLAllocatorPtr = std::shared_ptr<MTLAllocator>;

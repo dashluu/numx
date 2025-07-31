@@ -80,7 +80,7 @@ namespace nx::runtime::metal {
         // Detach input op so the computational graph is not affected
         OpPtr permutation_op = permute(detach(in_op), permutation_dims);
         const ArrayData &permutation_data = permutation_op->get_data();
-        share_array_buffer(permutation_op, in_op);
+        share_buffer(permutation_op, in_op);
         const isize ndim = in_data.get_ndim();
         const isize nrow = std::accumulate(remaining_dims.begin(), remaining_dims.end(), 1ll, [&](isize acc, isize dim) { return acc * in_view[dim]; });
         const isize ncol = std::accumulate(reduce_dims.begin(), reduce_dims.end(), 1ll, [&](isize acc, isize dim) { return acc * in_view[dim]; });
