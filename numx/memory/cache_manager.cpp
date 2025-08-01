@@ -4,8 +4,8 @@ namespace nx::memory {
     CacheBucket CacheBucket::from_size(isize size) {
         // Round up to the nearest power of 2
         isize block_size = std::bit_ceil(static_cast<size_t>(size));
-        isize pool_capacity = block_size * BLOCKS_PER_POOL;
-        pool_capacity = align_to(pool_capacity, ALIGNMENT);
+        isize pool_capacity = block_size * s_blocks_per_pool;
+        pool_capacity = align_to(pool_capacity, s_alignment);
         return CacheBucket(pool_capacity, block_size);
     }
 
@@ -35,15 +35,20 @@ namespace nx::memory {
 
         if (!m_free_pools_by_size.contains(bucket)) {
             auto [iter, inserted] = m_free_pools_by_size.emplace(bucket, std::make_shared<ResourceList>());
-            isize pool_capacity = bucket.get_pool_capacity();
-            isize block_size = bucket.get_block_size();
-            pool = new MemoryPool(pool_capacity, block_size, m_runtime_allocator);
+            pool = new MemoryPool(bucket.get_pool_capacity(), bucket.get_block_size(), m_runtime_allocator);
             iter->second->push(pool);
-            // Note: no need to check if the pool is empty since each pool is initialized with BLOCKS_PER_POOL blocks
+            // Note: no need to check if the pool is empty since each pool is initialized with s_blocks_per_pool blocks
             return pool->alloc();
         }
 
         ResourceListPtr free_pools = m_free_pools_by_size.at(bucket);
+
+        if (free_pools->empty()) {
+            pool = new MemoryPool(bucket.get_pool_capacity(), bucket.get_block_size(), m_runtime_allocator);
+            free_pools->push(pool);
+            return pool->alloc();
+        }
+
         pool = static_cast<MemoryPool *>(free_pools->peek());
         MemoryBlock *block = pool->alloc();
 

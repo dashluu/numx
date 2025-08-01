@@ -160,12 +160,12 @@ namespace nx::primitive {
     OpPtr isub(OpPtr l_op, OpPtr r_op) { return in_place_binary<SubOp>(l_op, r_op); }
     OpPtr imul(OpPtr l_op, OpPtr r_op) { return in_place_binary<MulOp>(l_op, r_op); }
     OpPtr idiv(OpPtr l_op, OpPtr r_op) { return in_place_binary<DivOp>(l_op, r_op); }
-    OpPtr eq(OpPtr l_op, OpPtr r_op) { return cmp<EqOp>(l_op, r_op, DtypeCategory::ALL); }
-    OpPtr neq(OpPtr l_op, OpPtr r_op) { return cmp<NeqOp>(l_op, r_op, DtypeCategory::ALL); }
-    OpPtr lt(OpPtr l_op, OpPtr r_op) { return cmp<LtOp>(l_op, r_op, DtypeCategory::NUMERIC); }
-    OpPtr gt(OpPtr l_op, OpPtr r_op) { return cmp<GtOp>(l_op, r_op, DtypeCategory::NUMERIC); }
-    OpPtr leq(OpPtr l_op, OpPtr r_op) { return cmp<LeqOp>(l_op, r_op, DtypeCategory::NUMERIC); }
-    OpPtr geq(OpPtr l_op, OpPtr r_op) { return cmp<GeqOp>(l_op, r_op, DtypeCategory::NUMERIC); }
+    OpPtr eq(OpPtr l_op, OpPtr r_op) { return cmp<EqOp>(l_op, r_op, DtypeCategory::All); }
+    OpPtr neq(OpPtr l_op, OpPtr r_op) { return cmp<NeqOp>(l_op, r_op, DtypeCategory::All); }
+    OpPtr lt(OpPtr l_op, OpPtr r_op) { return cmp<LtOp>(l_op, r_op, DtypeCategory::Numeric); }
+    OpPtr gt(OpPtr l_op, OpPtr r_op) { return cmp<GtOp>(l_op, r_op, DtypeCategory::Numeric); }
+    OpPtr leq(OpPtr l_op, OpPtr r_op) { return cmp<LeqOp>(l_op, r_op, DtypeCategory::Numeric); }
+    OpPtr geq(OpPtr l_op, OpPtr r_op) { return cmp<GeqOp>(l_op, r_op, DtypeCategory::Numeric); }
     OpPtr minimum(OpPtr l_op, OpPtr r_op) { return elmwise_binary<MinimumOp>(l_op, r_op); }
     OpPtr maximum(OpPtr l_op, OpPtr r_op) { return elmwise_binary<MaximumOp>(l_op, r_op); }
     OpPtr sq(OpPtr in_op, bool in_place) { return unary<SqOp>(in_op, in_place); }
@@ -213,7 +213,7 @@ namespace nx::primitive {
         return reshape(in_op, flattened_view);
     }
 
-    OpPtr sum(OpPtr in_op, const ShapeDims &dims) { return reduce<SumOp>(in_op, dims, in_op->get_data().get_dtype(), DtypeCategory::NUMERIC); }
+    OpPtr sum(OpPtr in_op, const ShapeDims &dims) { return reduce<SumOp>(in_op, dims, in_op->get_data().get_dtype(), DtypeCategory::Numeric); }
 
     OpPtr mean(OpPtr in_op, const ShapeDims &dims) {
         OpPtr sum_op = sum(in_op, dims);
@@ -229,10 +229,10 @@ namespace nx::primitive {
         return div(sum_op, numel);
     }
 
-    OpPtr max(OpPtr in_op, const ShapeDims &dims) { return reduce<MaxOp>(in_op, dims, in_op->get_data().get_dtype(), DtypeCategory::NUMERIC); }
-    OpPtr min(OpPtr in_op, const ShapeDims &dims) { return reduce<MinOp>(in_op, dims, in_op->get_data().get_dtype(), DtypeCategory::NUMERIC); }
-    OpPtr argmax(OpPtr in_op, const ShapeDims &dims) { return reduce<ArgmaxOp>(in_op, dims, &i32, DtypeCategory::NUMERIC); }
-    OpPtr argmin(OpPtr in_op, const ShapeDims &dims) { return reduce<ArgminOp>(in_op, dims, &i32, DtypeCategory::NUMERIC); }
+    OpPtr max(OpPtr in_op, const ShapeDims &dims) { return reduce<MaxOp>(in_op, dims, in_op->get_data().get_dtype(), DtypeCategory::Numeric); }
+    OpPtr min(OpPtr in_op, const ShapeDims &dims) { return reduce<MinOp>(in_op, dims, in_op->get_data().get_dtype(), DtypeCategory::Numeric); }
+    OpPtr argmax(OpPtr in_op, const ShapeDims &dims) { return reduce<ArgmaxOp>(in_op, dims, &i32, DtypeCategory::Numeric); }
+    OpPtr argmin(OpPtr in_op, const ShapeDims &dims) { return reduce<ArgminOp>(in_op, dims, &i32, DtypeCategory::Numeric); }
 
     OpPtr expand(OpPtr in_op, const ShapeView &reduce_operand_view, const ShapeDims &remaining_dims, const ShapeDims &reduce_dims) {
         // TODO: check if remaining_dims and reduce_dims are valid?

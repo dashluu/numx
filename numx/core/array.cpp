@@ -11,7 +11,7 @@ namespace nx::core {
                 ArrayData &data = (*iter)->get_data();
                 const ArrayBuffer &buffer = data.get_buffer();
 
-                if (buffer.is_persistent()) {
+                if (buffer.get_type() == ArrayBufferType::Managed) {
                     memory_manager->free(buffer.get_block());
                     data.invalidate_buffer();
 
@@ -26,7 +26,7 @@ namespace nx::core {
                 ArrayData &data = (*iter)->get_data();
                 const ArrayBuffer &buffer = data.get_buffer();
 
-                if (buffer.is_persistent()) {
+                if (buffer.get_type() == ArrayBufferType::Managed) {
                     memory_manager->free(buffer.get_block());
                     data.invalidate_buffer();
 
@@ -46,7 +46,6 @@ namespace nx::core {
             m_runner = get_runner_builder()(m_graph, runtime_ctx);
             m_runner->hook_profiler(profiler);
             m_graph->forward();
-            std::println("{}", m_graph->str());
             m_runner->forward();
         }
     }

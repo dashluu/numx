@@ -22,49 +22,49 @@ namespace nx::runtime::metal {
     }
 
     void MTLContext::init_initializer_kernels() {
-        init_kernels("full", DtypeCategory::ALL);
-        init_kernels("arange", DtypeCategory::NUMERIC);
-        init_kernels("uniform", DtypeCategory::FLOAT);
+        init_kernels("full", DtypeCategory::All);
+        init_kernels("arange", DtypeCategory::Numeric);
+        init_kernels("uniform", DtypeCategory::Float);
     }
 
     void MTLContext::init_unary_kernels() {
         std::vector<std::string> unary_names = {"neg", "sq"};
         std::vector<std::string> unary_float_names = {"exp", "log", "recip", "sin", "cos", "sqrt"};
-        init_kernels(unary_names, DtypeCategory::NUMERIC);
-        init_kernels(unary_float_names, DtypeCategory::FLOAT);
+        init_kernels(unary_names, DtypeCategory::Numeric);
+        init_kernels(unary_float_names, DtypeCategory::Float);
     }
 
     void MTLContext::init_binary_kernels() {
         std::vector<std::string> binary_names = {"add", "sub", "mul", "div", "lt", "gt", "leq", "geq", "minimum", "maximum"};
         std::vector<std::string> eq_names = {"eq", "neq"};
-        init_kernels(binary_names, DtypeCategory::NUMERIC);
-        init_kernels(eq_names, DtypeCategory::ALL);
+        init_kernels(binary_names, DtypeCategory::Numeric);
+        init_kernels(eq_names, DtypeCategory::All);
     }
 
     void MTLContext::init_reduce_kernels() {
         std::vector<std::string> reduce_names = {"sum", "max", "min", "argmax", "argmin"};
         for (auto &name : reduce_names) {
-            init_kernels(name + "_all", DtypeCategory::NUMERIC);
-            init_kernels("strided_" + name + "_all", DtypeCategory::NUMERIC);
+            init_kernels(name + "_all", DtypeCategory::Numeric);
+            init_kernels("strided_" + name + "_all", DtypeCategory::Numeric);
 
             for (uint8_t i = 1; i <= 32; i <<= 1) {
                 for (uint8_t j = 1; i * j <= 32; j <<= 1) {
-                    init_kernels(std::format("{}_col_{}x{}", name, i, j), DtypeCategory::NUMERIC);
-                    init_kernels(std::format("strided_{}_col_{}x{}", name, i, j), DtypeCategory::NUMERIC);
+                    init_kernels(std::format("{}_col_{}x{}", name, i, j), DtypeCategory::Numeric);
+                    init_kernels(std::format("strided_{}_col_{}x{}", name, i, j), DtypeCategory::Numeric);
                 }
             }
         }
     }
 
     void MTLContext::init_matmul_kernels() {
-        init_kernels("naive_gemm2d", DtypeCategory::NUMERIC);
-        init_kernels("tiled_gemm2d", DtypeCategory::FLOAT);
-        init_kernels("naive_gemm3d", DtypeCategory::NUMERIC);
-        init_kernels("tiled_gemm3d", DtypeCategory::FLOAT);
-        init_kernels("strided_naive_gemm2d", DtypeCategory::NUMERIC);
-        init_kernels("strided_tiled_gemm2d", DtypeCategory::FLOAT);
-        init_kernels("strided_naive_gemm3d", DtypeCategory::NUMERIC);
-        init_kernels("strided_tiled_gemm3d", DtypeCategory::FLOAT);
+        init_kernels("naive_gemm2d", DtypeCategory::Numeric);
+        init_kernels("tiled_gemm2d", DtypeCategory::Float);
+        init_kernels("naive_gemm3d", DtypeCategory::Numeric);
+        init_kernels("tiled_gemm3d", DtypeCategory::Float);
+        init_kernels("strided_naive_gemm2d", DtypeCategory::Numeric);
+        init_kernels("strided_tiled_gemm2d", DtypeCategory::Float);
+        init_kernels("strided_naive_gemm3d", DtypeCategory::Numeric);
+        init_kernels("strided_tiled_gemm3d", DtypeCategory::Float);
     }
 
     void MTLContext::init_copy_kernels() {

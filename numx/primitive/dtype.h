@@ -15,11 +15,11 @@ namespace nx::primitive {
     };
 
     enum struct DtypeCategory {
-        FLOAT = 1,
-        INT = 2,
-        BOOL = 4,
-        ALL = FLOAT | INT | BOOL,
-        NUMERIC = FLOAT | INT
+        Float = 1,
+        Int = 2,
+        Bool = 4,
+        All = Float | Int | Bool,
+        Numeric = Float | Int
     };
 
     struct Dtype {
@@ -38,11 +38,11 @@ namespace nx::primitive {
         DtypeName get_name() const { return m_name; }
         DtypeCategory get_category() const { return m_category; }
         virtual const std::string get_name_str() const = 0;
-        bool is_float() const { return m_category == DtypeCategory::FLOAT; }
-        bool is_int() const { return m_category == DtypeCategory::INT; }
-        bool is_bool() const { return m_category == DtypeCategory::BOOL; }
+        bool is_float() const { return m_category == DtypeCategory::Float; }
+        bool is_int() const { return m_category == DtypeCategory::Int; }
+        bool is_bool() const { return m_category == DtypeCategory::Bool; }
         bool has_category(DtypeCategory category) const { return static_cast<int>(m_category) & static_cast<int>(category); }
-        bool is_numeric() const { return has_category(DtypeCategory::NUMERIC); }
+        bool is_numeric() const { return has_category(DtypeCategory::Numeric); }
         isize get_size() const { return m_size; }
         bool operator==(const Dtype &dtype) const { return m_name == dtype.m_name; }
         const std::string str() const { return get_name_str(); }
@@ -58,9 +58,9 @@ namespace nx::primitive {
     using DtypePtr = const Dtype *;
 
     template <class T>
-    struct Float : public Dtype {
+    struct FloatDtype : public Dtype {
     public:
-        Float(DtypeName name, isize size) : Dtype(name, DtypeCategory::FLOAT, size) {}
+        FloatDtype(DtypeName name, isize size) : Dtype(name, DtypeCategory::Float, size) {}
 
         std::string value_str(uint8_t *ptr) const override {
             T val = *reinterpret_cast<T *>(ptr);
@@ -72,9 +72,9 @@ namespace nx::primitive {
     };
 
     template <class T>
-    struct Int : public Dtype {
+    struct IntDtype : public Dtype {
     public:
-        Int(DtypeName name, isize size) : Dtype(name, DtypeCategory::INT, size) {}
+        IntDtype(DtypeName name, isize size) : Dtype(name, DtypeCategory::Int, size) {}
         std::string value_str(uint8_t *ptr) const override { return std::to_string(*reinterpret_cast<T *>(ptr)); }
         std::string value_str(isize val) const override { return std::to_string(val); }
         isize bit_cast(uint8_t *ptr) const override { return *reinterpret_cast<T *>(ptr); }
@@ -83,9 +83,9 @@ namespace nx::primitive {
         isize min() const override { return std::numeric_limits<T>::min(); }
     };
 
-    struct F32 : public Float<float> {
+    struct F32 : public FloatDtype<float> {
     public:
-        F32() : Float<float>(DtypeName::F32, 4) {}
+        F32() : FloatDtype<float>(DtypeName::F32, 4) {}
         const std::string get_name_str() const override { return "f32"; }
         std::string value_str(isize val) const override { return std::to_string(std::bit_cast<float>(static_cast<int>(val))); }
         isize bit_cast(uint8_t *ptr) const override { return std::bit_cast<int>(*reinterpret_cast<float *>(ptr)); }
@@ -94,33 +94,33 @@ namespace nx::primitive {
         isize min() const override { return std::bit_cast<int>(-std::numeric_limits<float>::infinity()); }
     };
 
-    struct I8 : public Int<int8_t> {
+    struct I8 : public IntDtype<int8_t> {
     public:
-        I8() : Int<int8_t>(DtypeName::I8, 1) {}
+        I8() : IntDtype<int8_t>(DtypeName::I8, 1) {}
         const std::string get_name_str() const override { return "i8"; }
     };
 
-    struct I16 : public Int<int16_t> {
+    struct I16 : public IntDtype<int16_t> {
     public:
-        I16() : Int<int16_t>(DtypeName::I16, 2) {}
+        I16() : IntDtype<int16_t>(DtypeName::I16, 2) {}
         const std::string get_name_str() const override { return "i16"; }
     };
 
-    struct I32 : public Int<int32_t> {
+    struct I32 : public IntDtype<int32_t> {
     public:
-        I32() : Int<int32_t>(DtypeName::I32, 4) {}
+        I32() : IntDtype<int32_t>(DtypeName::I32, 4) {}
         const std::string get_name_str() const override { return "i32"; }
     };
 
-    struct I64 : public Int<int64_t> {
+    struct I64 : public IntDtype<int64_t> {
     public:
-        I64() : Int<int64_t>(DtypeName::I64, 8) {}
+        I64() : IntDtype<int64_t>(DtypeName::I64, 8) {}
         const std::string get_name_str() const override { return "i64"; }
     };
 
-    struct Bool : public Dtype {
+    struct BoolDtype : public Dtype {
     public:
-        Bool() : Dtype(DtypeName::B8, DtypeCategory::BOOL, 1) {}
+        BoolDtype() : Dtype(DtypeName::B8, DtypeCategory::Bool, 1) {}
         const std::string get_name_str() const override { return "b8"; }
         std::string value_str(uint8_t *ptr) const override { return *ptr ? "True" : "False"; }
         std::string value_str(isize val) const override { return std::to_string(static_cast<bool>(val)); }
@@ -135,7 +135,7 @@ namespace nx::primitive {
     inline const I16 i16;
     inline const I32 i32;
     inline const I64 i64;
-    inline const Bool b8;
+    inline const BoolDtype b8;
 
     inline std::vector<DtypePtr> all_dtypes = {&b8, &i32, &f32};
 

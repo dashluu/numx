@@ -9,9 +9,9 @@ NB_MODULE(arrayx, m) {
 
     // Dtype class and operations
     nb::enum_<nxp::DtypeCategory>(m_core, "DtypeCategory")
-        .value("BOOL", nxp::DtypeCategory::BOOL)
-        .value("INT", nxp::DtypeCategory::INT)
-        .value("FLOAT", nxp::DtypeCategory::FLOAT);
+        .value("BOOL", nxp::DtypeCategory::Bool)
+        .value("INT", nxp::DtypeCategory::Int)
+        .value("FLOAT", nxp::DtypeCategory::Float);
 
     nb::class_<nxp::Dtype>(m_core, "Dtype")
         .def_prop_ro("name", &nxp::Dtype::get_name_str, "Get data type's name as string")
@@ -22,7 +22,7 @@ NB_MODULE(arrayx, m) {
     // Derived dtype classes
     nb::class_<nxp::F32, nxp::Dtype>(m_core, "F32", "32-bit floating point dtype");
     nb::class_<nxp::I32, nxp::Dtype>(m_core, "I32", "32-bit integer dtype");
-    nb::class_<nxp::Bool, nxp::Dtype>(m_core, "Bool", "Boolean dtype");
+    nb::class_<nxp::BoolDtype, nxp::Dtype>(m_core, "Bool", "Boolean dtype");
 
     // Global dtype instances
     m_core.attr("f32") = &nxp::f32;

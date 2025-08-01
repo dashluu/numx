@@ -23,7 +23,7 @@ namespace nx::primitive {
 
         ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {
             MemoryBlock *block = new MemoryBlock(ptr, size);
-            m_buffer = ArrayBuffer(block, false);
+            m_buffer = ArrayBuffer(block, ArrayBufferType::External);
         }
 
         ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}

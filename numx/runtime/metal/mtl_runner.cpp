@@ -143,7 +143,7 @@ namespace nx::runtime::metal {
 
         if (!data.get_buffer().is_valid()) {
             MemoryBlock *block = m_ctx->get_memory_manager()->alloc(data.get_nbytes());
-            data.set_buffer(ArrayBuffer(block, true));
+            data.set_buffer(ArrayBuffer(block, ArrayBufferType::Managed));
 
             if (m_profiler) {
                 m_profiler->record_alloc(data);
@@ -153,6 +153,6 @@ namespace nx::runtime::metal {
 
     void MTLRunner::share_buffer(OpPtr l_op, OpPtr r_op) {
         MemoryBlock *block = r_op->get_data().get_buffer().get_block();
-        l_op->get_data().set_buffer(ArrayBuffer(block, false));
+        l_op->get_data().set_buffer(ArrayBuffer(block, ArrayBufferType::View));
     }
 } // namespace nx::runtime::metal

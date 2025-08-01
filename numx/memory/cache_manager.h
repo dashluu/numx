@@ -6,20 +6,20 @@
 namespace nx::memory {
     struct CacheBucket {
     private:
-        static constexpr isize BLOCKS_PER_POOL = 4;
+        static constexpr isize s_blocks_per_pool = 4;
         // Cache line size
-        static constexpr isize ALIGNMENT = 128;
-        isize pool_capacity;
-        isize block_size;
+        static constexpr isize s_alignment = 128;
+        isize m_pool_capacity;
+        isize m_block_size;
 
     public:
-        CacheBucket(isize pool_capacity, isize block_size) : pool_capacity(pool_capacity), block_size(block_size) {}
+        CacheBucket(isize pool_capacity, isize block_size) : m_pool_capacity(pool_capacity), m_block_size(block_size) {}
         CacheBucket(const CacheBucket &) = default;
         ~CacheBucket() = default;
         CacheBucket &operator=(const CacheBucket &) = default;
-        bool operator==(const CacheBucket &bucket) const { return pool_capacity == bucket.pool_capacity && block_size == bucket.block_size; }
-        isize get_pool_capacity() const { return pool_capacity; }
-        isize get_block_size() const { return block_size; }
+        bool operator==(const CacheBucket &bucket) const { return m_pool_capacity == bucket.m_pool_capacity && m_block_size == bucket.m_block_size; }
+        isize get_pool_capacity() const { return m_pool_capacity; }
+        isize get_block_size() const { return m_block_size; }
         static CacheBucket from_size(isize size);
     };
 } // namespace nx::memory
@@ -28,9 +28,7 @@ namespace std {
     template <>
     struct hash<nx::memory::CacheBucket> {
         size_t operator()(const nx::memory::CacheBucket &bucket) const {
-            size_t h1 = hash<nx::memory::isize>{}(bucket.get_pool_capacity());
-            size_t h2 = hash<nx::memory::isize>{}(bucket.get_block_size());
-            return h1 ^ (h2 + 0x9e3779b97f4a7c15 + (h1 << 6) + (h1 >> 2));
+            return hash<nx::memory::isize>{}(bucket.get_block_size());
         }
     };
 } // namespace std
