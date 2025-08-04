@@ -1,7 +1,7 @@
-#include "profiler.h"
+#include "graph_profiler.h"
 
-namespace nx::instrument {
-    void Profiler::stream_node(std::ostream &stream, OpPtr op) {
+namespace nx::graph {
+    void GraphProfiler::stream_node(std::ostream &stream, OpPtr op) {
         const ArrayData &data = op->get_data();
         stream << "{";
         stream << "\"id\": \"" << data.get_id() << "\",";
@@ -11,16 +11,16 @@ namespace nx::instrument {
         stream << "\"view\": \"(" << join_nums(data.get_view()) << ")\",";
         stream << "\"dtype\": \"" << data.get_dtype()->str() << "\",";
 
-        if (m_snapshot_by_id.find(data.get_id()) == m_snapshot_by_id.end()) {
+        if (data.get_buffer().get_type() != ArrayBufferType::Managed) {
             stream << "\"size\": 0";
         } else {
-            stream << "\"size\": " << m_snapshot_by_id.at(data.get_id()).get_block()->get_size();
+            stream << "\"size\": " << data.get_buffer().get_size();
         }
 
         stream << "}";
     }
 
-    bool Profiler::stream_edge(std::ostream &stream, OpPtr op) {
+    bool GraphProfiler::stream_edge(std::ostream &stream, OpPtr op) {
         const ArrayId &id = op->get_data().get_id();
 
         switch (op->get_optype()) {
@@ -56,86 +56,22 @@ namespace nx::instrument {
         }
     }
 
-    void Profiler::stream_memory_snapshot(std::ostream &stream, const MemorySnapshot &snapshot) {
-        stream << "{";
-        stream << "\"size\": " << snapshot.get_block()->get_size() << ",";
-        stream << "\"start\": " << snapshot.get_alloc_time().time_since_epoch().count() << ",";
-        stream << "\"end\": " << snapshot.get_free_time().time_since_epoch().count();
-        stream << "}";
-    }
-
-    void Profiler::record_alloc(const ArrayData &data) {
-        MemoryBlock *block = data.get_buffer().get_block();
-        m_snapshot_by_id.emplace(data.get_id(), MemorySnapshot(block));
-        m_memory_usage += block->get_size();
-        m_peak_memory = std::max(m_peak_memory, m_memory_usage);
-    }
-
-    void Profiler::record_free(const ArrayData &data) {
-        MemorySnapshot &snapshot = m_snapshot_by_id.at(data.get_id());
-        snapshot.tock();
-        m_memory_usage -= snapshot.get_block()->get_size();
-    }
-
-    void Profiler::write_memory_profile(const std::string &file_name) {
+    void GraphProfiler::save_graph_profile(GraphPtr graph, const std::string &file_name) {
         std::ofstream file(file_name);
 
         if (!file.is_open()) {
-            throw std::runtime_error(std::format("Cannot log memory leaks due to failing to open file '{}'...", file_name));
-        }
-
-        stream_memory_profile(file);
-        file.close();
-    }
-
-    void Profiler::write_graph_profile(GraphPtr graph, const std::string &file_name) {
-        std::ofstream file(file_name);
-
-        if (!file.is_open()) {
-            throw std::runtime_error(std::format("Cannot log graph due to failing to open file '{}'...", file_name));
+            throw UnableToOpenFileToSaveGraphProfile(file_name);
         }
 
         stream_graph_profile(graph, file);
         file.close();
     }
 
-    void Profiler::stream_memory_profile(std::ostream &stream) {
-        stream << "{\"Peak memory\": " << m_peak_memory << ", \"Memory usage\": {";
-        size_t num_snapshots = m_snapshot_by_id.size();
-        size_t num_leaks = 0;
-        size_t i = 0;
-
-        for (const auto &[id, snapshot] : m_snapshot_by_id) {
-            stream << "\"" << id << "\":";
-            stream_memory_snapshot(stream, snapshot);
-
-            if (++i < num_snapshots) {
-                stream << ",";
-            }
-
-            if (snapshot.is_alive()) {
-                num_leaks++;
-            }
+    void GraphProfiler::stream_graph_profile(GraphPtr graph, std::ostream &stream) {
+        if (!stream) {
+            throw InvalidGraphProfileStream();
         }
 
-        stream << "}, \"Leaks\": {";
-        i = 0;
-
-        for (const auto &[id, snapshot] : m_snapshot_by_id) {
-            if (snapshot.is_alive()) {
-                stream << "\"" << id << "\":";
-                stream_memory_snapshot(stream, snapshot);
-
-                if (++i < num_leaks) {
-                    stream << ",";
-                }
-            }
-        }
-
-        stream << "}}";
-    }
-
-    void Profiler::stream_graph_profile(GraphPtr graph, std::ostream &stream) {
         if (graph->fw_tape_size() == 0) {
             return;
         }
@@ -193,4 +129,4 @@ namespace nx::instrument {
 
         stream << "]}";
     }
-} // namespace nx::instrument
+} // namespace nx::graph

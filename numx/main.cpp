@@ -1,3 +1,4 @@
+#include "profiler/profiler.h"
 #include "random/random.h"
 
 void run_basic() {
@@ -21,11 +22,8 @@ void run_random() {
 }
 
 int main() {
-    auto profiler = std::make_shared<nx::instrument::Profiler>();
-    nx::core::Backend::hook_profiler("mps:0", profiler);
-    // run_basic(profiler, "graph.json");
-    // profiler->write_memory_profile("memory.json");
+    nx::profiler::enable_memory_profile();
     run_random();
-    profiler->write_memory_profile("memory.json");
+    nx::profiler::save_memory_profile("memory_profile.json");
     return 0;
 }

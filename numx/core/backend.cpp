@@ -32,6 +32,7 @@ namespace nx::core {
         MTL::Device *mtl_device;
         DevicePtr device;
         nx::runtime::metal::MTLContextPtr runtime_ctx;
+        MemoryProfilerPtr memory_profiler;
 
 #ifdef PROJECT_ROOT
         const std::string project_root = PROJECT_ROOT;
@@ -43,7 +44,8 @@ namespace nx::core {
         for (NS::UInteger i = 0; i < mtl_devices->count(); ++i) {
             mtl_device = mtl_devices->object<MTL::Device>(i);
             device = std::make_shared<Device>(DeviceType::MPS, i);
-            runtime_ctx = std::make_shared<nx::runtime::metal::MTLContext>(mtl_device, lib_path);
+            memory_profiler = std::make_shared<MemoryProfiler>(device);
+            runtime_ctx = std::make_shared<nx::runtime::metal::MTLContext>(mtl_device, lib_path, memory_profiler);
             runtime_ctx->init_kernels();
 
             auto runner_builder = [](GraphPtr graph, RuntimeContextPtr runtime_ctx) -> RunnerPtr {
@@ -64,16 +66,11 @@ namespace nx::core {
 #endif
     }
 
-    DeviceContextPtr Backend::get_device_context_by_name(const std::string &name) const {
-        if (m_device_ctx_by_name.find(name) == m_device_ctx_by_name.end()) {
-            throw std::invalid_argument(std::format("No context found for device named {}.", name));
+    DeviceContextPtr Backend::get_device_context(const std::string &device_name) const {
+        if (m_device_ctx_by_name.find(device_name) == m_device_ctx_by_name.end()) {
+            throw std::invalid_argument(std::format("No context found for device named {}.", device_name));
         }
 
-        return m_device_ctx_by_name.at(name);
-    }
-
-    void Backend::hook_profiler(const std::string &device_name, ProfilerPtr profiler) {
-        DeviceContextPtr device_ctx = get_instance().get_device_context_by_name(device_name);
-        device_ctx->hook_profiler(profiler);
+        return m_device_ctx_by_name.at(device_name);
     }
 } // namespace nx::core

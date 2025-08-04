@@ -3,7 +3,7 @@
 
 NB_MODULE(arrayx, m) {
     auto m_core = m.def_submodule("core", "Core module");
-    auto m_instrument = m.def_submodule("instrument", "Instrument module");
+    auto m_profiler = m.def_submodule("profiler", "Profiler module");
     auto m_nn = m.def_submodule("nn", "Neural network module");
     auto m_optim = m.def_submodule("optim", "Optimizer module");
 
@@ -48,15 +48,6 @@ NB_MODULE(arrayx, m) {
         .def_prop_ro("id", &nxp::Device::get_id, "Get device's ID")
         .def_prop_ro("name", &nxp::Device::get_name, "Get device's name")
         .def("__str__", &nxp::Device::str, "String representation of device");
-
-    nb::class_<nxi::Profiler>(m_instrument, "Profiler")
-        .def(nb::init<>(), "Profiler")
-        .def("record_alloc", &nxi::Profiler::record_alloc, "Record array's memory allocation")
-        .def("record_free", &nxi::Profiler::record_free, "Record array's memory deallocation")
-        .def("print_memory_profile", &nxi::Profiler::print_memory_profile, "Log memory profile to the console")
-        .def("print_graph_profile", &nxi::Profiler::print_graph_profile, "Log computational graph profile to the console")
-        .def("write_memory_profile", &nxi::Profiler::write_memory_profile, "Log memory profile to a file")
-        .def("write_graph_profile", &nxi::Profiler::write_graph_profile, "Log computational graph profile to a file");
 
     // Array class
     nb::class_<nxc::Array>(m_core, "Array")
@@ -170,4 +161,11 @@ NB_MODULE(arrayx, m) {
     m_nn.def("relu", &nxn::relu, "x"_a, "ReLU activation function");
     m_nn.def("onehot", &nxn::onehot, "x"_a, "num_classes"_a = -1, "One-hot encode input array");
     m_nn.def("cross_entropy_loss", &nxn::cross_entropy_loss, "x"_a, "y"_a, "Compute cross-entropy loss between input x and target y");
+
+    m_profiler.def("enable_memory_profile", &nxf::enable_memory_profile, "Enable memory profiling");
+    m_profiler.def("disable_memory_profile", &nxf::disable_memory_profile, "Disable memory profiling");
+    m_profiler.def("print_memory_profile", &nxf::print_memory_profile, "Print memory profile to the console");
+    m_profiler.def("print_graph_profile", &nxf::print_graph_profile, "Print graph profile to the console");
+    m_profiler.def("save_memory_profile", &nxf::save_memory_profile, "Save memory profile to a file");
+    m_profiler.def("save_graph_profile", &nxf::save_graph_profile, "Save graph profile to a file");
 }

@@ -1,11 +1,8 @@
 #pragma once
 
-#include "../memory/memory_block.h"
+#include "buffer_block.h"
 
 namespace nx::primitive {
-    using namespace nx::utils;
-    using namespace nx::memory;
-
     enum struct ArrayBufferType {
         External,
         Managed,
@@ -14,12 +11,12 @@ namespace nx::primitive {
 
     struct ArrayBuffer {
     private:
-        MemoryBlock *m_block = nullptr;
+        BufferBlock *m_block = nullptr;
         ArrayBufferType m_type;
 
     public:
         ArrayBuffer() = default;
-        ArrayBuffer(MemoryBlock *block, ArrayBufferType type) : m_block(block), m_type(type) {}
+        ArrayBuffer(BufferBlock *block, ArrayBufferType type) : m_block(block), m_type(type) {}
         ArrayBuffer(const ArrayBuffer &buffer) : m_block(buffer.m_block), m_type(buffer.m_type) {}
 
         ~ArrayBuffer() {
@@ -38,7 +35,7 @@ namespace nx::primitive {
             return *this;
         }
 
-        MemoryBlock *get_block() const { return m_block; }
+        BufferBlock *get_block() const { return m_block; }
         ArrayBufferType get_type() const { return m_type; }
         uint8_t *get_ptr() const { return m_block->get_ptr(); }
         isize get_size() const { return m_block->get_size(); }

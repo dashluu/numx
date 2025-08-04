@@ -1,7 +1,7 @@
 #include "resource_list.h"
 
-namespace nx::memory {
-    void ResourceList::push(ResourceNode *item) {
+namespace nx::primitive {
+    void ResourceList::push(Resource *item) {
         if (empty()) {
             m_head = item;
             return;
@@ -12,12 +12,12 @@ namespace nx::memory {
         m_head = item;
     }
 
-    ResourceNode *ResourceList::pop() {
+    Resource *ResourceList::pop() {
         if (empty()) {
             return nullptr;
         }
 
-        ResourceNode *item = m_head;
+        Resource *item = m_head;
         m_head = m_head->m_next;
         item->m_next = nullptr;
 
@@ -28,7 +28,7 @@ namespace nx::memory {
         return item;
     }
 
-    void ResourceList::unlink(ResourceNode *item) {
+    void ResourceList::unlink(Resource *item) {
         if (!item) {
             return;
         }
@@ -38,8 +38,8 @@ namespace nx::memory {
             return;
         }
 
-        ResourceNode *prev = item->m_prev;
-        ResourceNode *next = item->m_next;
+        Resource *prev = item->m_prev;
+        Resource *next = item->m_next;
         item->m_prev = nullptr;
         item->m_next = nullptr;
 
@@ -51,4 +51,4 @@ namespace nx::memory {
             next->m_prev = prev;
         }
     }
-} // namespace nx::memory
+} // namespace nx::primitive

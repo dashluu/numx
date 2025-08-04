@@ -47,7 +47,9 @@ namespace nx::runtime::metal {
 
         for (isize i = 1; i <= s_simd_size; i <<= 1) {
             for (isize j = 1; i * j <= s_simd_size; j <<= 1) {
-                auto [min, max] = std::minmax(std::abs(nrow - i), std::abs(ncol - j * s_simd_size));
+                auto pair = std::minmax(std::abs(nrow - i), std::abs(ncol - j * s_simd_size));
+                auto min = pair.first;
+                auto max = pair.second;
                 // std::println("{} {} {} {}", i, j, min, max);
                 if (best_max == -1 || best_max > max || (best_max == max && best_min > min)) {
                     best_max = max;
@@ -111,8 +113,9 @@ namespace nx::runtime::metal {
 
         // Dispatch kernel
         encoder.dispatch_threads(grid_size, threadgroup_size);
-        double time = encoder.time_to_complete();
+        // double time = encoder.time_to_complete();
         // std::println("time: {}", time);
+        encoder.wait_to_complete();
         pool->release();
     }
 } // namespace nx::runtime::metal

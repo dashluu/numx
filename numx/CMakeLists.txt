@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.30)
 project(numx)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_definitions(-DPROJECT_ROOT="${CMAKE_SOURCE_DIR}/..")
 
 # # Set up nanobind
 # set(DEV_MODULE Development.Module)
@@ -18,29 +20,27 @@ set(CMAKE_CXX_STANDARD 23)
 #     OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 # find_package(nanobind CONFIG REQUIRED)
 
-add_definitions(-DPROJECT_ROOT="${CMAKE_SOURCE_DIR}/..")
-
-file(GLOB HEADER_FILES
+file(GLOB LIB_HEADER CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/primitive/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/random/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/instrument/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/profiler/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/optim/*.h"
     # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.h"
 )
 
-file(GLOB SRC_FILES
+file(GLOB LIB_SRC CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/primitive/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/graph/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/runtime/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/instrument/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/profiler/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/optim/*.cpp"
     # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp"
@@ -49,17 +49,17 @@ file(GLOB SRC_FILES
 if(APPLE)
     set(CMAKE_CXX_COMPILER "/opt/homebrew/Cellar/llvm/20.1.3/bin/clang++")
     add_subdirectory(runtime/metal/kernels)
-    file(GLOB MTL_HEADER_FILES
+    file(GLOB MTL_HEADER CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/memory/metal/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.h"
     )
-    file(GLOB MTL_SRC_FILES
+    file(GLOB MTL_SRC CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/memory/metal/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.cpp"
     )
     set(CMAKE_BUILD_TYPE Debug)
-    add_executable(${PROJECT_NAME} main.cpp ${SRC_FILES} ${HEADER_FILES} ${MTL_SRC_FILES} ${MTL_HEADER_FILES})
-    # nanobind_add_module(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES} ${MTL_SRC_FILES} ${MTL_HEADER_FILES})
+    add_executable(${PROJECT_NAME} main.cpp ${LIB_SRC} ${LIB_HEADER} ${MTL_SRC} ${MTL_HEADER})
+    # nanobind_add_module(${PROJECT_NAME} ${LIB_SRC} ${LIB_HEADER} ${MTL_SRC} ${MTL_HEADER})
     set(MTL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/metal-cpp")
     target_include_directories(${PROJECT_NAME} PRIVATE ${MTL_CPP})
     target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -83,7 +83,7 @@ endif()
 
 # # Add stub files
 # add_stub(core_stub core core)
-# add_stub(instrument_stub instrument instrument)
+# add_stub(profiler_stub profiler profiler)
 # add_stub(nn_stub nn nn)
 # add_stub(optim_stub optim optim)
 
@@ -96,7 +96,7 @@ endif()
 # # Add custom command to move Nanobind extension after build
 # add_custom_target(move_extension ALL
 #     COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${PYTHON_MODULE_DIR}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-#     DEPENDS core_stub instrument_stub nn_stub optim_stub
+#     DEPENDS core_stub profiler_stub nn_stub optim_stub
 #     COMMENT "Moving Python module and stub files"
 # )
 
@@ -109,6 +109,6 @@ endif()
 
 # # Move modules
 # move_module(core core)
-# move_module(instrument instrument)
+# move_module(profiler profiler)
 # move_module(nn nn)
 # move_module(optim optim)

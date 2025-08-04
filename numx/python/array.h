@@ -50,7 +50,7 @@ namespace nx::bind {
             'C');
     }
 
-    inline std::string get_py_class(const nb::object &py_obj) {
+    inline std::string get_class_name(const nb::object &py_obj) {
         auto cls = py_obj.attr("__class__");
         auto name = cls.attr("__name__");
         return nb::cast<std::string>(name);
@@ -68,7 +68,7 @@ namespace nx::bind {
             return f(array, nb::cast<bool>(rhs));
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_py_class(rhs), "float, int, bool, Array");
+        throw nxp::NanobindInvalidArgumentType(get_class_name(rhs), "float, int, bool, Array");
     }
 
     template <class F>
@@ -83,23 +83,23 @@ namespace nx::bind {
             return f(array, nb::cast<bool>(rhs));
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_py_class(rhs), "float, int, bool, Array");
+        throw nxp::NanobindInvalidArgumentType(get_class_name(rhs), "float, int, bool, Array");
     }
 
-    nxp::isize get_py_index(nxp::isize len, nxp::isize index);
-    nxp::ShapeDims get_py_indices(nxp::isize len, nxp::ShapeDims &dims);
-    nxp::Range py_slice_to_range(nxp::isize len, const nb::object &py_slice);
-    std::vector<nxp::Range> py_slice_to_ranges(const nxc::Array &array, const nb::object &py_slice);
+    nxp::isize get_index(nxp::isize len, nxp::isize index);
+    nxp::ShapeDims get_indices(nxp::isize len, nxp::ShapeDims &dims);
+    nxp::Range slice_to_range(nxp::isize len, const nb::object &slice);
+    std::vector<nxp::Range> selector_to_ranges(const nxc::Array &array, const nb::object &selector);
     nxp::DtypePtr dtype_from_nb_dtype(nb::dlpack::dtype nb_dtype);
     const std::string device_from_nb_device(int nb_device_id, int nb_device_type);
     nb::ndarray<nb::numpy> array_to_numpy(nxc::Array &array);
     nxc::Array array_from_numpy(nb::ndarray<nb::numpy> &ndarr);
     nb::ndarray<nb::pytorch> array_to_torch(nxc::Array &array);
     nb::object item(nxc::Array &array);
-    nxc::Array full(const nxp::ShapeView &view, const nb::object &py_constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
-    nxc::Array full_like(const nxc::Array &array, const nb::object &py_constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
-    nxc::Array uniform(const nxp::ShapeView &view, const nb::object &py_low, const nb::object &py_high, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
-    nxc::Array normal(const nxp::ShapeView &view, const nb::object &py_mean, const nb::object &py_std, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
+    nxc::Array full(const nxp::ShapeView &view, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
+    nxc::Array full_like(const nxc::Array &array, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
+    nxc::Array uniform(const nxp::ShapeView &view, const nb::object &low, const nb::object &high, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
+    nxc::Array normal(const nxp::ShapeView &view, const nb::object &mean, const nb::object &std, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
     nxc::Array neg(const nxc::Array &array);
     nxc::Array add(const nxc::Array &array, const nb::object &rhs);
     nxc::Array iadd(nxc::Array &array, const nb::object &rhs);
@@ -117,8 +117,8 @@ namespace nx::bind {
     nxc::Array geq(const nxc::Array &array, const nb::object &rhs);
     nxc::Array minimum(const nxc::Array &array, const nb::object &rhs);
     nxc::Array maximum(const nxc::Array &array, const nb::object &rhs);
-    nxc::Array slice(const nxc::Array &array, const nb::object &py_slice);
-    nxc::Array permute(const nxc::Array &array, nx::primitive::ShapeDims &dims);
+    nxc::Array slice(const nxc::Array &array, const nb::object &selector);
+    nxc::Array permute(const nxc::Array &array, nxp::ShapeDims &dims);
     nxc::Array transpose(const nxc::Array &array, nxp::isize start_dim, nxp::isize end_dim);
     nxc::Array flatten(const nxc::Array &array, nxp::isize start_dim, nxp::isize end_dim);
     nxc::Array squeeze(const nxc::Array &array, nxp::ShapeDims &dims);

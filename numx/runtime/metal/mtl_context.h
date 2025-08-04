@@ -1,11 +1,12 @@
 #pragma once
 
-#include "../../memory/metal/mtl_allocator.h"
+#include "../../allocator/metal/mtl_allocator.h"
+#include "../cache.h"
 #include "../runtime_context.h"
 #include "mtl_kernel.h"
 
 namespace nx::runtime::metal {
-    using namespace nx::memory::metal;
+    using namespace nx::allocator::metal;
 
     class MTLContext : public RuntimeContext {
     private:
@@ -25,7 +26,7 @@ namespace nx::runtime::metal {
         void init_copy_kernels();
 
     public:
-        MTLContext(MTL::Device *mtl_device, const std::string &lib_path);
+        MTLContext(MTL::Device *mtl_device, const std::string &lib_path, MemoryProfilerPtr memory_profiler);
         void init_kernels();
         bool register_kernel(const std::string &name, MTLKernelPtr kernel);
         NS::SharedPtr<MTL::Device> get_device() const { return m_device; }

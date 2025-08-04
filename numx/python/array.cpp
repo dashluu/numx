@@ -1,59 +1,59 @@
 #include "array.h"
 
 namespace nx::bind {
-    nxp::isize get_py_index(nxp::isize len, nxp::isize index) {
+    nxp::isize get_index(nxp::isize len, nxp::isize index) {
         if (index < -len || index >= len) {
-            throw nxp::OutOfRange(index, -len, len);
+            throw nxp::IndexOutOfRange(index, -len, len);
         }
         return index < 0 ? index + len : index;
     }
 
-    nxp::ShapeDims get_py_indices(nxp::isize len, nxp::ShapeDims &dims) {
+    nxp::ShapeDims get_indices(nxp::isize len, nxp::ShapeDims &dims) {
         if (!dims.empty()) {
-            std::transform(dims.begin(), dims.end(), dims.begin(), [len](auto dim) { return get_py_index(len, dim); });
+            std::transform(dims.begin(), dims.end(), dims.begin(), [len](auto dim) { return get_index(len, dim); });
         }
         return dims;
     }
 
-    nxp::Range py_slice_to_range(nxp::isize len, const nb::object &py_slice) {
+    nxp::Range slice_to_range(nxp::isize len, const nb::object &slice) {
         // Note: no need to check for out-of-bounds indices when converting to range
         // Shape does the checking eventually
-        if (!nb::isinstance<nb::slice>(py_slice)) {
-            throw nxp::NanobindInvalidArgumentType(get_py_class(py_slice), "slice");
+        if (!nb::isinstance<nb::slice>(slice)) {
+            throw nxp::NanobindInvalidArgumentType(get_class_name(slice), "slice");
         }
 
-        auto slice = nb::cast<nb::slice>(py_slice);
-        bool start_none = slice.attr("start").is_none();
-        bool stop_none = slice.attr("stop").is_none();
-        bool step_none = slice.attr("step").is_none();
+        auto nb_slice = nb::cast<nb::slice>(slice);
+        bool start_none = nb_slice.attr("start").is_none();
+        bool stop_none = nb_slice.attr("stop").is_none();
+        bool step_none = nb_slice.attr("step").is_none();
         nxp::isize start, stop, step;
 
         if (step_none) {
-            start = start_none ? 0 : get_py_index(len, nb::cast<nxp::isize>(slice.attr("start")));
-            stop = stop_none ? len : get_py_index(len, nb::cast<nxp::isize>(slice.attr("stop")));
+            start = start_none ? 0 : get_index(len, nb::cast<nxp::isize>(nb_slice.attr("start")));
+            stop = stop_none ? len : get_index(len, nb::cast<nxp::isize>(nb_slice.attr("stop")));
             return nxp::Range(start, stop, 1);
         }
 
-        step = nb::cast<nxp::isize>(slice.attr("step"));
+        step = nb::cast<nxp::isize>(nb_slice.attr("step"));
 
         if (step > 0) {
-            start = start_none ? 0 : get_py_index(len, nb::cast<nxp::isize>(slice.attr("start")));
-            stop = stop_none ? len : get_py_index(len, nb::cast<nxp::isize>(slice.attr("stop")));
+            start = start_none ? 0 : get_index(len, nb::cast<nxp::isize>(nb_slice.attr("start")));
+            stop = stop_none ? len : get_index(len, nb::cast<nxp::isize>(nb_slice.attr("stop")));
         } else {
-            start = start_none ? len - 1 : get_py_index(len, nb::cast<nxp::isize>(slice.attr("start")));
-            stop = stop_none ? -1 : get_py_index(len, nb::cast<nxp::isize>(slice.attr("stop")));
+            start = start_none ? len - 1 : get_index(len, nb::cast<nxp::isize>(nb_slice.attr("start")));
+            stop = stop_none ? -1 : get_index(len, nb::cast<nxp::isize>(nb_slice.attr("stop")));
         }
 
         return nxp::Range(start, stop, step);
     }
 
-    std::vector<nxp::Range> py_slice_to_ranges(const nxc::Array &array, const nb::object &py_slice) {
+    std::vector<nxp::Range> selector_to_ranges(const nxc::Array &array, const nb::object &selector) {
         std::vector<nxp::Range> ranges;
         const nxp::Shape &shape = array.get_shape();
 
-        // py_slice can be an int, a slice, or a sequence of ints or slices
-        if (nb::isinstance<nb::int_>(py_slice)) {
-            nxp::isize index = get_py_index(shape[0], nb::cast<nxp::isize>(py_slice));
+        // selector can be an int, a slice, or a sequence of ints or slices
+        if (nb::isinstance<nb::int_>(selector)) {
+            nxp::isize index = get_index(shape[0], nb::cast<nxp::isize>(selector));
             ranges.emplace_back(index, index + 1, 1);
 
             for (nxp::isize i = 1; i < shape.get_ndim(); i++) {
@@ -61,33 +61,33 @@ namespace nx::bind {
             }
 
             return ranges;
-        } else if (nb::isinstance<nb::slice>(py_slice)) {
-            ranges.push_back(py_slice_to_range(shape[0], py_slice));
+        } else if (nb::isinstance<nb::slice>(selector)) {
+            ranges.push_back(slice_to_range(shape[0], selector));
 
             for (nxp::isize i = 1; i < shape.get_ndim(); i++) {
                 ranges.emplace_back(0, shape[i], 1);
             }
 
             return ranges;
-        } else if (nb::isinstance<nb::sequence>(py_slice) && !nb::isinstance<nb::str>(py_slice)) {
-            // py_slice is a sequence but not a string
-            auto sequence = nb::cast<nb::sequence>(py_slice);
+        } else if (nb::isinstance<nb::sequence>(selector) && !nb::isinstance<nb::str>(selector)) {
+            // selector is a sequence but not a string
+            auto sequence = nb::cast<nb::sequence>(selector);
             size_t seq_len = nb::len(sequence);
 
             if (seq_len > shape.get_ndim()) {
-                throw nxp::OutOfRange(seq_len, 1, shape.get_ndim() + 1);
+                throw nxp::IndexOutOfRange(seq_len, 1, shape.get_ndim() + 1);
             }
 
             for (size_t i = 0; i < seq_len; i++) {
                 auto elm = sequence[i];
                 // elm must be a sequence of ints or slices
                 if (nb::isinstance<nb::int_>(elm)) {
-                    nxp::isize index = get_py_index(shape[i], nb::cast<nxp::isize>(elm));
+                    nxp::isize index = get_index(shape[i], nb::cast<nxp::isize>(elm));
                     ranges.emplace_back(index, index + 1, 1);
                 } else if (nb::isinstance<nb::slice>(elm)) {
-                    ranges.push_back(py_slice_to_range(shape[i], elm));
+                    ranges.push_back(slice_to_range(shape[i], elm));
                 } else {
-                    throw nxp::NanobindInvalidArgumentType(get_py_class(elm), "int, slice");
+                    throw nxp::NanobindInvalidArgumentType(get_class_name(elm), "int, slice");
                 }
             }
 
@@ -98,7 +98,7 @@ namespace nx::bind {
             return ranges;
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_py_class(py_slice), "int, slice, sequence");
+        throw nxp::NanobindInvalidArgumentType(get_class_name(selector), "int, slice, sequence");
     }
 
     nxp::DtypePtr dtype_from_nb_dtype(nb::dlpack::dtype nb_dtype) {
@@ -172,28 +172,28 @@ namespace nx::bind {
         }
     }
 
-    nxc::Array full(const nxp::ShapeView &view, const nb::object &py_constant, nxp::DtypePtr dtype, const std::string &device_name) {
-        if (nb::isinstance<nb::float_>(py_constant)) {
-            return nxc::full(view, nb::cast<float>(py_constant), dtype, device_name);
-        } else if (nb::isinstance<nb::int_>(py_constant)) {
-            return nxc::full(view, nb::cast<int>(py_constant), dtype, device_name);
-        } else if (nb::isinstance<nb::bool_>(py_constant)) {
-            return nxc::full(view, nb::cast<bool>(py_constant), dtype, device_name);
+    nxc::Array full(const nxp::ShapeView &view, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name) {
+        if (nb::isinstance<nb::float_>(constant)) {
+            return nxc::full(view, nb::cast<float>(constant), dtype, device_name);
+        } else if (nb::isinstance<nb::int_>(constant)) {
+            return nxc::full(view, nb::cast<int>(constant), dtype, device_name);
+        } else if (nb::isinstance<nb::bool_>(constant)) {
+            return nxc::full(view, nb::cast<bool>(constant), dtype, device_name);
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_py_class(py_constant), "float, int, bool");
+        throw nxp::NanobindInvalidArgumentType(get_class_name(constant), "float, int, bool");
     }
 
-    nxc::Array full_like(const nxc::Array &array, const nb::object &py_constant, nxp::DtypePtr dtype, const std::string &device_name) {
-        return full(array.get_view(), py_constant, dtype, device_name);
+    nxc::Array full_like(const nxc::Array &array, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name) {
+        return full(array.get_view(), constant, dtype, device_name);
     }
 
-    nxc::Array uniform(const nxp::ShapeView &view, const nb::object &py_low, const nb::object &py_high, nxp::DtypePtr dtype, const std::string &device_name) {
-        return nxr::uniform(view, nb::cast<float>(py_low), nb::cast<float>(py_high), dtype, device_name);
+    nxc::Array uniform(const nxp::ShapeView &view, const nb::object &low, const nb::object &high, nxp::DtypePtr dtype, const std::string &device_name) {
+        return nxr::uniform(view, nb::cast<float>(low), nb::cast<float>(high), dtype, device_name);
     }
 
-    nxc::Array normal(const nxp::ShapeView &view, const nb::object &py_mean, const nb::object &py_std, nxp::DtypePtr dtype, const std::string &device_name) {
-        return nxr::normal(view, nb::cast<float>(py_mean), nb::cast<float>(py_std), dtype, device_name);
+    nxc::Array normal(const nxp::ShapeView &view, const nb::object &mean, const nb::object &std, nxp::DtypePtr dtype, const std::string &device_name) {
+        return nxr::normal(view, nb::cast<float>(mean), nb::cast<float>(std), dtype, device_name);
     }
 
     nxc::Array neg(const nxc::Array &array) {
@@ -264,51 +264,51 @@ namespace nx::bind {
         return binary(array, rhs, [](const auto &a, const auto &b) { return a.maximum(b); });
     }
 
-    nxc::Array slice(const nxc::Array &array, const nb::object &py_slice) {
-        return array.slice(nxb::py_slice_to_ranges(array, py_slice));
+    nxc::Array slice(const nxc::Array &array, const nb::object &selector) {
+        return array.slice(nxb::selector_to_ranges(array, selector));
     }
 
-    nxc::Array permute(const nxc::Array &array, nx::primitive::ShapeDims &dims) {
-        return array.permute(get_py_indices(array.get_shape().get_ndim(), dims));
+    nxc::Array permute(const nxc::Array &array, nxp::ShapeDims &dims) {
+        return array.permute(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array transpose(const nxc::Array &array, nxp::isize start_dim, nxp::isize end_dim) {
-        return array.transpose(get_py_index(array.get_shape().get_ndim(), start_dim), get_py_index(array.get_shape().get_ndim(), end_dim));
+        return array.transpose(get_index(array.get_shape().get_ndim(), start_dim), get_index(array.get_shape().get_ndim(), end_dim));
     }
 
     nxc::Array flatten(const nxc::Array &array, nxp::isize start_dim, nxp::isize end_dim) {
-        return array.flatten(get_py_index(array.get_shape().get_ndim(), start_dim), get_py_index(array.get_shape().get_ndim(), end_dim));
+        return array.flatten(get_index(array.get_shape().get_ndim(), start_dim), get_index(array.get_shape().get_ndim(), end_dim));
     }
 
     nxc::Array squeeze(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.squeeze(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.squeeze(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array unsqueeze(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.unsqueeze(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.unsqueeze(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array sum(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.sum(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.sum(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array mean(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.mean(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.mean(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array max(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.max(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.max(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array min(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.min(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.min(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array argmax(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.argmax(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.argmax(get_indices(array.get_shape().get_ndim(), dims));
     }
 
     nxc::Array argmin(const nxc::Array &array, nxp::ShapeDims &dims) {
-        return array.argmin(get_py_indices(array.get_shape().get_ndim(), dims));
+        return array.argmin(get_indices(array.get_shape().get_ndim(), dims));
     }
 } // namespace nx::bind

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../instrument/profiler.h"
 #include "../primitive/random.h"
 #include "../runtime/runner.h"
 #include "../runtime/runtime_context.h"
@@ -10,7 +9,6 @@ namespace nx::core {
     using namespace nx::primitive;
     using namespace nx::graph;
     using namespace nx::runtime;
-    using namespace nx::instrument;
     using RunnerBuilder = std::function<RunnerPtr(GraphPtr, RuntimeContextPtr)>;
     using GraphBuilder = std::function<GraphPtr(OpPtr)>;
 
@@ -21,7 +19,6 @@ namespace nx::core {
         RandomKeyGeneratorPtr m_rand_key_gen;
         RunnerBuilder m_runner_builder;
         GraphBuilder m_graph_builder;
-        ProfilerPtr m_profiler = nullptr;
 
     public:
         DeviceContext(DevicePtr device, RuntimeContextPtr runtime_ctx, RunnerBuilder runner_builder, GraphBuilder graph_builder, RandomKeyGeneratorPtr rand_key_gen) : m_device(device), m_runtime_ctx(runtime_ctx), m_runner_builder(runner_builder), m_graph_builder(graph_builder), m_rand_key_gen(rand_key_gen) {}
@@ -33,8 +30,6 @@ namespace nx::core {
         RandomKeyGeneratorPtr get_random_key_generator() const { return m_rand_key_gen; }
         RunnerBuilder get_runner_builder() const { return m_runner_builder; }
         GraphBuilder get_graph_builder() const { return m_graph_builder; }
-        ProfilerPtr get_profiler() const { return m_profiler; }
-        void hook_profiler(ProfilerPtr profiler) { m_profiler = profiler; }
     };
 
     using DeviceContextPtr = std::shared_ptr<DeviceContext>;
@@ -51,8 +46,9 @@ namespace nx::core {
         ~Backend() = default;
         Backend &operator=(const Backend &) = delete;
         size_t count_devices() const { return m_device_ctx_by_name.size(); }
-        DeviceContextPtr get_device_context_by_name(const std::string &name) const;
+        DeviceContextPtr get_device_context(const std::string &device_name) const;
         static Backend &get_instance();
-        static void hook_profiler(const std::string &device_name, ProfilerPtr profiler);
+        std::unordered_map<std::string, DeviceContextPtr>::const_iterator begin() const { return m_device_ctx_by_name.begin(); }
+        std::unordered_map<std::string, DeviceContextPtr>::const_iterator end() const { return m_device_ctx_by_name.end(); }
     };
 } // namespace nx::core

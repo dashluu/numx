@@ -1,16 +1,12 @@
 #pragma once
 
-#include "../instrument/profiler.h"
 #include "runtime_context.h"
 
 namespace nx::runtime {
-    using namespace nx::instrument;
-
     class Runner : public std::enable_shared_from_this<Runner> {
     protected:
         GraphPtr m_graph;
         RuntimeContextPtr m_ctx;
-        ProfilerPtr m_profiler = nullptr;
 
         virtual void run_full_kernel(OpPtr op, isize constant) = 0;
         virtual void run_arange_kernel(OpPtr op, isize start, isize step) = 0;
@@ -33,8 +29,6 @@ namespace nx::runtime {
         Runner(const Runner &) = delete;
         virtual ~Runner() = default;
         Runner &operator=(const Runner &) = delete;
-        ProfilerPtr get_profiler() { return m_profiler; }
-        void hook_profiler(ProfilerPtr profiler) { m_profiler = profiler; }
         void forward();
         void backward();
     };
