@@ -159,12 +159,12 @@ namespace nx::primitive {
         isize get_ndim() const { return m_view.size(); }
         isize get_numel() const { return std::accumulate(m_view.begin(), m_view.end(), 1ll, std::multiplies<isize>()); }
 
-        bool broadcastable(const ShapeView &rhs) const {
-            if (m_view == rhs) {
+        bool broadcastable(const ShapeView &view) const {
+            if (m_view == view) {
                 return true;
             }
 
-            for (auto l_iter = m_view.rbegin(), r_iter = rhs.rbegin(); l_iter != m_view.rend() && r_iter != rhs.rend(); l_iter++, r_iter++) {
+            for (auto l_iter = m_view.rbegin(), r_iter = view.rbegin(); l_iter != m_view.rend() && r_iter != view.rend(); l_iter++, r_iter++) {
                 if (*l_iter != *r_iter && *l_iter != 1 && *r_iter != 1) {
                     return false;
                 }
@@ -174,16 +174,16 @@ namespace nx::primitive {
         }
 
         // One-direction broadcast check
-        bool broadcastable_to(const ShapeView &target) const {
-            if (m_view == target) {
+        bool broadcastable_to(const ShapeView &view) const {
+            if (m_view == view) {
                 return true;
             }
 
-            if (get_ndim() > target.size()) {
+            if (get_ndim() > view.size()) {
                 return false;
             }
 
-            for (auto l_iter = m_view.rbegin(), r_iter = target.rbegin(); l_iter != m_view.rend(); l_iter++, r_iter++) {
+            for (auto l_iter = m_view.rbegin(), r_iter = view.rbegin(); l_iter != m_view.rend(); l_iter++, r_iter++) {
                 if (*l_iter != *r_iter && *l_iter != 1) {
                     return false;
                 }
@@ -192,14 +192,14 @@ namespace nx::primitive {
             return true;
         }
 
-        bool matmul_broadcastable(const ShapeView &rhs) const {
+        bool matmul_broadcastable(const ShapeView &view) const {
             isize ndim = get_ndim();
 
-            if (ndim < 2 || m_view[ndim - 1] != rhs[rhs.size() - 2]) {
+            if (ndim < 2 || m_view[ndim - 1] != view[view.size() - 2]) {
                 return false;
             }
 
-            for (auto l_iter = m_view.begin(), r_iter = rhs.begin(); l_iter != m_view.end() - 2 && r_iter != rhs.end() - 2; l_iter++, r_iter++) {
+            for (auto l_iter = m_view.begin(), r_iter = view.begin(); l_iter != m_view.end() - 2 && r_iter != view.end() - 2; l_iter++, r_iter++) {
                 if (*l_iter != *r_iter && *l_iter != 1 && *r_iter != 1) {
                     return false;
                 }
@@ -209,27 +209,27 @@ namespace nx::primitive {
         }
 
         // One-direction broadcast
-        std::pair<Shape, ShapeDims> broadcast_to(const ShapeView &target) const {
+        std::pair<Shape, ShapeDims> broadcast_to(const ShapeView &view) const {
             ShapeDims broadcast_dims;
 
-            if (m_view == target) {
+            if (m_view == view) {
                 return std::make_pair(*this, broadcast_dims);
             }
 
-            if (!broadcastable_to(target)) {
-                throw std::invalid_argument(std::format("Cannot broadcast shape ({}) to ({}).", join_nums(m_view), join_nums(target)));
+            if (!broadcastable_to(view)) {
+                throw std::invalid_argument(std::format("Cannot broadcast shape ({}) to ({}).", join_nums(m_view), join_nums(view)));
             }
 
             ShapeView broadcast_view = m_view;
-            size_t ndim_diff = target.size() - broadcast_view.size();
+            size_t ndim_diff = view.size() - broadcast_view.size();
             broadcast_view.insert(broadcast_view.begin(), ndim_diff, 1);
             Shape broadcast_shape(m_offset, broadcast_view);
             std::fill_n(broadcast_shape.m_stride.begin(), ndim_diff, 0);
 
-            for (size_t i = 0; i < target.size(); i++) {
-                if (broadcast_view[i] < target[i]) {
+            for (size_t i = 0; i < view.size(); i++) {
+                if (broadcast_view[i] < view[i]) {
                     broadcast_dims.emplace_back(i);
-                    broadcast_shape.m_view[i] = target[i];
+                    broadcast_shape.m_view[i] = view[i];
                     broadcast_shape.m_stride[i] = 0;
                 }
             }
@@ -238,19 +238,19 @@ namespace nx::primitive {
         }
 
         // ShapeDims specifies which dimensions are broadcasted
-        std::pair<Shape, ShapeDims> broadcast(const ShapeView &rhs) const {
+        std::pair<Shape, ShapeDims> broadcast(const ShapeView &view) const {
             ShapeDims broadcast_dims;
 
-            if (m_view == rhs) {
+            if (m_view == view) {
                 return std::make_pair(*this, broadcast_dims);
             }
 
-            if (!broadcastable(rhs)) {
-                throw std::invalid_argument(std::format("Cannot broadcast shape ({}) and ({}).", join_nums(m_view), join_nums(rhs)));
+            if (!broadcastable(view)) {
+                throw std::invalid_argument(std::format("Cannot broadcast shape ({}) and ({}).", join_nums(m_view), join_nums(view)));
             }
 
             ShapeView l_view = m_view;
-            ShapeView r_view = rhs;
+            ShapeView r_view = view;
             size_t ndim = std::max(l_view.size(), r_view.size());
             size_t l_diff = ndim - l_view.size();
             size_t r_diff = ndim - r_view.size();
@@ -270,17 +270,17 @@ namespace nx::primitive {
             return {broadcast_shape, broadcast_dims};
         }
 
-        Shape reshape(const ShapeView &target) const {
+        Shape reshape(const ShapeView &view) const {
             // TODO: fix this
-            if_view_is_valid(target);
-            isize numel = get_numel();
-            isize target_numel = std::accumulate(target.begin(), target.end(), 1ll, std::multiplies<isize>());
+            if_view_is_valid(view);
+            isize l_numel = get_numel();
+            isize r_numel = std::accumulate(view.begin(), view.end(), 1ll, std::multiplies<isize>());
 
-            if (numel != target_numel) {
-                throw std::invalid_argument(std::format("Cannot reshape array of {} elements to {} elements.", numel, target_numel));
+            if (l_numel != r_numel) {
+                throw std::invalid_argument(std::format("Cannot reshape array of {} elements to {} elements.", l_numel, r_numel));
             }
 
-            return Shape(m_offset, target);
+            return Shape(m_offset, view);
         }
 
         ShapeDims transpose(isize start_dim, isize end_dim) const {

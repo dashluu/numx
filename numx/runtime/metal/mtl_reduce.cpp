@@ -47,9 +47,7 @@ namespace nx::runtime::metal {
 
         for (isize i = 1; i <= s_simd_size; i <<= 1) {
             for (isize j = 1; i * j <= s_simd_size; j <<= 1) {
-                auto pair = std::minmax(std::abs(nrow - i), std::abs(ncol - j * s_simd_size));
-                auto min = pair.first;
-                auto max = pair.second;
+                auto [min, max] = std::minmax(std::abs(nrow - i), std::abs(ncol - j * s_simd_size));
                 // std::println("{} {} {} {}", i, j, min, max);
                 if (best_max == -1 || best_max > max || (best_max == max && best_min > min)) {
                     best_max = max;

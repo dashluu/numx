@@ -179,10 +179,10 @@ namespace nx::primitive {
             throw IncompatDevicesForOp(O::s_opname, l_device->str(), r_device->str());
         }
 
-        OpPtr broadcasted_l_op = broadcast(l_op, r_view);
-        OpPtr broadcasted_r_op = broadcast(r_op, l_view);
-        const ArrayData out_data(Shape(broadcasted_l_op->get_data().get_view()), l_dtype, l_device);
-        return std::make_shared<O>(out_data, broadcasted_l_op, broadcasted_r_op, false);
+        OpPtr broadcast_l_op = broadcast(l_op, r_view);
+        OpPtr broadcast_r_op = broadcast(r_op, l_view);
+        const ArrayData out_data(Shape(broadcast_l_op->get_data().get_view()), l_dtype, l_device);
+        return std::make_shared<O>(out_data, broadcast_l_op, broadcast_r_op, false);
     }
 
     template <class O>
@@ -207,9 +207,9 @@ namespace nx::primitive {
             throw IncompatDevicesForOp(O::s_opname, l_device->str(), r_device->str());
         }
 
-        OpPtr broadcasted_r_op = broadcast_to(r_op, l_view);
+        OpPtr broadcast_r_op = broadcast_to(r_op, l_view);
         const ArrayData out_data(l_shape, l_dtype, l_device);
-        return std::make_shared<O>(out_data, l_op, broadcasted_r_op, true);
+        return std::make_shared<O>(out_data, l_op, broadcast_r_op, true);
     }
 
     template <class O>
@@ -269,10 +269,10 @@ namespace nx::primitive {
             throw IncompatDevicesForOp(O::s_opname, l_device->str(), r_device->str());
         }
 
-        OpPtr broadcasted_l_op = broadcast(l_op, r_view);
-        OpPtr broadcasted_r_op = broadcast(r_op, l_view);
-        const ArrayData out_data(Shape(broadcasted_l_op->get_data().get_view()), &b8, l_device);
-        return std::make_shared<O>(out_data, broadcasted_l_op, broadcasted_r_op);
+        OpPtr broadcast_l_op = broadcast(l_op, r_view);
+        OpPtr broadcast_r_op = broadcast(r_op, l_view);
+        const ArrayData out_data(Shape(broadcast_l_op->get_data().get_view()), &b8, l_device);
+        return std::make_shared<O>(out_data, broadcast_l_op, broadcast_r_op);
     }
 
     template <class O>

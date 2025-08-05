@@ -136,24 +136,24 @@ namespace nx::primitive {
             throw IncompatDevicesForOp(MatmulOp::s_opname, l_device->str(), r_device->str());
         }
 
-        ShapeView broadcasted_l_view = l_view;
-        ShapeView broadcasted_r_view = r_view;
-        size_t ndim = std::max(broadcasted_l_view.size(), broadcasted_r_view.size());
-        broadcasted_l_view.insert(broadcasted_l_view.begin(), ndim - broadcasted_l_view.size(), 1);
-        broadcasted_r_view.insert(broadcasted_r_view.begin(), ndim - broadcasted_r_view.size(), 1);
+        ShapeView broadcast_l_view = l_view;
+        ShapeView broadcast_r_view = r_view;
+        size_t ndim = std::max(broadcast_l_view.size(), broadcast_r_view.size());
+        broadcast_l_view.insert(broadcast_l_view.begin(), ndim - broadcast_l_view.size(), 1);
+        broadcast_r_view.insert(broadcast_r_view.begin(), ndim - broadcast_r_view.size(), 1);
 
         for (size_t i = 0; i < ndim - 2; i++) {
-            isize shared_dim = std::max(broadcasted_l_view[i], broadcasted_r_view[i]);
-            broadcasted_l_view[i] = shared_dim;
-            broadcasted_r_view[i] = shared_dim;
+            isize shared_dim = std::max(broadcast_l_view[i], broadcast_r_view[i]);
+            broadcast_l_view[i] = shared_dim;
+            broadcast_r_view[i] = shared_dim;
         }
 
-        OpPtr broadcasted_l_op = broadcast(l_op, broadcasted_l_view);
-        OpPtr broadcasted_r_op = broadcast(r_op, broadcasted_r_view);
-        ShapeView out_view = broadcasted_l_view;
+        OpPtr broadcast_l_op = broadcast(l_op, broadcast_l_view);
+        OpPtr broadcast_r_op = broadcast(r_op, broadcast_r_view);
+        ShapeView out_view = broadcast_l_view;
         out_view[out_view.size() - 1] = r_view[r_view.size() - 1];
         const ArrayData out_data(Shape(out_view), l_dtype, l_device);
-        return std::make_shared<MatmulOp>(out_data, broadcasted_l_op, broadcasted_r_op);
+        return std::make_shared<MatmulOp>(out_data, broadcast_l_op, broadcast_r_op);
     }
 
     OpPtr iadd(OpPtr l_op, OpPtr r_op) { return in_place_binary<AddOp>(l_op, r_op); }
@@ -239,22 +239,22 @@ namespace nx::primitive {
         isize reduce_numel = std::accumulate(reduce_dims.begin(), reduce_dims.end(), 1ll, [&](isize acc, isize dim) { return acc * reduce_operand_view[dim]; });
 
         // Broadcast the last dimension so the last dimension is the number of reduced elements
-        ShapeView broadcasted_view(remaining_dims.size() + 1, reduce_numel);
-        std::transform(remaining_dims.begin(), remaining_dims.end(), broadcasted_view.begin(), [&](isize dim) { return reduce_operand_view[dim]; });
-        OpPtr out_op = broadcast(in_op, broadcasted_view);
+        ShapeView broadcast_view(remaining_dims.size() + 1, reduce_numel);
+        std::transform(remaining_dims.begin(), remaining_dims.end(), broadcast_view.begin(), [&](isize dim) { return reduce_operand_view[dim]; });
+        OpPtr out_op = broadcast(in_op, broadcast_view);
 
         // Reshape so the last k dimensions are the reduced dimensions
-        ShapeView reshaped_view(remaining_dims.size() + reduce_dims.size());
-        std::transform(remaining_dims.begin(), remaining_dims.end(), reshaped_view.begin(), [&](isize dim) { return reduce_operand_view[dim]; });
-        std::transform(reduce_dims.begin(), reduce_dims.end(), reshaped_view.begin() + remaining_dims.size(), [&](isize dim) { return reduce_operand_view[dim]; });
-        out_op = reshape(out_op, reshaped_view);
+        ShapeView reshape_view(remaining_dims.size() + reduce_dims.size());
+        std::transform(remaining_dims.begin(), remaining_dims.end(), reshape_view.begin(), [&](isize dim) { return reduce_operand_view[dim]; });
+        std::transform(reduce_dims.begin(), reduce_dims.end(), reshape_view.begin() + remaining_dims.size(), [&](isize dim) { return reduce_operand_view[dim]; });
+        out_op = reshape(out_op, reshape_view);
 
         // Permute to restore the shape before reduction
-        ShapeDims permuted_view;
-        permuted_view.reserve(remaining_dims.size() + reduce_dims.size());
-        permuted_view.insert(permuted_view.end(), remaining_dims.begin(), remaining_dims.end());
-        permuted_view.insert(permuted_view.end(), reduce_dims.begin(), reduce_dims.end());
-        const ShapeView &out_view = out_op->get_data().get_shape().undo_permute_view(permuted_view);
+        ShapeDims permute_view;
+        permute_view.reserve(remaining_dims.size() + reduce_dims.size());
+        permute_view.insert(permute_view.end(), remaining_dims.begin(), remaining_dims.end());
+        permute_view.insert(permute_view.end(), reduce_dims.begin(), reduce_dims.end());
+        const ShapeView &out_view = out_op->get_data().get_shape().undo_permute_view(permute_view);
         out_op = permute(out_op, out_view);
         return out_op;
     }
