@@ -5,7 +5,6 @@
 namespace nx::core {
     inline DeviceContextPtr get_device_context(const std::string &device_name) { return Backend::get_instance().get_device_context(device_name); }
     inline DevicePtr get_device(const std::string &device_name) { return get_device_context(device_name)->get_device(); }
-    inline RandomKeyGeneratorPtr get_random_key_generator(const std::string &device_name) { return get_device_context(device_name)->get_random_key_generator(); }
 
     struct Array {
     private:
@@ -226,24 +225,16 @@ namespace nx::core {
     };
 
     template <NumericType T>
-    Array operator+(T constant, const Array &array) {
-        return array + constant;
-    }
+    Array operator+(T constant, const Array &array) { return array + constant; }
 
     template <NumericType T>
-    Array operator-(T constant, const Array &array) {
-        return array - constant;
-    }
+    Array operator-(T constant, const Array &array) { return array - constant; }
 
     template <NumericType T>
-    Array operator*(T constant, const Array &array) {
-        return array * constant;
-    }
+    Array operator*(T constant, const Array &array) { return array * constant; }
 
     template <NumericType T>
-    Array operator/(T constant, const Array &array) {
-        return array.recip() * constant;
-    }
+    Array operator/(T constant, const Array &array) { return array.recip() * constant; }
 
     using ArrayVec = std::vector<Array>;
 
@@ -301,6 +292,8 @@ namespace nx::core {
     }
 
     inline Array empty_like(const Array &array) { return Array(nx::graph::empty_like(array.get_op())); }
+    std::pair<isize, isize> compute_fan_in_and_fan_out(const ShapeView &view);
+    std::pair<isize, isize> compute_fan_in_and_fan_out(const Array &array);
 } // namespace nx::core
 
 namespace std {

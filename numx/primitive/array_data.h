@@ -16,14 +16,16 @@ namespace nx::primitive {
         Shape m_shape;
         DtypePtr m_dtype;
         DevicePtr m_device;
-        ArrayBuffer m_buffer;
+        std::optional<ArrayBuffer> m_buffer;
+        bool m_buffer_initialized = false;
 
     public:
         ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {}
 
         ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {
             BufferBlock *block = new BufferBlock(ptr, size);
-            m_buffer = ArrayBuffer(block, ArrayBufferType::External);
+            m_buffer.emplace(block, true);
+            m_buffer_initialized = true;
         }
 
         ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
@@ -38,10 +40,6 @@ namespace nx::primitive {
             return *this;
         }
 
-        static ArrayData from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) {
-            return ArrayData(ptr, size, shape, dtype, device);
-        }
-
         const ArrayId &get_id() const { return m_id; }
         const Shape &get_shape() const { return m_shape; }
         isize get_offset() const { return m_shape.get_offset(); }
@@ -50,14 +48,37 @@ namespace nx::primitive {
         DtypePtr get_dtype() const { return m_dtype; }
         DevicePtr get_device() const { return m_device; }
         const std::string &get_device_name() const { return m_device->get_name(); }
-        uint8_t *get_ptr() const { return m_buffer.get_ptr() + get_offset() * get_itemsize(); }
+        uint8_t *get_ptr() const { return m_buffer.value().get_ptr() + get_offset() * get_itemsize(); }
         isize get_numel() const { return m_shape.get_numel(); }
         isize get_ndim() const { return m_shape.get_ndim(); }
         isize get_itemsize() const { return m_dtype->get_size(); }
         isize get_nbytes() const { return get_numel() * get_itemsize(); }
-        const ArrayBuffer &get_buffer() const { return m_buffer; }
-        void set_buffer(const ArrayBuffer &buffer) { m_buffer = buffer; }
-        void invalidate_buffer() { m_buffer = ArrayBuffer(); }
+
+        bool init_primary_buffer(BufferBlock *block) {
+            if (m_buffer_initialized) {
+                return false;
+            }
+
+            m_buffer.emplace(block, false);
+            m_buffer_initialized = true;
+            return true;
+        }
+
+        bool init_view_buffer(BufferBlock *block) {
+            if (m_buffer_initialized) {
+                return false;
+            }
+
+            BufferBlock *new_block = new BufferBlock(block->get_ptr(), block->get_size());
+            m_buffer.emplace(new_block, true);
+            m_buffer_initialized = true;
+            return true;
+        }
+
+        const ArrayBuffer &get_buffer() const { return m_buffer.value(); }
+        bool is_buffer_initialized() const { return m_buffer_initialized; }
+        bool is_buffer_valid() const { return m_buffer.has_value(); }
+        void invalidate_buffer() { m_buffer.reset(); }
         bool is_contiguous() const { return m_shape.is_contiguous(); }
         // TODO: handle more cases to reduce copying?
         bool copy_when_reshape(const ShapeView &view) const { return !is_contiguous(); }

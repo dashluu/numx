@@ -11,7 +11,7 @@ namespace nx::graph {
         stream << "\"view\": \"(" << join_nums(data.get_view()) << ")\",";
         stream << "\"dtype\": \"" << data.get_dtype()->str() << "\",";
 
-        if (data.get_buffer().get_type() != ArrayBufferType::Managed) {
+        if (data.get_buffer().is_view()) {
             stream << "\"size\": 0";
         } else {
             stream << "\"size\": " << data.get_buffer().get_size();
@@ -56,18 +56,18 @@ namespace nx::graph {
         }
     }
 
-    void GraphProfiler::save_graph_profile(GraphPtr graph, const std::string &file_name) {
+    void GraphProfiler::save_profile(GraphPtr graph, const std::string &file_name) {
         std::ofstream file(file_name);
 
         if (!file.is_open()) {
             throw UnableToOpenFileToSaveGraphProfile(file_name);
         }
 
-        stream_graph_profile(graph, file);
+        stream_profile(graph, file);
         file.close();
     }
 
-    void GraphProfiler::stream_graph_profile(GraphPtr graph, std::ostream &stream) {
+    void GraphProfiler::stream_profile(GraphPtr graph, std::ostream &stream) {
         if (!stream) {
             throw InvalidGraphProfileStream();
         }

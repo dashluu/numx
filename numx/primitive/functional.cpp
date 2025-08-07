@@ -21,8 +21,7 @@ namespace nx::primitive {
     }
 
     OpPtr from_buffer(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) {
-        ArrayData data = ArrayData::from_buffer(ptr, size, shape, dtype, device);
-        return std::make_shared<Nop>(data);
+        return std::make_shared<Nop>(ArrayData(ptr, size, shape, dtype, device));
     }
 
     OpPtr empty(const ShapeView &view, DtypePtr dtype, DevicePtr device) { return std::make_shared<EmptyOp>(ArrayData(Shape(view), dtype, device)); }

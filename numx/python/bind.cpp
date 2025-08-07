@@ -1,7 +1,8 @@
 #include "array.h"
+#include "module.h"
 #include "optim.h"
 
-NB_MODULE(arrayx, m) {
+NB_MODULE(numx, m) {
     auto m_core = m.def_submodule("core", "Core module");
     auto m_profiler = m.def_submodule("profiler", "Profiler module");
     auto m_nn = m.def_submodule("nn", "Neural network module");
@@ -156,6 +157,17 @@ NB_MODULE(arrayx, m) {
     nb::class_<nxo::GradientDescent, nxo::Optimizer>(m_optim, "GradientDescent")
         .def(nb::init<float>(), "lr"_a = 1e-3, "Gradient Descent optimizer");
 
+    nb::class_<nxn::Module, nxb::PyModule>(m_nn, "Module")
+        .def(nb::init<>(), "Base module")
+        .def("forward", &nxn::Module::forward, "x"_a, "Forward module")
+        .def("__call__", &nxn::Module::operator(), "x"_a, "Forward module")
+        .def("parameters", &nxn::Module::get_parameters, "Get module parameters");
+
+    nb::class_<nxn::Linear, nxn::Module>(m_nn, "Linear")
+        .def(nb::init<nxp::isize, nxp::isize, bool>(), "in_features"_a, "out_features"_a, "bias"_a = true, "Linear layer")
+        .def_prop_ro("weight", &nxn::Linear::get_weight, "Get linear layer's weight")
+        .def_prop_ro("bias", &nxn::Linear::get_bias, "Get linear layer's bias");
+
     m_nn.def("linear", &nxn::linear, "x"_a, "weight"_a, "Functional linear without bias");
     m_nn.def("linear_with_bias", &nxn::linear_with_bias, "x"_a, "weight"_a, "bias"_a, "Functional linear with bias");
     m_nn.def("relu", &nxn::relu, "x"_a, "ReLU activation function");
@@ -163,9 +175,13 @@ NB_MODULE(arrayx, m) {
     m_nn.def("cross_entropy_loss", &nxn::cross_entropy_loss, "x"_a, "y"_a, "Compute cross-entropy loss between input x and target y");
 
     m_profiler.def("enable_memory_profile", &nxf::enable_memory_profile, "Enable memory profiling");
+    m_profiler.def("enable_device_memory_profile", &nxf::enable_device_memory_profile, "device_name"_a, "Enable device memory profiling");
     m_profiler.def("disable_memory_profile", &nxf::disable_memory_profile, "Disable memory profiling");
+    m_profiler.def("disable_device_memory_profile", &nxf::disable_device_memory_profile, "device_name"_a, "Disable device memory profiling");
     m_profiler.def("print_memory_profile", &nxf::print_memory_profile, "Print memory profile to the console");
-    m_profiler.def("print_graph_profile", &nxf::print_graph_profile, "Print graph profile to the console");
-    m_profiler.def("save_memory_profile", &nxf::save_memory_profile, "Save memory profile to a file");
-    m_profiler.def("save_graph_profile", &nxf::save_graph_profile, "Save graph profile to a file");
+    m_profiler.def("print_device_memory_profile", &nxf::print_device_memory_profile, "device_name"_a, "Print device memory profile to the console");
+    m_profiler.def("print_graph_profile", &nxf::print_graph_profile, "array"_a, "Print graph profile to the console");
+    m_profiler.def("save_memory_profile", &nxf::save_memory_profile, "file_name"_a, "Save memory profile to a file");
+    m_profiler.def("save_device_memory_profile", &nxf::save_device_memory_profile, "device_name"_a, "file_name"_a, "Save device memory profile to a file");
+    m_profiler.def("save_graph_profile", &nxf::save_graph_profile, "array"_a, "file_name"_a, "Save graph profile to a file");
 }

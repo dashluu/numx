@@ -10,12 +10,17 @@ namespace nx::runtime {
     }
 
     Cache::~Cache() {
+        bool profiler_enabled = m_memory_profiler->is_enabled();
         BufferPool *pool;
+
+        if (profiler_enabled) {
+            std::println("Allocated {}B for buffer pools...", m_memory_profiler->get_pool_memory());
+        }
 
         for (Resource *resource : *m_used_pools) {
             pool = static_cast<BufferPool *>(resource);
 
-            if (m_memory_profiler->is_enabled()) {
+            if (profiler_enabled) {
                 m_memory_profiler->trace_free_pool(pool->get_capacity());
             }
 
@@ -26,7 +31,7 @@ namespace nx::runtime {
             for (Resource *resource : *free_pools) {
                 pool = static_cast<BufferPool *>(resource);
 
-                if (m_memory_profiler->is_enabled()) {
+                if (profiler_enabled) {
                     m_memory_profiler->trace_free_pool(pool->get_capacity());
                 }
 
@@ -34,7 +39,10 @@ namespace nx::runtime {
             }
         }
 
-        std::println("Leaked {}B from buffer pools...", m_memory_profiler->get_pool_memory());
+        if (profiler_enabled) {
+            std::println("Leaked {}B from buffer pools...", m_memory_profiler->get_pool_memory());
+        }
+
         m_free_pools_by_size.clear();
     }
 

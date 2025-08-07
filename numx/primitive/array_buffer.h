@@ -3,42 +3,34 @@
 #include "buffer_block.h"
 
 namespace nx::primitive {
-    enum struct ArrayBufferType {
-        External,
-        Managed,
-        View
-    };
-
     struct ArrayBuffer {
     private:
         BufferBlock *m_block = nullptr;
-        ArrayBufferType m_type;
+        bool m_is_view;
 
     public:
-        ArrayBuffer() = default;
-        ArrayBuffer(BufferBlock *block, ArrayBufferType type) : m_block(block), m_type(type) {}
-        ArrayBuffer(const ArrayBuffer &buffer) : m_block(buffer.m_block), m_type(buffer.m_type) {}
+        ArrayBuffer(BufferBlock *block, bool is_view) : m_block(block), m_is_view(is_view) {}
+        ArrayBuffer(const ArrayBuffer &buffer) : m_is_view(true) { m_block = new BufferBlock(buffer.m_block->get_ptr(), buffer.m_block->get_size()); }
 
         ~ArrayBuffer() {
-            if (m_type == ArrayBufferType::External) {
+            if (m_is_view) {
                 delete m_block;
             }
         }
 
         ArrayBuffer &operator=(const ArrayBuffer &buffer) {
-            if (m_type == ArrayBufferType::External) {
+            if (m_is_view) {
                 delete m_block;
             }
 
-            m_block = buffer.m_block;
-            m_type = buffer.m_type;
+            m_block = new BufferBlock(buffer.m_block->get_ptr(), buffer.m_block->get_size());
+            m_is_view = true;
             return *this;
         }
 
         BufferBlock *get_block() const { return m_block; }
-        ArrayBufferType get_type() const { return m_type; }
+        bool is_view() const { return m_is_view; }
         uint8_t *get_ptr() const { return m_block->get_ptr(); }
         isize get_size() const { return m_block->get_size(); }
-        bool is_valid() const { return m_block && m_block->is_valid(); }
     };
 } // namespace nx::primitive

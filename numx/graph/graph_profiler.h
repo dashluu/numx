@@ -13,9 +13,9 @@ namespace nx::graph {
         GraphProfiler(const GraphProfiler &) = delete;
         ~GraphProfiler() = default;
         GraphProfiler &operator=(const GraphProfiler &) = delete;
-        void print_graph_profile(GraphPtr graph) { stream_graph_profile(graph, std::cout); }
-        void save_graph_profile(GraphPtr graph, const std::string &file_name);
-        void stream_graph_profile(GraphPtr graph, std::ostream &stream);
+        void print_profile(GraphPtr graph) { stream_profile(graph, std::cout); }
+        void save_profile(GraphPtr graph, const std::string &file_name);
+        void stream_profile(GraphPtr graph, std::ostream &stream);
     };
 
     using GraphProfilerPtr = std::shared_ptr<GraphProfiler>;

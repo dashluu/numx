@@ -32,14 +32,14 @@ namespace nx::profiler {
         file.close();
     }
 
-    void save_graph_profile(GraphPtr graph, const std::string &file_name) {
+    void save_graph_profile(const Array &array, const std::string &file_name) {
         std::ofstream file(file_name);
 
         if (!file.is_open()) {
             throw UnableToOpenFileToSaveGraphProfile(file_name);
         }
 
-        stream_graph_profile(graph, file);
+        stream_graph_profile(array, file);
         file.close();
     }
 
@@ -56,22 +56,25 @@ namespace nx::profiler {
 
         for (const auto &[device_name, device_ctx] : backend) {
             memory_profiler = device_ctx->get_runtime_context()->get_memory_profiler();
-            memory_profiler->stream_memory_profile(stream);
 
-            if (i < num_devices - 1) {
-                stream << ",";
+            if (memory_profiler->is_enabled()) {
+                memory_profiler->stream_profile(stream);
+
+                if (i < num_devices - 1) {
+                    stream << ",";
+                }
             }
         }
 
         stream << "]";
     }
 
-    void stream_graph_profile(GraphPtr graph, std::ostream &stream) {
+    void stream_graph_profile(const Array &array, std::ostream &stream) {
         if (!stream) {
             throw InvalidGraphProfileStream();
         }
 
         GraphProfiler graph_profiler;
-        graph_profiler.stream_graph_profile(graph, stream);
+        graph_profiler.stream_profile(array.get_graph(), stream);
     }
 } // namespace nx::profiler

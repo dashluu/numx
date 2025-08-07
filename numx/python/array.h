@@ -7,7 +7,7 @@ namespace nx::bind {
     nb::ndarray<nb::numpy> array_to_numpy_impl(nxc::Array &array) {
         array.eval();
         nb::object pyarr = nb::find(array);
-        std::vector<size_t> view(array.get_shape().cbegin(), array.get_shape().cend());
+        std::vector<size_t> view(array.get_shape().begin(), array.get_shape().end());
 
         return nb::ndarray<nb::numpy>(
             array.get_ptr(),
@@ -25,7 +25,7 @@ namespace nx::bind {
     nb::ndarray<nb::pytorch> array_to_torch_impl(nxc::Array &array) {
         array.eval();
         nb::object pyarr = nb::find(array);
-        std::vector<size_t> view(array.get_shape().cbegin(), array.get_shape().cend());
+        std::vector<size_t> view(array.get_shape().begin(), array.get_shape().end());
         int device;
 
         switch (array.get_device()->get_type()) {

@@ -48,7 +48,7 @@ namespace nx::core {
         size_t count_devices() const { return m_device_ctx_by_name.size(); }
         DeviceContextPtr get_device_context(const std::string &device_name) const;
         static Backend &get_instance();
-        std::unordered_map<std::string, DeviceContextPtr>::const_iterator begin() const { return m_device_ctx_by_name.begin(); }
-        std::unordered_map<std::string, DeviceContextPtr>::const_iterator end() const { return m_device_ctx_by_name.end(); }
+        std::unordered_map<std::string, DeviceContextPtr>::const_iterator begin() const { return m_device_ctx_by_name.cbegin(); }
+        std::unordered_map<std::string, DeviceContextPtr>::const_iterator end() const { return m_device_ctx_by_name.cend(); }
     };
 } // namespace nx::core

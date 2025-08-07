@@ -42,14 +42,17 @@ namespace nx::runtime::metal {
     }
 
     std::pair<isize, isize> MTLRunner::select_reduce_col_kernel_size(isize nrow, isize ncol) {
-        isize best_min, best_max = -1;
+        isize lhs, rhs;
         isize best_row_groups, best_col_groups;
+        isize best_min = -1, best_max = -1;
 
         for (isize i = 1; i <= s_simd_size; i <<= 1) {
             for (isize j = 1; i * j <= s_simd_size; j <<= 1) {
-                auto [min, max] = std::minmax(std::abs(nrow - i), std::abs(ncol - j * s_simd_size));
+                lhs = std::abs(nrow - i);
+                rhs = std::abs(ncol - j * s_simd_size);
+                auto [min, max] = std::minmax(lhs, rhs);
                 // std::println("{} {} {} {}", i, j, min, max);
-                if (best_max == -1 || best_max > max || (best_max == max && best_min > min)) {
+                if (best_max == -1 || best_max > max || (best_max == max && (best_min == -1 || best_min > min))) {
                     best_max = max;
                     best_min = min;
                     best_row_groups = i;

@@ -28,9 +28,9 @@ namespace nx::runtime {
         void trace_free_block(const ArrayData &data);
         void trace_alloc_pool(isize capacity);
         void trace_free_pool(isize capacity);
-        void print_memory_profile() { stream_memory_profile(std::cout); }
-        void save_memory_profile(const std::string &file_name);
-        void stream_memory_profile(std::ostream &stream);
+        bool print_profile() { return stream_profile(std::cout); }
+        bool save_profile(const std::string &file_name);
+        bool stream_profile(std::ostream &stream);
     };
 
     using MemoryProfilerPtr = std::shared_ptr<MemoryProfiler>;

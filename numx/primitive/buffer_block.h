@@ -19,6 +19,5 @@ namespace nx::primitive {
         uint8_t *get_ptr() const { return m_ptr; }
         isize get_size() const { return m_size; }
         BufferPool *get_pool() const { return m_pool; }
-        bool is_valid() const { return m_ptr && m_size > 0 && m_pool; }
     };
 } // namespace nx::primitive

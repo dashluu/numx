@@ -109,7 +109,7 @@ namespace nx::bind {
         } else if (nb_dtype == nb::dtype<bool>()) {
             return &nxp::b8;
         }
-        throw nb::type_error("Nanobind data type cannot be converted to arrayx data type.");
+        throw nb::type_error("Nanobind data type cannot be converted to numx data type.");
     }
 
     const std::string device_from_nb_device(int nb_device_id, int nb_device_type) {

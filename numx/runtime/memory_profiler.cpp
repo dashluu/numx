@@ -25,18 +25,27 @@ namespace nx::runtime {
     void MemoryProfiler::trace_alloc_pool(isize capacity) { m_pool_memory += capacity; }
     void MemoryProfiler::trace_free_pool(isize capacity) { m_pool_memory -= capacity; }
 
-    void MemoryProfiler::save_memory_profile(const std::string &file_name) {
+    bool MemoryProfiler::save_profile(const std::string &file_name) {
+        if (!m_enabled) {
+            return false;
+        }
+
         std::ofstream file(file_name);
 
         if (!file.is_open()) {
             throw UnableToOpenFileToSaveMemoryProfile(file_name);
         }
 
-        stream_memory_profile(file);
+        stream_profile(file);
         file.close();
+        return true;
     }
 
-    void MemoryProfiler::stream_memory_profile(std::ostream &stream) {
+    bool MemoryProfiler::stream_profile(std::ostream &stream) {
+        if (!m_enabled) {
+            return false;
+        }
+
         if (!stream) {
             throw InvalidMemoryProfileStream();
         }
@@ -74,5 +83,6 @@ namespace nx::runtime {
         }
 
         stream << "}}";
+        return true;
     }
 } // namespace nx::runtime

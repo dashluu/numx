@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../nn/functional.h"
+#include "../nn/linear.h"
 #include "../optim/optim.h"
 #include "../profiler/profiler.h"
 #include "../random/random.h"
