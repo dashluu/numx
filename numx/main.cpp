@@ -31,11 +31,15 @@ void run_random() {
 }
 
 void run_linear() {
+    auto x1 = nx::random::normal<float>({3, 10});
+    auto model = nx::nn::Linear(10, 4);
+    auto x2 = model(x1);
+    std::println("{}", x2);
 }
 
 int main() {
     nx::profiler::enable_memory_profile();
-    run_random();
+    run_linear();
     nx::profiler::save_memory_profile("memory_profile.json");
     return 0;
 }

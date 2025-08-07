@@ -8,3 +8,4 @@
 *.ipynb
 **/mnist
 *.dat
+*.json

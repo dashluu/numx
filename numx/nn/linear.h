@@ -15,7 +15,7 @@ namespace nx::nn {
         std::optional<Array> m_bias;
 
     public:
-        Linear(isize in_features, isize out_features, bool bias) {
+        Linear(isize in_features, isize out_features, bool bias = true) {
             m_weight_holder = kaiming_uniform({out_features, in_features});
             m_weight_holder.eval();
             m_weight = m_weight_holder.detach();
