@@ -81,7 +81,7 @@ namespace nx::primitive {
         return std::make_shared<BroadcastOp>(out_data, in_op, in_view, broadcast_dims);
     }
 
-    OpPtr slice(OpPtr in_op, const RangeVec &ranges) {
+    OpPtr slice(OpPtr in_op, const RangeVector &ranges) {
         const ArrayData &in_data = in_op->get_data();
         const ArrayData out_data(in_data.get_shape().slice(ranges), in_data.get_dtype(), in_data.get_device());
         return std::make_shared<SliceOp>(out_data, in_op, ranges);

@@ -141,9 +141,9 @@ namespace nx::runtime::metal {
     void MTLRunner::alloc_buffer(OpPtr op) {
         ArrayData &data = op->get_data();
 
-        if (!data.is_buffer_initialized()) {
+        if (!data.is_buffer_valid()) {
             BufferBlock *block = m_ctx->get_memory()->alloc_block(data.get_nbytes());
-            data.init_primary_buffer(block);
+            data.set_primary_buffer(block);
             MemoryProfilerPtr memory_profiler = m_ctx->get_memory_profiler();
 
             if (memory_profiler->is_enabled()) {
@@ -155,9 +155,9 @@ namespace nx::runtime::metal {
     void MTLRunner::share_buffer(OpPtr l_op, OpPtr r_op) {
         ArrayData &l_data = l_op->get_data();
 
-        if (!l_data.is_buffer_initialized()) {
+        if (!l_data.is_buffer_valid()) {
             BufferBlock *block = r_op->get_data().get_buffer().get_block();
-            l_data.init_view_buffer(block);
+            l_data.set_view_buffer(block);
         }
     }
 } // namespace nx::runtime::metal

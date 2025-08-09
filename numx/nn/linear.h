@@ -9,31 +9,31 @@ namespace nx::nn {
 
     class Linear : public Module {
     private:
-        Array m_weight_holder;
         Array m_weight;
-        Array m_bias_holder;
-        std::optional<Array> m_bias;
+        Array m_bias;
+        Array m_weight_view;
+        std::optional<Array> m_bias_view;
 
     public:
         Linear(isize in_features, isize out_features, bool bias = true) {
-            m_weight_holder = kaiming_uniform({out_features, in_features});
-            m_weight_holder.eval();
-            m_weight = m_weight_holder.detach();
-            m_parameters.push_back(m_weight);
+            m_weight = kaiming_uniform({out_features, in_features});
+            m_weight.eval();
+            m_weight_view = m_weight;
+            m_parameters.push_back(&m_weight_view);
 
             if (bias) {
-                auto [fan_in, fan_out] = compute_fan_in_and_fan_out(m_weight);
+                auto [fan_in, fan_out] = compute_fan_in_and_fan_out(m_weight_view);
                 float bound = 1.0f / std::sqrt(fan_in);
-                m_bias_holder = uniform({out_features}, -bound, bound);
-                m_bias_holder.eval();
-                this->m_bias = m_bias_holder.detach();
-                m_parameters.push_back(this->m_bias.value());
+                m_bias = uniform({out_features}, -bound, bound);
+                m_bias.eval();
+                m_bias_view = m_bias;
+                m_parameters.push_back(&m_bias_view.value());
             }
         }
 
         ~Linear() = default;
-        Array get_weight() { return m_weight; }
-        std::optional<Array> get_bias() { return m_bias; }
-        Array forward(const Array &x) override { return m_bias.has_value() ? linear_with_bias(x, m_weight, m_bias.value()) : linear(x, m_weight); }
+        Array get_weight() { return m_weight_view; }
+        std::optional<Array> get_bias() { return m_bias_view; }
+        Array forward(const Array &x) override { return m_bias_view.has_value() ? linear_with_bias(x, m_weight_view, m_bias_view.value()) : linear(x, m_weight_view); }
     };
 } // namespace nx::nn

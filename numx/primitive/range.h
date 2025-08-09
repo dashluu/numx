@@ -25,7 +25,7 @@ namespace nx::primitive {
         friend std::ostream &operator<<(std::ostream &os, const Range &range) { return os << range.str(); }
     };
 
-    using RangeVec = std::vector<Range>;
+    using RangeVector = std::vector<Range>;
 } // namespace nx::primitive
 
 namespace std {

@@ -5,20 +5,20 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_definitions(-DPROJECT_ROOT="${CMAKE_SOURCE_DIR}/..")
 
-# Set up nanobind
-set(DEV_MODULE Development.Module)
-find_package(Python 3.12 COMPONENTS Interpreter ${DEV_MODULE} REQUIRED)
+# # Set up nanobind
+# set(DEV_MODULE Development.Module)
+# find_package(Python 3.12 COMPONENTS Interpreter ${DEV_MODULE} REQUIRED)
 
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-endif()
+# if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+#     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+#     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+# endif()
 
-# Detect the installed nanobind package and import it into CMake
-execute_process(
-    COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
-    OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
-find_package(nanobind CONFIG REQUIRED)
+# # Detect the installed nanobind package and import it into CMake
+# execute_process(
+#     COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+#     OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
+# find_package(nanobind CONFIG REQUIRED)
 
 file(GLOB LIB_HEADER CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/primitive/*.h"
@@ -30,7 +30,7 @@ file(GLOB LIB_HEADER CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/profiler/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/optim/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/python/*.h"
+    # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.h"
 )
 
 file(GLOB LIB_SRC CONFIGURE_DEPENDS
@@ -43,7 +43,7 @@ file(GLOB LIB_SRC CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/profiler/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/nn/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/optim/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp"
+    # "${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp"
 )
 
 if(APPLE)
@@ -57,9 +57,9 @@ if(APPLE)
         "${CMAKE_CURRENT_SOURCE_DIR}/memory/metal/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/*.cpp"
     )
-    # set(CMAKE_BUILD_TYPE Debug)
-    # add_executable(${PROJECT_NAME} main.cpp ${LIB_SRC} ${LIB_HEADER} ${MTL_SRC} ${MTL_HEADER})
-    nanobind_add_module(${PROJECT_NAME} ${LIB_SRC} ${LIB_HEADER} ${MTL_SRC} ${MTL_HEADER})
+    set(CMAKE_BUILD_TYPE Debug)
+    add_executable(${PROJECT_NAME} main.cpp ${LIB_SRC} ${LIB_HEADER} ${MTL_SRC} ${MTL_HEADER})
+    # nanobind_add_module(${PROJECT_NAME} ${LIB_SRC} ${LIB_HEADER} ${MTL_SRC} ${MTL_HEADER})
     set(MTL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/runtime/metal/metal-cpp")
     target_include_directories(${PROJECT_NAME} PRIVATE ${MTL_CPP})
     target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -71,44 +71,44 @@ if(APPLE)
     add_dependencies(${PROJECT_NAME} mtl_kernels)
 endif()
 
-function(add_stub STUB_NAME MODULE_NAME MODULE_DIR)
-    nanobind_add_stub(
-        ${STUB_NAME}
-        MODULE numx.${MODULE_NAME}
-        OUTPUT ${MODULE_DIR}/__init__.pyi
-        PYTHON_PATH $<TARGET_FILE_DIR:numx>
-        DEPENDS numx
-    )
-endfunction()
+# function(add_stub STUB_NAME MODULE_NAME MODULE_DIR)
+#     nanobind_add_stub(
+#         ${STUB_NAME}
+#         MODULE numx.${MODULE_NAME}
+#         OUTPUT ${MODULE_DIR}/__init__.pyi
+#         PYTHON_PATH $<TARGET_FILE_DIR:numx>
+#         DEPENDS numx
+#     )
+# endfunction()
 
-# Add stub files
-add_stub(core_stub core core)
-add_stub(profiler_stub profiler profiler)
-add_stub(nn_stub nn nn)
-add_stub(optim_stub optim optim)
+# # Add stub files
+# add_stub(core_stub core core)
+# add_stub(profiler_stub profiler profiler)
+# add_stub(nn_stub nn nn)
+# add_stub(optim_stub optim optim)
 
-# Define output directory for Python module and move files after build
-set(PYTHON_MODULE_DIR "${CMAKE_SOURCE_DIR}/../python")
-message(STATUS "PYTHON_MODULE_DIR is set to: ${PYTHON_MODULE_DIR}")
-get_filename_component(PYTHON_MODULE_DIR_ABS "${PYTHON_MODULE_DIR}" ABSOLUTE)
-message(STATUS "Absolute path: ${PYTHON_MODULE_DIR_ABS}")
+# # Define output directory for Python module and move files after build
+# set(PYTHON_MODULE_DIR "${CMAKE_SOURCE_DIR}/../python")
+# message(STATUS "PYTHON_MODULE_DIR is set to: ${PYTHON_MODULE_DIR}")
+# get_filename_component(PYTHON_MODULE_DIR_ABS "${PYTHON_MODULE_DIR}" ABSOLUTE)
+# message(STATUS "Absolute path: ${PYTHON_MODULE_DIR_ABS}")
 
-# Add custom command to move Nanobind extension after build
-add_custom_target(move_extension ALL
-    COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${PYTHON_MODULE_DIR}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-    DEPENDS core_stub profiler_stub nn_stub optim_stub
-    COMMENT "Moving Python module and stub files"
-)
+# # Add custom command to move Nanobind extension after build
+# add_custom_target(move_extension ALL
+#     COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${PYTHON_MODULE_DIR}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
+#     DEPENDS core_stub profiler_stub nn_stub optim_stub
+#     COMMENT "Moving Python module and stub files"
+# )
 
-function(move_module SRC DEST)
-    add_custom_command(TARGET move_extension POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "${PYTHON_MODULE_DIR}/${PROJECT_NAME}/${DEST}"
-        COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_CURRENT_BINARY_DIR}/${SRC}" "${PYTHON_MODULE_DIR}/${PROJECT_NAME}/${DEST}"
-    )
-endfunction()
+# function(move_module SRC DEST)
+#     add_custom_command(TARGET move_extension POST_BUILD
+#         COMMAND ${CMAKE_COMMAND} -E rm -rf "${PYTHON_MODULE_DIR}/${PROJECT_NAME}/${DEST}"
+#         COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_CURRENT_BINARY_DIR}/${SRC}" "${PYTHON_MODULE_DIR}/${PROJECT_NAME}/${DEST}"
+#     )
+# endfunction()
 
-# Move modules
-move_module(core core)
-move_module(profiler profiler)
-move_module(nn nn)
-move_module(optim optim)
+# # Move modules
+# move_module(core core)
+# move_module(profiler profiler)
+# move_module(nn nn)
+# move_module(optim optim)

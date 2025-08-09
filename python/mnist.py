@@ -15,6 +15,9 @@ class MnistModel(nn.Module):
         super().__init__()
         self.linear1 = nn.Linear(784, 128)
         self.linear2 = nn.Linear(128, 10)
+        params = self.wparameters()
+        params.append(self.linear1.parameters())
+        params.append(self.linear2.parameters())
 
     def forward(self, x: Array) -> Array:
         x = self.linear1(x)
@@ -32,9 +35,9 @@ def load_mnist() -> tuple[DataLoader, DataLoader, DataLoader]:
             transforms.Lambda(lambda x: x.view(-1)),
         ]
     )
-    train_valid_dataset = datasets.MNIST("../mnist_ds/train", train=True, transform=transform, download=True)
+    train_valid_dataset = datasets.MNIST("./mnist/train", train=True, transform=transform, download=True)
     train_dataset, valid_dataset = random_split(train_valid_dataset, lengths=(0.8, 0.2))
-    test_dataset = datasets.MNIST("../mnist_ds/test", train=False, transform=transform, download=True)
+    test_dataset = datasets.MNIST("./mnist/test", train=False, transform=transform, download=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)

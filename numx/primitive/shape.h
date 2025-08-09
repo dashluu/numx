@@ -13,7 +13,7 @@ namespace nx::primitive {
         ShapeView m_view;
         ShapeStride m_stride;
 
-        void if_ranges_are_valid(const RangeVec &ranges) const {
+        void if_ranges_are_valid(const RangeVector &ranges) const {
             if (ranges.size() != get_ndim()) {
                 throw std::invalid_argument(std::format("The number of ranges does not match the number of dimensions: {} and {}.", ranges.size(), get_ndim()));
             }
@@ -331,7 +331,7 @@ namespace nx::primitive {
             return permute(undo_permute_view(dims));
         }
 
-        Shape slice(const RangeVec &ranges) const {
+        Shape slice(const RangeVector &ranges) const {
             if_ranges_are_valid(ranges);
             isize offset = m_offset;
 

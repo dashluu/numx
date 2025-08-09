@@ -19,7 +19,7 @@ namespace nx::primitive {
     OpPtr arange(const ShapeView &view, isize start, isize step, DtypePtr dtype, DevicePtr device);
     OpPtr broadcast(OpPtr in_op, const ShapeView &view);
     OpPtr broadcast_to(OpPtr in_op, const ShapeView &view);
-    OpPtr slice(OpPtr in_op, const RangeVec &ranges);
+    OpPtr slice(OpPtr in_op, const RangeVector &ranges);
     OpPtr astype(OpPtr in_op, DtypePtr dtype);
     OpPtr unsqueeze(OpPtr in_op, const ShapeDims &dims);
     OpPtr squeeze(OpPtr in_op, const ShapeDims &dims);

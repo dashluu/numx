@@ -23,6 +23,7 @@ namespace nx::primitive {
                 delete m_block;
             }
 
+            // Note: assigning another buffer to a primary buffer, or owning buffer, causes a memory leak
             m_block = new BufferBlock(buffer.m_block->get_ptr(), buffer.m_block->get_size());
             m_is_view = true;
             return *this;

@@ -19,7 +19,7 @@ namespace nx::primitive {
     OpPtr Op::detach_this() const { return detach(nonconst_from_this()); }
     void Op::iadd_grad(OpPtr grad) { m_partial_grad = iadd(m_partial_grad, grad); }
     void Op::isub_grad(OpPtr grad) { m_partial_grad = isub(m_partial_grad, grad); }
-    void Op::slice_grad(OpPtr grad, const RangeVec &ranges) { m_partial_grad = slice(grad, ranges); }
+    void Op::slice_grad(OpPtr grad, const RangeVector &ranges) { m_partial_grad = slice(grad, ranges); }
 
     void AddOp::grad_fn() const {
         // In-place or not, gradient should be computed properly

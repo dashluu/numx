@@ -5,6 +5,9 @@ class Module:
     def __init__(self) -> None:
         """Base module"""
 
+    def wparameters(self) -> list[numx.core.Array]:
+        """Access module parameters"""
+
     def forward(self, x: numx.core.Array) -> numx.core.Array:
         """Forward module"""
 

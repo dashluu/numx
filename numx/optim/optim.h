@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/array.h"
+#include "../core/functional.h"
 
 namespace nx::optim {
     using namespace nx::core;
@@ -8,8 +8,8 @@ namespace nx::optim {
     class Optimizer {
     protected:
         float lr;
-        ArrayVec params;
-        ArrayVec grads;
+        ArrayVector params;
+        ArrayVector grads;
 
     public:
         Optimizer(float lr) : lr(lr) {}
@@ -18,23 +18,23 @@ namespace nx::optim {
         Optimizer &operator=(const Optimizer &) = delete;
         virtual void forward() = 0;
 
-        void update(const ArrayVec &arrays) {
+        void update(const ParameterVector &arrays) {
             params.clear();
             grads.clear();
             params.reserve(arrays.size());
             grads.reserve(arrays.size());
 
             // Initialize gradients and parameters if not already initialized
-            for (const auto &array : arrays) {
-                const auto &grad = array.get_grad();
+            for (auto &array : arrays) {
+                auto grad = array->get_grad();
 
                 // Check if gradient exists
                 if (!grad) {
-                    throw std::invalid_argument(std::format("Array {} has no gradient for optimizer.", array.get_id().str()));
+                    throw std::invalid_argument(std::format("Array {} has no gradient for optimizer.", array->get_id().str()));
                 }
 
                 // Store detached gradient and parameters
-                params.push_back(array.detach());
+                params.push_back(array->detach());
                 grads.push_back(grad.value().detach());
             }
 

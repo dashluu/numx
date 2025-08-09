@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/array.h"
+#include "../core/functional.h"
 
 namespace nx::nn {
     using namespace nx::core;

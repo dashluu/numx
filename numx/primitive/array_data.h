@@ -17,7 +17,6 @@ namespace nx::primitive {
         DtypePtr m_dtype;
         DevicePtr m_device;
         std::optional<ArrayBuffer> m_buffer;
-        bool m_buffer_initialized = false;
 
     public:
         ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {}
@@ -25,7 +24,6 @@ namespace nx::primitive {
         ArrayData(uint8_t *ptr, isize size, const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {
             BufferBlock *block = new BufferBlock(ptr, size);
             m_buffer.emplace(block, true);
-            m_buffer_initialized = true;
         }
 
         ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
@@ -53,30 +51,14 @@ namespace nx::primitive {
         isize get_ndim() const { return m_shape.get_ndim(); }
         isize get_itemsize() const { return m_dtype->get_size(); }
         isize get_nbytes() const { return get_numel() * get_itemsize(); }
+        void set_primary_buffer(BufferBlock *block) { m_buffer.emplace(block, false); }
 
-        bool init_primary_buffer(BufferBlock *block) {
-            if (m_buffer_initialized) {
-                return false;
-            }
-
-            m_buffer.emplace(block, false);
-            m_buffer_initialized = true;
-            return true;
-        }
-
-        bool init_view_buffer(BufferBlock *block) {
-            if (m_buffer_initialized) {
-                return false;
-            }
-
-            BufferBlock *new_block = new BufferBlock(block->get_ptr(), block->get_size());
-            m_buffer.emplace(new_block, true);
-            m_buffer_initialized = true;
-            return true;
+        void set_view_buffer(BufferBlock *block) {
+            BufferBlock *view_block = new BufferBlock(block->get_ptr(), block->get_size());
+            m_buffer.emplace(view_block, true);
         }
 
         const ArrayBuffer &get_buffer() const { return m_buffer.value(); }
-        bool is_buffer_initialized() const { return m_buffer_initialized; }
         bool is_buffer_valid() const { return m_buffer.has_value(); }
         void invalidate_buffer() { m_buffer.reset(); }
         bool is_contiguous() const { return m_shape.is_contiguous(); }

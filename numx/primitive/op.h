@@ -100,7 +100,7 @@ namespace nx::primitive {
         void one_grad();
         void iadd_grad(OpPtr grad);
         void isub_grad(OpPtr grad);
-        void slice_grad(OpPtr grad, const RangeVec &ranges);
+        void slice_grad(OpPtr grad, const RangeVector &ranges);
         virtual void grad_fn() const {}
         virtual const std::string str() const { return std::format("{}: {}, view: ({}), dtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }
         virtual const std::string dump() const { return std::format("{}: {}\\nView: ({})\\nDtype: {}", m_data.get_id(), get_opname(), join_nums(m_data.get_view()), m_data.get_dtype()->str()); }

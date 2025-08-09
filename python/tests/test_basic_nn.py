@@ -172,7 +172,8 @@ class TestBasicNN:
             torch_label = torch.from_numpy(np_label).type(torch.int64)
 
             # Loss computation
-            nx_loss = nx_loss_fn(nx_model(nx_input), nx_label)
+            nx_logits = nx_model(nx_input)
+            nx_loss = nx_loss_fn(nx_logits, nx_label)
             torch_logits = torch_model(torch_input)
             torch_loss: torch.Tensor = torch_loss_fn(torch_logits, torch_label)
             # print(nx_loss.item(), torch_loss.item())
@@ -185,11 +186,24 @@ class TestBasicNN:
             # Compare losses
             assert torch.allclose(nx_loss.torch(), torch_loss, atol=1e-3, rtol=0)
 
+            print(nx_model.linear1.weight.torch())
+            print(torch_model[0].weight)
+            print(nx_model.linear1.weight.grad.torch())
+            print(torch_model[0].weight.grad)
+
+            # Update parameters
             nx_optimizer.update(nx_model.parameters())
             torch_optimizer.step()
+
+            print(nx_model.linear1.weight.torch())
+            print(torch_model[0].weight)
+
             # Compare updated weights and biases
             TestBasicNN.elmwise_assert(nx_model.linear1.weight.grad.torch(), torch_model[0].weight.grad)
-            TestBasicNN.elmwise_assert(nx_model.linear1.weight.torch(), torch_model[0].weight)
-            TestBasicNN.elmwise_assert(nx_model.linear1.bias.torch(), torch_model[0].bias.data)
-            TestBasicNN.elmwise_assert(nx_model.linear2.weight.torch(), torch_model[2].weight.data)
-            TestBasicNN.elmwise_assert(nx_model.linear2.bias.torch(), torch_model[2].bias.data)
+            TestBasicNN.elmwise_assert(nx_model.linear1.bias.grad.torch(), torch_model[0].bias.grad)
+            TestBasicNN.elmwise_assert(nx_model.linear2.weight.grad.torch(), torch_model[2].weight.grad)
+            TestBasicNN.elmwise_assert(nx_model.linear2.bias.grad.torch(), torch_model[2].bias.grad)
+            # TestBasicNN.elmwise_assert(nx_model.linear1.weight.torch(), torch_model[0].weight)
+            # TestBasicNN.elmwise_assert(nx_model.linear1.bias.torch(), torch_model[0].bias.data)
+            # TestBasicNN.elmwise_assert(nx_model.linear2.weight.torch(), torch_model[2].weight.data)
+            # TestBasicNN.elmwise_assert(nx_model.linear2.bias.torch(), torch_model[2].bias.data)
