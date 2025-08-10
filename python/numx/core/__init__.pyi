@@ -24,6 +24,18 @@ class Dtype:
     def category(self) -> DtypeCategory:
         """Get data type's category"""
 
+    @property
+    def is_float(self) -> bool:
+        """Check if data type is float"""
+
+    @property
+    def is_int(self) -> bool:
+        """Check if data type is integer"""
+
+    @property
+    def is_bool(self) -> bool:
+        """Check if data type is boolean"""
+
     def __str__(self) -> str:
         """String representation of dtype"""
 

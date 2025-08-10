@@ -1,12 +1,12 @@
 #include "array.h"
 #include "module.h"
 #include "optim.h"
+#include "random.h"
 
 NB_MODULE(numx, m) {
     auto m_core = m.def_submodule("core", "Core module");
+    auto m_random = m.def_submodule("random", "Random module");
     auto m_profiler = m.def_submodule("profiler", "Profiler module");
-    auto m_nn = m.def_submodule("nn", "Neural network module");
-    auto m_optim = m.def_submodule("optim", "Optimizer module");
 
     // Dtype class and operations
     nb::enum_<nxp::DtypeCategory>(m_core, "DtypeCategory")
@@ -18,6 +18,9 @@ NB_MODULE(numx, m) {
         .def_prop_ro("name", &nxp::Dtype::get_name_str, "Get data type's name as string")
         .def_prop_ro("size", &nxp::Dtype::get_size, "Get data type's size in bytes")
         .def_prop_ro("category", &nxp::Dtype::get_category, "Get data type's category")
+        .def_prop_ro("is_float", &nxp::Dtype::is_float, "Check if data type is float")
+        .def_prop_ro("is_int", &nxp::Dtype::is_int, "Check if data type is integer")
+        .def_prop_ro("is_bool", &nxp::Dtype::is_bool, "Check if data type is boolean")
         .def("__str__", &nxp::Dtype::str, "String representation of dtype");
 
     // Derived dtype classes
@@ -145,34 +148,11 @@ NB_MODULE(numx, m) {
         .def("arange", &nxc::arange, "view"_a, "start"_a, "step"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with evenly spaced values")
         .def("zeros_like", &nxc::zeros_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of zeros with same shape as input")
         .def("ones_like", &nxc::ones_like, "array"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array of ones with same shape as input")
-        .def("uniform", &nxb::uniform, "view"_a, "low"_a = 0.0, "high"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a uniform distribution")
-        .def("normal", &nxb::normal, "view"_a, "mean"_a = 0.0, "std"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a normal distribution")
         .def("from_numpy", &nxb::array_from_numpy, "array"_a, "Convert numpy array to array");
 
-    nb::class_<nxo::Optimizer, nxb::PyOptimizer>(m_optim, "Optimizer")
-        .def(nb::init<float>(), "lr"_a = 1e-3, "Base optimizer")
-        .def("forward", &nxo::Optimizer::forward, "Parameter update function")
-        .def("update", &nxo::Optimizer::update, "arrays"_a, "Update module parameters");
-
-    nb::class_<nxo::GradientDescent, nxo::Optimizer>(m_optim, "GradientDescent")
-        .def(nb::init<float>(), "lr"_a = 1e-3, "Gradient Descent optimizer");
-
-    nb::class_<nxn::Module, nxb::PyModule>(m_nn, "Module")
-        .def(nb::init<>(), "Base module")
-        .def("forward", &nxn::Module::forward, "x"_a, "Forward module")
-        .def("__call__", &nxn::Module::operator(), "x"_a, "Forward module")
-        .def("parameters", &nxn::Module::get_parameters, "Get module parameters");
-
-    nb::class_<nxn::Linear, nxn::Module>(m_nn, "Linear")
-        .def(nb::init<nxp::isize, nxp::isize, bool>(), "in_features"_a, "out_features"_a, "bias"_a = true, "Linear layer")
-        .def_prop_ro("weight", &nxn::Linear::get_weight, "Get linear layer's weight")
-        .def_prop_ro("bias", &nxn::Linear::get_bias, "Get linear layer's bias");
-
-    m_nn.def("linear", &nxn::linear, "x"_a, "weight"_a, "Functional linear without bias");
-    m_nn.def("linear_with_bias", &nxn::linear_with_bias, "x"_a, "weight"_a, "bias"_a, "Functional linear with bias");
-    m_nn.def("relu", &nxn::relu, "x"_a, "ReLU activation function");
-    m_nn.def("onehot", &nxn::onehot, "x"_a, "num_classes"_a = -1, "One-hot encode input array");
-    m_nn.def("cross_entropy_loss", &nxn::cross_entropy_loss, "x"_a, "y"_a, "Compute cross-entropy loss between input x and target y");
+    m_random.def("uniform", &nxb::uniform, "view"_a, "low"_a = 0.0, "high"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a uniform distribution")
+        .def("normal", &nxb::normal, "view"_a, "mean"_a = 0.0, "std"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a normal distribution")
+        .def("kaiming_uniform", &nxr::kaiming_uniform, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a Kaiming uniform distribution");
 
     m_profiler.def("enable_memory_profile", &nxf::enable_memory_profile, "Enable memory profiling");
     m_profiler.def("enable_device_memory_profile", &nxf::enable_device_memory_profile, "device_name"_a, "Enable device memory profiling");

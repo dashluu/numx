@@ -27,8 +27,8 @@ namespace nx::nn {
             num_classes = x.max().item() + 1;
         }
 
-        Array arange = nx::core::arange({num_classes}, 0, 1, &i32);
-        return (x.unsqueeze() == arange).astype(&i32);
+        Array cls = nx::core::arange({num_classes}, 0, 1, &i32);
+        return (x.unsqueeze() == cls).astype(&i32);
     }
 
     inline Array cross_entropy_loss(const Array &x, const Array &y) {

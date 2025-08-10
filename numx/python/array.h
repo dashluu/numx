@@ -98,8 +98,6 @@ namespace nx::bind {
     nb::object item(nxc::Array &array);
     nxc::Array full(const nxp::ShapeView &view, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
     nxc::Array full_like(const nxc::Array &array, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
-    nxc::Array uniform(const nxp::ShapeView &view, const nb::object &low, const nb::object &high, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
-    nxc::Array normal(const nxp::ShapeView &view, const nb::object &mean, const nb::object &std, nxp::DtypePtr dtype, const std::string &device_name = nxp::default_device_name);
     nxc::Array neg(const nxc::Array &array);
     nxc::Array add(const nxc::Array &array, const nb::object &rhs);
     nxc::Array iadd(nxc::Array &array, const nb::object &rhs);

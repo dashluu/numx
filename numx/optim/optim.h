@@ -7,22 +7,22 @@ namespace nx::optim {
 
     class Optimizer {
     protected:
-        float lr;
-        ArrayVector params;
-        ArrayVector grads;
+        float m_learning_rate;
+        ArrayVector m_parameters;
+        ArrayVector m_grads;
 
     public:
-        Optimizer(float lr) : lr(lr) {}
-        virtual ~Optimizer() = default;
+        Optimizer(float learning_rate) : m_learning_rate(learning_rate) {}
         Optimizer(const Optimizer &) = delete;
+        virtual ~Optimizer() = default;
         Optimizer &operator=(const Optimizer &) = delete;
         virtual void forward() = 0;
 
         void update(const ParameterVector &arrays) {
-            params.clear();
-            grads.clear();
-            params.reserve(arrays.size());
-            grads.reserve(arrays.size());
+            m_parameters.clear();
+            m_grads.clear();
+            m_parameters.reserve(arrays.size());
+            m_grads.reserve(arrays.size());
 
             // Initialize gradients and parameters if not already initialized
             for (auto &array : arrays) {
@@ -34,26 +34,26 @@ namespace nx::optim {
                 }
 
                 // Store detached gradient and parameters
-                params.push_back(array->detach());
-                grads.push_back(grad.value().detach());
+                m_parameters.push_back(array->detach());
+                m_grads.push_back(grad.value().detach());
             }
 
             forward();
 
             // Evaluate all parameters
-            for (Array &param : params) {
-                param.eval();
+            for (Array &parameter : m_parameters) {
+                parameter.eval();
             }
         }
     };
 
     class GradientDescent : public Optimizer {
     public:
-        GradientDescent(float lr = 1e-3) : Optimizer(lr) {}
+        GradientDescent(float learning_rate = 1e-3) : Optimizer(learning_rate) {}
 
         void forward() override {
-            for (size_t i = 0; i < params.size(); i++) {
-                params[i] -= lr * grads[i];
+            for (size_t i = 0; i < m_parameters.size(); i++) {
+                m_parameters[i] -= m_learning_rate * m_grads[i];
             }
         }
     };
