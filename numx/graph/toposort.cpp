@@ -127,6 +127,7 @@ namespace nx::graph {
             }
 
             // Initialize gradient structure without allocating buffer memory
+            // This traverses forward tape in reverse direction
             for (auto &op : std::views::reverse(m_fw_tape)) {
                 if (op->is_grad_enabled()) {
                     op->grad_fn();
@@ -140,6 +141,14 @@ namespace nx::graph {
                     bw_toposort(op->get_partial_grad());
                 }
             }
+        }
+    }
+
+    void Graph::clear_grad() {
+        // Since gradient is initialized in reverse direction,
+        // it is reasonable to clear gradient in the same order
+        for (auto &op : std::views::reverse(m_fw_tape)) {
+            op->clear_grad();
         }
     }
 } // namespace nx::graph

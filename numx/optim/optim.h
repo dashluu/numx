@@ -1,14 +1,16 @@
 #pragma once
 
 #include "../core/functional.h"
+#include "../nn/parameter.h"
 
 namespace nx::optim {
     using namespace nx::core;
+    using namespace nx::nn;
 
     class Optimizer {
     protected:
         float m_learning_rate;
-        ArrayVector m_parameters;
+        ArrayVector m_params;
         ArrayVector m_grads;
 
     public:
@@ -18,31 +20,31 @@ namespace nx::optim {
         Optimizer &operator=(const Optimizer &) = delete;
         virtual void forward() = 0;
 
-        void update(const ParameterVector &arrays) {
-            m_parameters.clear();
+        void update(const ParameterPtrVector &params) {
+            m_params.clear();
             m_grads.clear();
-            m_parameters.reserve(arrays.size());
-            m_grads.reserve(arrays.size());
+            m_params.reserve(params.size());
+            m_grads.reserve(params.size());
 
             // Initialize gradients and parameters if not already initialized
-            for (auto &array : arrays) {
-                auto grad = array->get_grad();
+            for (auto &param : params) {
+                auto grad = param->get_grad();
 
                 // Check if gradient exists
                 if (!grad) {
-                    throw std::invalid_argument(std::format("Array {} has no gradient for optimizer.", array->get_id().str()));
+                    throw std::invalid_argument(std::format("Array {} has no gradient for optimizer.", param->get_id().str()));
                 }
 
                 // Store detached gradient and parameters
-                m_parameters.push_back(array->detach());
+                m_params.push_back(param->detach());
                 m_grads.push_back(grad.value().detach());
             }
 
             forward();
 
             // Evaluate all parameters
-            for (Array &parameter : m_parameters) {
-                parameter.eval();
+            for (Array &param : m_params) {
+                param.eval();
             }
         }
     };
@@ -52,8 +54,8 @@ namespace nx::optim {
         GradientDescent(float learning_rate = 1e-3) : Optimizer(learning_rate) {}
 
         void forward() override {
-            for (size_t i = 0; i < m_parameters.size(); i++) {
-                m_parameters[i] -= m_learning_rate * m_grads[i];
+            for (size_t i = 0; i < m_params.size(); i++) {
+                m_params[i] -= m_learning_rate * m_grads[i];
             }
         }
     };

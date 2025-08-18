@@ -14,9 +14,9 @@ public:
         m_linear2 = std::make_unique<Linear>(128, 10);
         const auto &params1 = m_linear1->get_parameters();
         const auto &params2 = m_linear2->get_parameters();
-        m_parameters.reserve(params1.size() + params2.size());
-        m_parameters.insert(m_parameters.end(), params1.begin(), params1.end());
-        m_parameters.insert(m_parameters.end(), params2.begin(), params2.end());
+        m_params.reserve(params1.size() + params2.size());
+        m_params.insert(m_params.end(), params1.begin(), params1.end());
+        m_params.insert(m_params.end(), params2.begin(), params2.end());
     }
 
     MnistModel(const MnistModel &) = delete;

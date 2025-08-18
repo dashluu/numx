@@ -30,6 +30,7 @@ namespace nx::graph {
         size_t count_bw_edges() const { return m_num_bw_edges; }
         void forward();
         void backward();
+        void clear_grad();
         const std::string str() const;
         friend std::ostream &operator<<(std::ostream &os, const Graph &graph) { return os << graph.str(); }
         std::vector<OpPtr>::const_iterator fw_begin() const { return m_fw_tape.cbegin(); }

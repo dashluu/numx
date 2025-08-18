@@ -8,6 +8,7 @@ namespace nx::runtime::metal {
         MTLContextPtr m_ctx;
         MTL::CommandBuffer *m_cmd_buffer;
         MTL::ComputeCommandEncoder *m_encoder;
+        std::vector<MTL::Buffer *> m_buffers;
         isize m_buffer_index = 0;
 
     public:
@@ -18,12 +19,19 @@ namespace nx::runtime::metal {
         }
 
         MTLEncoder(const MTLEncoder &) = delete;
-        ~MTLEncoder() = default;
+
+        ~MTLEncoder() {
+            for (MTL::Buffer *buffer : m_buffers) {
+                buffer->release();
+            }
+        }
+
         MTLEncoder &operator=(const MTLEncoder &) = delete;
         MTL::ComputeCommandEncoder *get_internal_encoder() const { return m_encoder; }
 
         void encode_mtl_buffer(const void *buff, isize size) {
             MTL::Buffer *mtl_buffer = m_ctx->get_device()->newBuffer(buff, size, MTL::ResourceStorageModeShared, nullptr);
+            m_buffers.push_back(mtl_buffer);
             m_encoder->setBuffer(mtl_buffer, 0, m_buffer_index++);
         }
 

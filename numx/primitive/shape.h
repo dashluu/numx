@@ -143,17 +143,27 @@ namespace nx::primitive {
             return contiguous_stride;
         }
 
-        std::vector<isize> get_elms_per_dim() const {
+        std::vector<isize> get_size_per_dim() const {
             isize ndim = get_ndim();
-            std::vector<isize> elms_per_dim(ndim, 0);
+            std::vector<isize> size_per_dim(ndim, 0);
             isize n = 1;
 
             for (isize i = ndim - 1; i >= 0; i--) {
                 n *= m_view[i];
-                elms_per_dim[i] = n;
+                size_per_dim[i] = n;
             }
 
-            return elms_per_dim;
+            return size_per_dim;
+        }
+
+        isize get_size(isize dim) const {
+            isize ndim = get_ndim();
+
+            if (dim < 0 || dim >= ndim) {
+                throw std::invalid_argument(std::format("Dimension {} is out of range [0, {}).", dim, ndim));
+            }
+
+            return m_view[dim];
         }
 
         isize get_ndim() const { return m_view.size(); }

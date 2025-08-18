@@ -40,19 +40,23 @@ void run_linear() {
 
 void run_optimizer() {
     auto x1 = nx::core::full({2, 3, 4}, 5);
+    x1.eval();
     auto x2 = nx::core::full({1, 3, 4}, 0.2);
-    auto x3 = x1 + x2;
-    auto x4 = x3.sum();
-    x4.backward();
-    auto x1_grad = x1.get_grad().value();
-    auto x2_grad = x2.get_grad().value();
+    x2.eval();
+    ParameterPtr x3 = std::make_shared<Parameter>(x1);
+    ParameterPtr x4 = std::make_shared<Parameter>(x2);
+    auto x5 = *x3 + *x4;
+    auto x6 = x5.sum();
+    x6.backward();
+    auto x3_grad = x3->get_grad().value();
+    auto x4_grad = x4->get_grad().value();
     std::println("{}\n", x1);
     std::println("{}\n", x2);
-    std::println("{}\n", x4);
-    std::println("{}\n", x1_grad);
-    std::println("{}\n", x2_grad);
+    std::println("{}\n", x6);
+    std::println("{}\n", x3_grad);
+    std::println("{}\n", x4_grad);
     nx::optim::GradientDescent optimizer(1);
-    optimizer.update({&x1, &x2});
+    optimizer.update({x3, x4});
     std::println("{}\n", x1);
     std::println("{}\n", x2);
 }
@@ -73,8 +77,8 @@ void run_multipass_with_optimizer() {
 }
 
 int main() {
-    nx::profiler::enable_memory_profile();
+    // nx::profiler::enable_memory_profile();
     run_multipass_with_optimizer();
-    nx::profiler::save_memory_profile("memory_profile.json");
+    // nx::profiler::save_memory_profile("memory_profile.json");
     return 0;
 }

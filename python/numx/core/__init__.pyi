@@ -152,6 +152,18 @@ class Array:
     def nbytes(self) -> int:
         """Get array's total size in bytes"""
 
+    def size(self, dim: int) -> int:
+        """Get array's number of elements in certain dimension"""
+
+    def __len__(self) -> int:
+        """
+        Get array's length, that is, the number of elements in the first dimension
+        """
+
+    @property
+    def is_parameter(self) -> bool:
+        """Check if array is a parameter"""
+
     @property
     def is_contiguous(self) -> bool:
         """Check if array is contiguous"""
@@ -343,12 +355,6 @@ def zeros_like(array: Array, dtype: Dtype = ..., device: str = 'mps:0') -> Array
 
 def ones_like(array: Array, dtype: Dtype = ..., device: str = 'mps:0') -> Array:
     """Create a new array of ones with same shape as input"""
-
-def uniform(view: Sequence[int], low: object = 0.0, high: object = 1.0, dtype: Dtype = ..., device: str = 'mps:0') -> Array:
-    """Create a new array with random values from a uniform distribution"""
-
-def normal(view: Sequence[int], mean: object = 0.0, std: object = 1.0, dtype: Dtype = ..., device: str = 'mps:0') -> Array:
-    """Create a new array with random values from a normal distribution"""
 
 def from_numpy(array: ArrayLike) -> Array:
     """Convert numpy array to array"""

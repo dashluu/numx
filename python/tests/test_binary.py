@@ -81,7 +81,7 @@ class TestBinary:
 
         # Apply inplace operation
         nx_a1: Array = op1(nx_a1, nx_a2)  # nx_a1 += nx_a2, etc.
-        nx_a1: Array = op1(nx_a1, nx_a2)  # Second time to make sure it's updated.
+        nx_a1: Array = op1(nx_a1, nx_a2)  # Second time to make sure it is updated.
 
         # Compare with NumPy
         np_a3: np.ndarray = op2(np_a3, np_a2)  # np_a1_copy += np_a2, etc.

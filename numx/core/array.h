@@ -6,12 +6,13 @@ namespace nx::core {
     inline DeviceContextPtr get_device_context(const std::string &device_name) { return Backend::get_instance().get_device_context(device_name); }
     inline DevicePtr get_device(const std::string &device_name) { return get_device_context(device_name)->get_device(); }
 
-    struct Array {
-    private:
+    struct Array : public std::enable_shared_from_this<Array> {
+    protected:
         OpPtr m_op = nullptr;
         GraphPtr m_graph = nullptr;
         RunnerPtr m_runner = nullptr;
 
+        void set_parameter(bool is_param) { m_op->get_data().set_parameter(is_param); }
         const std::string &get_device_name() const { return m_op->get_data().get_device_name(); }
         DeviceContextPtr get_device_context() const { return nx::core::get_device_context(get_device_name()); }
         RuntimeContextPtr get_runtime_context() const { return get_device_context()->get_runtime_context(); }
@@ -19,34 +20,17 @@ namespace nx::core {
         GraphBuilder get_graph_builder() const { return get_device_context()->get_graph_builder(); }
 
     public:
-        Array() = default;
-        Array(OpPtr op) : m_op(op) {}
-
-        Array(const Array &array) {
-            if (array.get_data().is_buffer_valid()) {
-                m_op = nx::graph::detach(array.get_op());
-            } else {
-                m_op = nx::graph::empty_like(array.get_op());
+        Array(OpPtr op) {
+            if (op == nullptr) {
+                throw std::invalid_argument("Expected non-null operator.");
             }
 
-            m_graph = nullptr;
-            m_runner = nullptr;
+            m_op = op;
         }
 
-        ~Array();
-
-        Array &operator=(const Array &array) {
-            if (array.get_data().is_buffer_valid()) {
-                m_op = nx::graph::detach(array.get_op());
-            } else {
-                m_op = nx::graph::empty_like(array.get_op());
-            }
-
-            m_graph = nullptr;
-            m_runner = nullptr;
-            return *this;
-        }
-
+        Array(const Array &array) = default;
+        virtual ~Array();
+        Array &operator=(const Array &array) = default;
         OpPtr get_op() const { return m_op; }
         GraphPtr get_graph() const { return m_graph; }
         const ArrayData &get_data() const { return m_op->get_data(); }
@@ -68,9 +52,11 @@ namespace nx::core {
         isize get_ndim() const { return get_data().get_ndim(); }
         isize get_itemsize() const { return get_data().get_itemsize(); }
         isize get_nbytes() const { return get_data().get_nbytes(); }
+        isize get_size(isize dim) const { return get_data().get_size(dim); }
         bool is_grad_enabled() const { return m_op->is_grad_enabled(); }
         // This can only be used before compilation or forwarding, otherwise, there is no effect
         void enable_grad(bool enabled) { m_op->enable_grad(enabled); }
+        bool is_parameter() const { return m_op->get_data().is_parameter(); }
         bool is_contiguous() const { return get_data().is_contiguous(); }
 
         isize item() {
@@ -240,8 +226,9 @@ namespace nx::core {
         Array astype(DtypePtr dtype) const { return Array(nx::graph::astype(m_op, dtype)); }
     };
 
+    using ArrayPtr = std::shared_ptr<Array>;
     using ArrayVector = std::vector<Array>;
-    using ParameterVector = std::vector<const Array *>;
+    using ArrayPtrVector = std::vector<ArrayPtr>;
 } // namespace nx::core
 
 namespace std {

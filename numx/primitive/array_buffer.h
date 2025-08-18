@@ -5,12 +5,13 @@
 namespace nx::primitive {
     struct ArrayBuffer {
     private:
-        BufferBlock *m_block = nullptr;
+        BufferBlock *m_block;
         bool m_is_view;
 
     public:
         ArrayBuffer(BufferBlock *block, bool is_view) : m_block(block), m_is_view(is_view) {}
         ArrayBuffer(const ArrayBuffer &buffer) : m_is_view(true) { m_block = new BufferBlock(buffer.m_block->get_ptr(), buffer.m_block->get_size()); }
+        ArrayBuffer(ArrayBuffer &&buffer) noexcept = delete;
 
         ~ArrayBuffer() {
             if (m_is_view) {
@@ -29,6 +30,7 @@ namespace nx::primitive {
             return *this;
         }
 
+        ArrayBuffer &operator=(ArrayBuffer &&buffer) noexcept = delete;
         BufferBlock *get_block() const { return m_block; }
         bool is_view() const { return m_is_view; }
         uint8_t *get_ptr() const { return m_block->get_ptr(); }

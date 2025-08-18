@@ -84,6 +84,8 @@ endfunction()
 # Add stub files
 add_stub(core_stub core core)
 add_stub(random_stub random random)
+add_stub(nn_stub nn nn)
+add_stub(optim_stub optim optim)
 add_stub(profiler_stub profiler profiler)
 
 # Define output directory for Python module and move files after build
@@ -95,7 +97,7 @@ message(STATUS "Absolute path: ${PYTHON_MODULE_DIR_ABS}")
 # Add custom command to move Nanobind extension after build
 add_custom_target(move_extension ALL
     COMMAND ${CMAKE_COMMAND} -E rename "$<TARGET_FILE:${PROJECT_NAME}>" "${PYTHON_MODULE_DIR}/$<TARGET_FILE_NAME:${PROJECT_NAME}>"
-    DEPENDS core_stub profiler_stub nn_stub optim_stub
+    DEPENDS core_stub random_stub nn_stub optim_stub profiler_stub
     COMMENT "Moving Python module and stub files"
 )
 
@@ -109,4 +111,6 @@ endfunction()
 # Move modules
 move_module(core core)
 move_module(random random)
+move_module(nn nn)
+move_module(optim optim)
 move_module(profiler profiler)

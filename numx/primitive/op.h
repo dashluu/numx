@@ -67,7 +67,8 @@ namespace nx::primitive {
 
     protected:
         ArrayData m_data;
-        OpPtr m_partial_grad, m_grad;
+        OpPtr m_grad = nullptr;
+        OpPtr m_partial_grad = nullptr;
         // Note: m_grad_enabled cannot be used to set gradient flow once the computational graph is compiled or forwarded
         bool m_grad_enabled;
 
@@ -94,6 +95,11 @@ namespace nx::primitive {
             }
 
             m_grad_enabled = enabled;
+        }
+
+        void clear_grad() {
+            m_grad = nullptr;
+            m_partial_grad = nullptr;
         }
 
         void zero_grad();

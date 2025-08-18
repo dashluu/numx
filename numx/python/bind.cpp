@@ -6,6 +6,8 @@
 NB_MODULE(numx, m) {
     auto m_core = m.def_submodule("core", "Core module");
     auto m_random = m.def_submodule("random", "Random module");
+    auto m_nn = m.def_submodule("nn", "Neural network module");
+    auto m_optim = m.def_submodule("optim", "Optimization module");
     auto m_profiler = m.def_submodule("profiler", "Profiler module");
 
     // Dtype class and operations
@@ -69,6 +71,9 @@ NB_MODULE(numx, m) {
         .def_prop_ro("ptr", &nxc::Array::get_ptr, "Get array's raw data pointer")
         .def_prop_ro("itemsize", &nxc::Array::get_itemsize, "Get array's element size in bytes")
         .def_prop_ro("nbytes", &nxc::Array::get_nbytes, "Get array's total size in bytes")
+        .def("size", &nxc::Array::get_size, "dim"_a, "Get array's number of elements in certain dimension")
+        .def("__len__", [](const nxc::Array &array) { return array.get_size(0); }, "Get array's length, that is, the number of elements in the first dimension")
+        .def_prop_ro("is_parameter", &nxc::Array::is_parameter, "Check if array is a parameter")
         .def_prop_ro("is_contiguous", &nxc::Array::is_contiguous, "Check if array is contiguous")
         .def_prop_rw("grad_enabled", &nxc::Array::is_grad_enabled, &nxc::Array::enable_grad, "enabled"_a, "Get/set array's gradient tracking, setter can only be used before compilation and forwarding, otherwise, there is no effect")
 
@@ -153,6 +158,39 @@ NB_MODULE(numx, m) {
     m_random.def("uniform", &nxb::uniform, "view"_a, "low"_a = 0.0, "high"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a uniform distribution")
         .def("normal", &nxb::normal, "view"_a, "mean"_a = 0.0, "std"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a normal distribution")
         .def("kaiming_uniform", &nxr::kaiming_uniform, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a Kaiming uniform distribution");
+
+    m_nn.def("linear", &nxn::linear, "x"_a, "weight"_a, "Functional linear without bias");
+    m_nn.def("linear_with_bias", &nxn::linear_with_bias, "x"_a, "weight"_a, "bias"_a, "Functional linear with bias");
+    m_nn.def("relu", &nxn::relu, "x"_a, "ReLU activation function");
+    m_nn.def("onehot", &nxn::onehot, "x"_a, "num_classes"_a = -1, "One-hot encode input array");
+    m_nn.def("softmax", &nxn::softmax, "x"_a, "dim"_a = -1, "Compute softmax for input array");
+    m_nn.def("cross_entropy_loss", &nxn::cross_entropy_loss, "x"_a, "y"_a, "Compute cross-entropy loss between input x and target y");
+
+    nb::class_<nxn::Parameter, nxc::Array>(m_nn, "Parameter")
+        .def(nb::init<const nxp::ShapeView &, nxp::DtypePtr, const std::string &>(), "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Module parameter")
+        .def(nb::init<const nxc::Array &>(), "array"_a, "Module parameter");
+
+    nb::class_<nxn::Module, nxb::PyModule>(m_nn, "Module")
+        .def(nb::init(), "Base module")
+        .def("add_parameter", &nxb::ModulePublicist::add_parameter, "param"_a, "Add parameter to module")
+        // Tell Python not to free the objects in vector since they are pointers to valid objects inside Module
+        // and Python does not know how to free it any way
+        .def("parameters", &nxn::Module::get_parameters, nb::rv_policy::reference_internal, "Get module parameters")
+        .def("forward", &nxn::Module::forward, "x"_a, "Forward pass through module")
+        .def("__call__", &nxn::Module::operator(), "x"_a, "Forward pass through module");
+
+    nb::class_<nxn::Linear, nxn::Module>(m_nn, "Linear")
+        .def(nb::init<nxc::isize, nxc::isize, bool>(), "in_features"_a, "out_features"_a, "bias"_a = true, "Linear layer")
+        .def_prop_ro("weight", &nxn::Linear::get_weight, "Get linear layer weight")
+        .def_prop_ro("bias", &nxn::Linear::get_bias, "Get linear layer bias");
+
+    nb::class_<nxo::Optimizer, nxb::PyOptimizer>(m_optim, "Optimizer")
+        .def(nb::init<float>(), "lr"_a = 1e-3, "Base optimizer")
+        .def("forward", &nxo::Optimizer::forward, "Parameters update function")
+        .def("update", &nxo::Optimizer::update, "params"_a, "Update module parameters");
+
+    nb::class_<nxo::GradientDescent, nxo::Optimizer>(m_optim, "GradientDescent")
+        .def(nb::init<float>(), "lr"_a = 1e-3, "Gradient Descent optimizer");
 
     m_profiler.def("enable_memory_profile", &nxf::enable_memory_profile, "Enable memory profiling");
     m_profiler.def("enable_device_memory_profile", &nxf::enable_device_memory_profile, "device_name"_a, "Enable device memory profiling");

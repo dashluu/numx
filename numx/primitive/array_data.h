@@ -17,6 +17,7 @@ namespace nx::primitive {
         DtypePtr m_dtype;
         DevicePtr m_device;
         std::optional<ArrayBuffer> m_buffer;
+        bool m_is_param = false;
 
     public:
         ArrayData(const Shape &shape, DtypePtr dtype, DevicePtr device) : m_id(s_id_gen.next()), m_shape(shape), m_dtype(dtype), m_device(device) {}
@@ -26,18 +27,11 @@ namespace nx::primitive {
             m_buffer.emplace(block, true);
         }
 
-        ArrayData(const ArrayData &data) : m_id(data.m_id), m_shape(data.m_shape), m_dtype(data.m_dtype), m_device(data.m_device), m_buffer(data.m_buffer) {}
+        ArrayData(const ArrayData &data) = default;
+        ArrayData(ArrayData &&data) = default;
         ~ArrayData() = default;
-
-        ArrayData &operator=(const ArrayData &data) {
-            m_id = data.m_id;
-            m_shape = data.m_shape;
-            m_dtype = data.m_dtype;
-            m_device = data.m_device;
-            m_buffer = data.m_buffer;
-            return *this;
-        }
-
+        ArrayData &operator=(const ArrayData &data) = default;
+        ArrayData &operator=(ArrayData &&data) = default;
         const ArrayId &get_id() const { return m_id; }
         const Shape &get_shape() const { return m_shape; }
         isize get_offset() const { return m_shape.get_offset(); }
@@ -51,6 +45,7 @@ namespace nx::primitive {
         isize get_ndim() const { return m_shape.get_ndim(); }
         isize get_itemsize() const { return m_dtype->get_size(); }
         isize get_nbytes() const { return get_numel() * get_itemsize(); }
+        isize get_size(isize dim) const { return m_shape.get_size(dim); }
         void set_primary_buffer(BufferBlock *block) { m_buffer.emplace(block, false); }
 
         void set_view_buffer(BufferBlock *block) {
@@ -61,6 +56,8 @@ namespace nx::primitive {
         const ArrayBuffer &get_buffer() const { return m_buffer.value(); }
         bool is_buffer_valid() const { return m_buffer.has_value(); }
         void invalidate_buffer() { m_buffer.reset(); }
+        bool is_parameter() const { return m_is_param; }
+        void set_parameter(bool is_param) { m_is_param = is_param; }
         bool is_contiguous() const { return m_shape.is_contiguous(); }
         // TODO: handle more cases to reduce copying?
         bool copy_when_reshape(const ShapeView &view) const { return !is_contiguous(); }

@@ -27,8 +27,24 @@ namespace nx::nn {
             num_classes = x.max().item() + 1;
         }
 
-        Array cls = nx::core::arange({num_classes}, 0, 1, &i32);
-        return (x.unsqueeze() == cls).astype(&i32);
+        Array classes = nx::core::arange({num_classes}, 0, 1, &i32);
+        return (x.unsqueeze() == classes).astype(&i32);
+    }
+
+    inline Array softmax(const Array &x, isize dim) {
+        ShapeDims dims;
+        isize ndim = x.get_ndim();
+
+        if (dim < 0 || dim >= ndim) {
+            dims.emplace_back(ndim - 1);
+        } else {
+            dims.emplace_back(dim);
+        }
+
+        Array max = x.max(dims);
+        Array exp = (x - max).exp();
+        Array sum_exp = exp.sum(dims);
+        return exp / sum_exp;
     }
 
     inline Array cross_entropy_loss(const Array &x, const Array &y) {
@@ -44,7 +60,7 @@ namespace nx::nn {
         logsumexp trick for numerical stability:
         log(sum(exp(x))) = max(x) + log(sum(exp(x - max(x))))
         x: (*, N)
-        y: (*, 1) for labels
+        y: (*) for labels
         max: (*, 1)
         exp: (*, N)
         sum_exp: (*, 1)
@@ -58,7 +74,8 @@ namespace nx::nn {
         Array exp = (x - max).exp();
         Array sum_exp = exp.sum({ndim - 1});
         Array log_sum_exp = sum_exp.log() + max;
-        Array target_onehot = onehot(y, 0).astype(x.get_dtype());
+        isize num_classes = x.get_size(ndim - 1);
+        Array target_onehot = onehot(y, num_classes).astype(x.get_dtype());
         Array loss = -(target_onehot * x).sum({ndim - 1}) + log_sum_exp;
         return loss.mean();
     }

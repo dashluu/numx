@@ -33,7 +33,7 @@ namespace nx::primitive {
             s += "[";
         }
 
-        ShapeView elms_per_dim = m_shape.get_elms_per_dim();
+        ShapeView size_per_dim = m_shape.get_size_per_dim();
         size_t close = 0;
 
         while (next_elm_available) {
@@ -41,8 +41,8 @@ namespace nx::primitive {
             uint8_t *ptr = iter.next();
             s += m_dtype->value_str(ptr);
 
-            for (ssize_t i = elms_per_dim.size() - 1; i >= 0; i--) {
-                if (iter.count() % elms_per_dim[i] == 0) {
+            for (ssize_t i = size_per_dim.size() - 1; i >= 0; i--) {
+                if (iter.count() % size_per_dim[i] == 0) {
                     s += "]";
                     close += 1;
                 }

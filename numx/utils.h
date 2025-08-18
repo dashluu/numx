@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -42,14 +43,14 @@ namespace nx::utils {
     concept FloatType = std::floating_point<T>;
 
     template <class T>
-    inline size_t vsize(const std::vector<T> &v) {
+    size_t vsize(const std::vector<T> &v) {
         return v.size() * sizeof(T);
     }
 
     static isize align_to(isize x, isize target) { return (x + target - 1) / target * target; }
 
     template <class T>
-    inline const std::string join(const std::vector<T> &v, const std::function<std::string(T)> &f, const std::string &sep = ",") {
+    const std::string join(const std::vector<T> &v, const std::function<std::string(T)> &f, const std::string &sep = ",") {
         std::string s = "";
 
         for (size_t i = 0; i < v.size(); i++) {
@@ -61,7 +62,7 @@ namespace nx::utils {
     }
 
     template <NumericType T>
-    inline const std::string join_nums(const std::vector<T> &v, const std::string &sep = ",") {
+    const std::string join_nums(const std::vector<T> &v, const std::string &sep = ",") {
         return join<T>(v, [](T a) { return std::to_string(a); }, sep);
     }
 

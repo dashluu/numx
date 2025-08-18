@@ -1,4 +1,4 @@
-from numx.core import Array, from_numpy
+from numx.core import Array, from_numpy, f32
 import numx.nn as nn
 import numx.optim as optim
 from torchvision import datasets, transforms
@@ -8,6 +8,7 @@ from typing import Callable
 import torch
 from tqdm import tqdm
 from memory_profiler import profile
+import matplotlib.pyplot as plt
 
 
 class MnistModel(nn.Module):
@@ -15,9 +16,10 @@ class MnistModel(nn.Module):
         super().__init__()
         self.linear1 = nn.Linear(784, 128)
         self.linear2 = nn.Linear(128, 10)
-        params = self.wparameters()
-        params.append(self.linear1.parameters())
-        params.append(self.linear2.parameters())
+        for param in self.linear1.parameters():
+            self.add_parameter(param)
+        for param in self.linear2.parameters():
+            self.add_parameter(param)
 
     def forward(self, x: Array) -> Array:
         x = self.linear1(x)
@@ -35,46 +37,92 @@ def load_mnist() -> tuple[DataLoader, DataLoader, DataLoader]:
             transforms.Lambda(lambda x: x.view(-1)),
         ]
     )
-    train_valid_dataset = datasets.MNIST("./mnist/train", train=True, transform=transform, download=True)
-    train_dataset, valid_dataset = random_split(train_valid_dataset, lengths=(0.8, 0.2))
+    train_validation_dataset = datasets.MNIST("./mnist/train", train=True, transform=transform, download=True)
+    train_dataset, validation_dataset = random_split(train_validation_dataset, lengths=(0.8, 0.2))
     test_dataset = datasets.MNIST("./mnist/test", train=False, transform=transform, download=True)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=True)
+    validation_loader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-    return train_loader, valid_loader, test_loader
+    return train_loader, validation_loader, test_loader
 
 
 # @profile
-def test_train_mnist(loader: DataLoader, iterations=2) -> list[float]:
+def test_train_mnist(loader: DataLoader, iterations=5) -> list[float]:
     model = MnistModel()
     loss_fn = nn.cross_entropy_loss
     optimizer = optim.GradientDescent(lr=1e-3)
     losses = []
-    for i, (img, label) in enumerate(loader):
+    for i, (torch_input, torch_label) in tqdm(enumerate(loader), total=iterations):
         if i == iterations:
             break
-        img_array = from_numpy(img.numpy())
-        label_array = from_numpy(label.numpy().astype(np.int32))
-        logits = model(img_array)
-        loss = loss_fn(logits, label_array)
+        np_input = torch_input.numpy()
+        np_label = torch_label.numpy().astype(np.int32)
+        nx_input = from_numpy(np_input)
+        nx_label = from_numpy(np_label)
+        logits = model(nx_input)
+        loss = loss_fn(logits, nx_label)
         losses.append(loss.item())
         loss.backward()
         optimizer.update(model.parameters())
     return losses
 
 
-def train_mnist(loader: DataLoader, epochs=1):
+def train_mnist_epoch(train_loader: DataLoader, model: MnistModel, loss_fn, optimizer: optim.Optimizer):
+    mean_loss = 0
+    for torch_input, torch_label in tqdm(train_loader):
+        np_input = torch_input.numpy()
+        np_label = torch_label.numpy().astype(np.int32)
+        nx_input = from_numpy(np_input)
+        nx_label = from_numpy(np_label)
+        logits: Array = model(nx_input)
+        loss: Array = loss_fn(logits, nx_label)
+        mean_loss += loss.item()
+        loss.backward()
+        optimizer.update(model.parameters())
+    mean_loss /= len(train_loader)
+    return mean_loss
+
+
+def validate_mnist_epoch(validation_loader: DataLoader, model: MnistModel, loss_fn):
+    mean_loss = 0
+    accuracy = 0.0
+    for torch_input, torch_label in tqdm(validation_loader):
+        np_input = torch_input.numpy()
+        np_label = torch_label.numpy().astype(np.int32)
+        nx_input = from_numpy(np_input)
+        nx_label = from_numpy(np_label)
+        logits: Array = model(nx_input)
+        probs = nn.softmax(logits).argmax([-1])
+        loss: Array = loss_fn(logits, nx_label)
+        mean_loss += loss.item()
+        cmp = (probs == nx_label.unsqueeze()).astype(f32)
+        accuracy += cmp.sum().item() / len(cmp)
+    mean_loss /= len(validation_loader)
+    accuracy /= len(validation_loader)
+    return mean_loss, accuracy
+
+
+def train_mnist(train_loader: DataLoader, validation_loader: DataLoader, epochs=3):
     model = MnistModel()
     loss_fn = nn.cross_entropy_loss
     optimizer = optim.GradientDescent(lr=1e-3)
-    losses = []
+    train_losses, validation_losses = [], []
     for i in range(epochs):
-        for img, label in loader:
-            img_array = Array.from_numpy(img.numpy())
-            label_array = Array.from_numpy(label.numpy().astype(np.int32))
-            loss = loss_fn(model(img_array), label_array)
-            losses.append(loss.item())
-            print(loss.item())
-            loss.backward()
-            optimizer.update(model.parameters())
-        print(f"Epoch {i + 1} loss: {np.mean(losses)}")
+        print(f"Epoch {i + 1}:")
+        mean_loss = train_mnist_epoch(train_loader, model, loss_fn, optimizer)
+        train_losses.append(mean_loss)
+        print(f"Training loss: {mean_loss}")
+        mean_loss, accuracy = validate_mnist_epoch(validation_loader, model, loss_fn)
+        validation_losses.append(mean_loss)
+        print(f"Validation loss: {mean_loss}")
+        print(f"Validation accuracy: {accuracy}")
+    return train_losses, validation_losses
+
+
+def plot_train_and_validation_losses(train_losses, validation_losses):
+    plt.plot(np.arange(0, len(train_losses)), np.array(train_losses), "b-", label="Train loss")
+    plt.plot(np.arange(0, len(validation_losses)), np.array(validation_losses), "r-", label="Validation loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(loc="upper right")
+    plt.show()
