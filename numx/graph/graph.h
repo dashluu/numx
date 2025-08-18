@@ -21,8 +21,10 @@ namespace nx::graph {
     public:
         Graph(OpPtr output) : m_output(output) {}
         Graph(const Graph &) = delete;
+        Graph(Graph &&) noexcept = delete;
         virtual ~Graph() = default;
         Graph &operator=(const Graph &) = delete;
+        Graph &operator=(Graph &&) noexcept = delete;
         OpPtr get_output() const { return m_output; }
         size_t fw_tape_size() const { return m_fw_tape.size(); }
         size_t bw_tape_size() const { return m_bw_tape.size(); }

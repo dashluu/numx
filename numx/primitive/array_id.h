@@ -12,8 +12,10 @@ namespace nx::primitive {
     public:
         ArrayId(isize val) : m_val(val) {}
         ArrayId(const ArrayId &) = default;
+        ArrayId(ArrayId &&) noexcept = default;
         ~ArrayId() = default;
         ArrayId &operator=(const ArrayId &) = default;
+        ArrayId &operator=(ArrayId &&) noexcept = default;
         isize get_data() const { return m_val; }
         bool operator==(const ArrayId &id) const { return m_val == id.m_val; }
         auto operator<=>(const ArrayId &id) const { return m_val <=> id.m_val; }
@@ -28,8 +30,10 @@ namespace nx::primitive {
     public:
         ArrayIdGenerator() = default;
         ArrayIdGenerator(const ArrayIdGenerator &) = delete;
+        ArrayIdGenerator(ArrayIdGenerator &&) noexcept = delete;
         ~ArrayIdGenerator() = default;
         ArrayIdGenerator &operator=(const ArrayIdGenerator &) = delete;
+        ArrayIdGenerator &operator=(ArrayIdGenerator &&) noexcept = delete;
         ArrayId next() { return ArrayId(s_counter++); }
     };
 

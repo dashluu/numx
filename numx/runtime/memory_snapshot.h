@@ -15,24 +15,11 @@ namespace nx::runtime {
 
     public:
         MemorySnapshot(BufferBlock *block) : m_block(block) { m_alloc_time = std::chrono::system_clock::now(); }
-
-        MemorySnapshot(const MemorySnapshot &snapshot) {
-            m_block = snapshot.m_block;
-            m_alloc_time = snapshot.m_alloc_time;
-            m_free_time = snapshot.m_free_time;
-            m_alive = snapshot.m_alive;
-        }
-
+        MemorySnapshot(const MemorySnapshot &) = default;
+        MemorySnapshot(MemorySnapshot &&) noexcept = default;
         ~MemorySnapshot() = default;
-
-        MemorySnapshot &operator=(const MemorySnapshot &snapshot) {
-            m_block = snapshot.m_block;
-            m_alloc_time = snapshot.m_alloc_time;
-            m_free_time = snapshot.m_free_time;
-            m_alive = snapshot.m_alive;
-            return *this;
-        }
-
+        MemorySnapshot &operator=(const MemorySnapshot &) = default;
+        MemorySnapshot &operator=(MemorySnapshot &&) noexcept = default;
         BufferBlock *get_block() const { return m_block; }
         const std::chrono::system_clock::time_point &get_alloc_time() const { return m_alloc_time; }
         const std::chrono::system_clock::time_point &get_free_time() const { return m_free_time; }

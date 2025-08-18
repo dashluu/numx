@@ -15,8 +15,10 @@ namespace nx::runtime {
     public:
         Memory(AllocatorPtr allocator, MemoryProfilerPtr memory_profiler) : m_allocator(allocator), m_memory_profiler(memory_profiler) {}
         Memory(const Memory &) = delete;
+        Memory(Memory &&) noexcept = delete;
         virtual ~Memory() = default;
         Memory &operator=(const Memory &) = delete;
+        Memory &operator=(Memory &&) noexcept = delete;
         virtual BufferBlock *alloc_block(isize size) = 0;
         virtual void free_block(BufferBlock *block) = 0;
     };

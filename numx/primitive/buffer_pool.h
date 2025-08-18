@@ -25,6 +25,9 @@ namespace nx::primitive {
             }
         }
 
+        BufferPool(const BufferPool &) = delete;
+        BufferPool(BufferPool &&) noexcept = delete;
+
         ~BufferPool() {
             for (Resource *resource : m_free_blocks) {
                 delete static_cast<BufferBlock *>(resource);
@@ -33,6 +36,8 @@ namespace nx::primitive {
             m_allocator->free_bytes(m_pool);
         }
 
+        BufferPool &operator=(const BufferPool &) = delete;
+        BufferPool &operator=(BufferPool &&) noexcept = delete;
         isize get_capacity() const { return m_capacity; }
         isize get_block_size() const { return m_block_size; }
         bool empty() const { return m_free_blocks.empty(); }

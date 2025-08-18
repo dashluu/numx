@@ -15,8 +15,10 @@ namespace nx::primitive {
     public:
         RandomKeyGenerator(uint64_t seed) : m_key(seed) {}
         RandomKeyGenerator(const RandomKeyGenerator &) = delete;
+        RandomKeyGenerator(RandomKeyGenerator &&) noexcept = delete;
         ~RandomKeyGenerator() = default;
         RandomKeyGenerator &operator=(const RandomKeyGenerator &) = delete;
+        RandomKeyGenerator &operator=(RandomKeyGenerator &&) noexcept = delete;
         uint64_t next();
     };
 

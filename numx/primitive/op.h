@@ -78,8 +78,10 @@ namespace nx::primitive {
     public:
         Op(const ArrayData &data) : m_data(data) { m_grad_enabled = m_data.get_dtype()->is_float(); }
         Op(const Op &) = delete;
+        Op(Op &&) noexcept = delete;
         virtual ~Op() = default;
         Op &operator=(const Op &) = delete;
+        Op &operator=(Op &&) noexcept = delete;
         virtual Opcode get_opcode() const = 0;
         virtual Optype get_optype() const = 0;
         virtual const std::string optype_str() const = 0;

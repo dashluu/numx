@@ -23,8 +23,10 @@ namespace nx::core {
     public:
         DeviceContext(DevicePtr device, RuntimeContextPtr runtime_ctx, RunnerBuilder runner_builder, GraphBuilder graph_builder, RandomKeyGeneratorPtr rand_key_gen) : m_device(device), m_runtime_ctx(runtime_ctx), m_runner_builder(runner_builder), m_graph_builder(graph_builder), m_rand_key_gen(rand_key_gen) {}
         DeviceContext(const DeviceContext &) = delete;
+        DeviceContext(DeviceContext &&) noexcept = delete;
         ~DeviceContext() = default;
         DeviceContext &operator=(const DeviceContext &) = delete;
+        DeviceContext &operator=(DeviceContext &&) noexcept = delete;
         DevicePtr get_device() const { return m_device; }
         RuntimeContextPtr get_runtime_context() const { return m_runtime_ctx; }
         RandomKeyGeneratorPtr get_random_key_generator() const { return m_rand_key_gen; }
@@ -43,8 +45,10 @@ namespace nx::core {
     public:
         Backend() = default;
         Backend(const Backend &) = delete;
+        Backend(Backend &&) noexcept = delete;
         ~Backend() = default;
         Backend &operator=(const Backend &) = delete;
+        Backend &operator=(Backend &&) noexcept = delete;
         size_t count_devices() const { return m_device_ctx_by_name.size(); }
         DeviceContextPtr get_device_context(const std::string &device_name) const;
         static Backend &get_instance();

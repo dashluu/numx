@@ -17,8 +17,10 @@ namespace nx::primitive {
         friend struct ResourceListIterator;
         Resource() = default;
         Resource(const Resource &) = delete;
+        Resource(Resource &&) noexcept = delete;
         virtual ~Resource() = default;
         Resource &operator=(const Resource &) = delete;
+        Resource &operator=(Resource &&) noexcept = delete;
     };
 
     struct ResourceListIterator {
@@ -32,8 +34,10 @@ namespace nx::primitive {
         }
 
         ResourceListIterator(const ResourceListIterator &) = default;
+        ResourceListIterator(ResourceListIterator &&) noexcept = default;
         ~ResourceListIterator() = default;
         ResourceListIterator &operator=(const ResourceListIterator &) = default;
+        ResourceListIterator &operator=(ResourceListIterator &&) noexcept = default;
         bool operator==(const ResourceListIterator &iterator) const { return m_current == iterator.m_current; }
         Resource *operator*() const { return m_current; }
 
@@ -52,8 +56,10 @@ namespace nx::primitive {
         friend struct ResourceListIterator;
         ResourceList() = default;
         ResourceList(const ResourceList &) = delete;
+        ResourceList(ResourceList &&) noexcept = delete;
         ~ResourceList() = default;
         ResourceList &operator=(const ResourceList &) = delete;
+        ResourceList &operator=(ResourceList &&) noexcept = delete;
         bool empty() const { return !m_head; }
         Resource *peek() const { return m_head; }
         ResourceListIterator begin() const { return ResourceListIterator(m_head); }

@@ -34,8 +34,10 @@ namespace nx::primitive {
     public:
         Device(DeviceType type, isize id) : m_type(type), m_id(id) { init_name_from_type_and_id(); }
         Device(const Device &) = delete;
+        Device(Device &&) noexcept = delete;
         ~Device() = default;
         Device &operator=(const Device &) = delete;
+        Device &operator=(Device &&) noexcept = delete;
         DeviceType get_type() const { return m_type; }
         isize get_id() const { return m_id; }
         const std::string &get_name() const { return m_name; }

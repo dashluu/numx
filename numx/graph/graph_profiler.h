@@ -11,8 +11,10 @@ namespace nx::graph {
     public:
         GraphProfiler() = default;
         GraphProfiler(const GraphProfiler &) = delete;
+        GraphProfiler(GraphProfiler &&) noexcept = delete;
         ~GraphProfiler() = default;
         GraphProfiler &operator=(const GraphProfiler &) = delete;
+        GraphProfiler &operator=(GraphProfiler &&) noexcept = delete;
         void print_profile(GraphPtr graph) { stream_profile(graph, std::cout); }
         void save_profile(GraphPtr graph, const std::string &file_name);
         void stream_profile(GraphPtr graph, std::ostream &stream);

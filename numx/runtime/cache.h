@@ -19,7 +19,11 @@ namespace nx::runtime {
             m_used_pools = std::make_shared<ResourceList>();
         }
 
+        Cache(const Cache &) = delete;
+        Cache(Cache &&) noexcept = delete;
         ~Cache();
+        Cache &operator=(const Cache &) = delete;
+        Cache &operator=(Cache &&) noexcept = delete;
         BufferBlock *alloc_block(isize size);
         void free_block(BufferBlock *block);
     };

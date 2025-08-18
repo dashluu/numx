@@ -27,11 +27,9 @@ namespace nx::primitive {
             m_buffer.emplace(block, true);
         }
 
-        ArrayData(const ArrayData &data) = default;
-        ArrayData(ArrayData &&data) = default;
+        ArrayData(const ArrayData &) = default;
         ~ArrayData() = default;
-        ArrayData &operator=(const ArrayData &data) = default;
-        ArrayData &operator=(ArrayData &&data) = default;
+        ArrayData &operator=(const ArrayData &) = default;
         const ArrayId &get_id() const { return m_id; }
         const Shape &get_shape() const { return m_shape; }
         isize get_offset() const { return m_shape.get_offset(); }

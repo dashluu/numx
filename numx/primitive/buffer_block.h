@@ -15,7 +15,11 @@ namespace nx::primitive {
         BufferBlock() = default;
         BufferBlock(uint8_t *ptr, isize size, BufferPool *pool) : m_ptr(ptr), m_size(size), m_pool(pool) {}
         BufferBlock(uint8_t *ptr, isize size) : m_ptr(ptr), m_size(size) {}
+        BufferBlock(const BufferBlock &) = delete;
+        BufferBlock(BufferBlock &&) noexcept = delete;
         ~BufferBlock() = default;
+        BufferBlock &operator=(const BufferBlock &) = delete;
+        BufferBlock &operator=(BufferBlock &&) noexcept = delete;
         uint8_t *get_ptr() const { return m_ptr; }
         isize get_size() const { return m_size; }
         BufferPool *get_pool() const { return m_pool; }

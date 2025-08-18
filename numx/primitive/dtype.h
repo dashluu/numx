@@ -33,8 +33,10 @@ namespace nx::primitive {
     public:
         Dtype(DtypeName name, DtypeCategory category, isize size) : m_name(name), m_category(category), m_size(size) {}
         Dtype(const Dtype &) = delete;
+        Dtype(Dtype &&) noexcept = delete;
         virtual ~Dtype() = default;
         Dtype &operator=(const Dtype &) = delete;
+        Dtype &operator=(Dtype &&) noexcept = delete;
         DtypeName get_name() const { return m_name; }
         DtypeCategory get_category() const { return m_category; }
         virtual const std::string get_name_str() const = 0;

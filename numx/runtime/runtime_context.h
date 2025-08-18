@@ -14,8 +14,10 @@ namespace nx::runtime {
     public:
         RuntimeContext(MemoryProfilerPtr memory_profiler) : m_memory_profiler(memory_profiler) {}
         RuntimeContext(const RuntimeContext &) = delete;
+        RuntimeContext(RuntimeContext &&) noexcept = delete;
         virtual ~RuntimeContext() = default;
         RuntimeContext &operator=(const RuntimeContext &) = delete;
+        RuntimeContext &operator=(RuntimeContext &&) noexcept = delete;
         MemoryPtr get_memory() const { return m_memory; }
         MemoryProfilerPtr get_memory_profiler() { return m_memory_profiler; }
     };

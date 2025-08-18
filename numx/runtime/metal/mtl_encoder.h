@@ -19,6 +19,7 @@ namespace nx::runtime::metal {
         }
 
         MTLEncoder(const MTLEncoder &) = delete;
+        MTLEncoder(MTLEncoder &&) noexcept = delete;
 
         ~MTLEncoder() {
             for (MTL::Buffer *buffer : m_buffers) {
@@ -27,6 +28,7 @@ namespace nx::runtime::metal {
         }
 
         MTLEncoder &operator=(const MTLEncoder &) = delete;
+        MTLEncoder &operator=(MTLEncoder &&) noexcept = delete;
         MTL::ComputeCommandEncoder *get_internal_encoder() const { return m_encoder; }
 
         void encode_mtl_buffer(const void *buff, isize size) {

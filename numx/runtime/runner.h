@@ -27,8 +27,10 @@ namespace nx::runtime {
     public:
         Runner(GraphPtr graph, RuntimeContextPtr ctx) : m_graph(graph), m_ctx(ctx) {}
         Runner(const Runner &) = delete;
+        Runner(Runner &&) noexcept = delete;
         virtual ~Runner() = default;
         Runner &operator=(const Runner &) = delete;
+        Runner &operator=(Runner &&) noexcept = delete;
         void forward();
         void backward();
     };

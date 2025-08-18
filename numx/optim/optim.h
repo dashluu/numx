@@ -16,8 +16,10 @@ namespace nx::optim {
     public:
         Optimizer(float learning_rate) : m_learning_rate(learning_rate) {}
         Optimizer(const Optimizer &) = delete;
+        Optimizer(Optimizer &&) noexcept = delete;
         virtual ~Optimizer() = default;
         Optimizer &operator=(const Optimizer &) = delete;
+        Optimizer &operator=(Optimizer &&) noexcept = delete;
         virtual void forward() = 0;
 
         void update(const ParameterPtrVector &params) {

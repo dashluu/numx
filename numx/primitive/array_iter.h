@@ -12,8 +12,10 @@ namespace nx::primitive {
     public:
         ArrayIterator(const ArrayData &data) : m_data(data) {}
         ArrayIterator(const ArrayIterator &) = delete;
+        ArrayIterator(ArrayIterator &&) noexcept = delete;
         ~ArrayIterator() = default;
         ArrayIterator &operator=(const ArrayIterator &) = delete;
+        ArrayIterator &operator=(ArrayIterator &&) noexcept = delete;
         bool has_next() const { return m_counter < m_data.get_shape().get_numel(); }
         isize count() const { return m_counter; }
         void start() { m_counter = 0; }

@@ -18,8 +18,10 @@ namespace nx::runtime::metal {
     public:
         MTLKernel(const std::string &name) : m_name(name) {}
         MTLKernel(const MTLKernel &) = delete;
+        MTLKernel(MTLKernel &&) noexcept = delete;
         ~MTLKernel() = default;
         MTLKernel &operator=(const MTLKernel &) = delete;
+        MTLKernel &operator=(MTLKernel &&) noexcept = delete;
 
         void init(NS::SharedPtr<MTL::Device> device, NS::SharedPtr<MTL::Library> lib) {
             NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();

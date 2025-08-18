@@ -11,7 +11,6 @@ namespace nx::primitive {
     public:
         ArrayBuffer(BufferBlock *block, bool is_view) : m_block(block), m_is_view(is_view) {}
         ArrayBuffer(const ArrayBuffer &buffer) : m_is_view(true) { m_block = new BufferBlock(buffer.m_block->get_ptr(), buffer.m_block->get_size()); }
-        ArrayBuffer(ArrayBuffer &&buffer) noexcept = delete;
 
         ~ArrayBuffer() {
             if (m_is_view) {
@@ -20,20 +19,24 @@ namespace nx::primitive {
         }
 
         ArrayBuffer &operator=(const ArrayBuffer &buffer) {
+            if (buffer == *this) {
+                return *this;
+            }
+
             if (m_is_view) {
                 delete m_block;
             }
 
-            // Note: assigning another buffer to a primary buffer, or owning buffer, causes a memory leak
+            // Note: copy assigning another buffer to a primary buffer, or owning buffer, causes a memory leak
             m_block = new BufferBlock(buffer.m_block->get_ptr(), buffer.m_block->get_size());
             m_is_view = true;
             return *this;
         }
 
-        ArrayBuffer &operator=(ArrayBuffer &&buffer) noexcept = delete;
         BufferBlock *get_block() const { return m_block; }
         bool is_view() const { return m_is_view; }
         uint8_t *get_ptr() const { return m_block->get_ptr(); }
         isize get_size() const { return m_block->get_size(); }
+        bool operator==(const ArrayBuffer &buffer) const { return m_block == buffer.m_block; }
     };
 } // namespace nx::primitive

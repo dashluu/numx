@@ -17,8 +17,10 @@ namespace nx::runtime {
     public:
         MemoryProfiler(DevicePtr device) : m_device(device) {}
         MemoryProfiler(const MemoryProfiler &) = delete;
+        MemoryProfiler(MemoryProfiler &&) noexcept = delete;
         ~MemoryProfiler() = default;
         MemoryProfiler &operator=(const MemoryProfiler &) = delete;
+        MemoryProfiler &operator=(MemoryProfiler &&) noexcept = delete;
         isize get_peak_memory() const { return m_peak_memory; }
         isize get_pool_memory() const { return m_pool_memory; }
         bool is_enabled() const { return m_enabled; }
