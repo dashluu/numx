@@ -17,8 +17,8 @@ namespace nx::nn {
     public:
         Linear(isize in_features, isize out_features, bool has_bias = true) {
             Array weight = kaiming_uniform({out_features, in_features});
-            m_weight_holder = std::make_shared<Array>(weight);
-            m_weight_holder->eval();
+            weight.eval();
+            m_weight_holder = std::make_shared<Array>(std::move(weight));
             m_weight = std::make_shared<Parameter>(*m_weight_holder);
             add_parameter(m_weight);
 
@@ -26,8 +26,8 @@ namespace nx::nn {
                 auto [fan_in, fan_out] = compute_fan_in_and_fan_out(*m_weight);
                 float bound = 1.0f / std::sqrt(fan_in);
                 Array bias = uniform({out_features}, -bound, bound);
-                m_bias_holder = std::make_shared<Array>(bias);
-                m_bias_holder->eval();
+                bias.eval();
+                m_bias_holder = std::make_shared<Array>(std::move(bias));
                 m_bias = std::make_shared<Parameter>(*m_bias_holder);
                 add_parameter(m_bias);
             }

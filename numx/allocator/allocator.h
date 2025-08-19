@@ -9,8 +9,10 @@ namespace nx::allocator {
     public:
         Allocator() = default;
         Allocator(const Allocator &) = delete;
+        Allocator(Allocator &&) noexcept = delete;
         virtual ~Allocator() = default;
         Allocator &operator=(const Allocator &) = delete;
+        Allocator &operator=(Allocator &&) noexcept = delete;
         virtual uint8_t *alloc_bytes(isize size) = 0;
         virtual void free_bytes(uint8_t *ptr) = 0;
     };

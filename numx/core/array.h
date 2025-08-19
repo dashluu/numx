@@ -28,9 +28,11 @@ namespace nx::core {
             m_op = op;
         }
 
-        Array(const Array &array) = default;
+        Array(const Array &) = default;
+        Array(Array &&) noexcept = default;
         virtual ~Array();
-        Array &operator=(const Array &array) = default;
+        Array &operator=(const Array &) = default;
+        Array &operator=(Array &&) noexcept = default;
         OpPtr get_op() const { return m_op; }
         GraphPtr get_graph() const { return m_graph; }
         const ArrayData &get_data() const { return m_op->get_data(); }

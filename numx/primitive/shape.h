@@ -106,15 +106,10 @@ namespace nx::primitive {
         }
 
         Shape(const ShapeView &view) : Shape(0, view) {}
-        Shape(const Shape &shape) : Shape(shape.m_offset, shape.m_view, shape.m_stride) {}
-
-        Shape &operator=(const Shape &shape) {
-            m_offset = shape.m_offset;
-            m_view = shape.m_view;
-            m_stride = shape.m_stride;
-            return *this;
-        }
-
+        Shape(const Shape &) = default;
+        Shape(Shape &&) noexcept = default;
+        Shape &operator=(const Shape &) = default;
+        Shape &operator=(Shape &&) noexcept = default;
         isize get_offset() const { return m_offset; }
         const ShapeView &get_view() const { return m_view; }
         const ShapeStride &get_stride() const { return m_stride; }

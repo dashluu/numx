@@ -13,17 +13,12 @@ namespace nx::nn {
         }
 
         Parameter(const Array &array) : Array(array.detach()) { set_parameter(true); }
+        Parameter(Array &&array) noexcept : Array(std::move(array)) { set_parameter(true); }
+        Parameter(const Parameter &) = default;
+        Parameter(Parameter &&) noexcept = default;
         ~Parameter() = default;
-
-        Parameter &operator=(const Parameter &param) {
-            Array::operator=(param);
-            return *this;
-        }
-
-        Parameter &operator=(const Array &array) {
-            Array::operator=(array);
-            return *this;
-        }
+        Parameter &operator=(const Parameter &) = default;
+        Parameter &operator=(Parameter &&) noexcept = default;
     };
 
     using ParameterPtr = std::shared_ptr<Parameter>;

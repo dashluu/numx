@@ -176,8 +176,8 @@ class TestBasicNN:
             nx_loss = nx_loss_fn(nx_logits, nx_label)
             torch_logits = torch_model(torch_input)
             torch_loss: torch.Tensor = torch_loss_fn(torch_logits, torch_label)
-            # print(nx_loss.item(), torch_loss.item())
-            # print()
+            print(nx_loss.item(), torch_loss.item())
+            print()
 
             # Backward pass and parameters update
             nx_loss.backward()

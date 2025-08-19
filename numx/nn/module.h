@@ -11,9 +11,11 @@ namespace nx::nn {
 
     public:
         Module() = default;
-        Module(const Module &module) = delete;
+        Module(const Module &) = delete;
+        Module(Module &&) noexcept = delete;
         virtual ~Module() = default;
-        Module &operator=(const Module &module) = delete;
+        Module &operator=(const Module &) = delete;
+        Module &operator=(Module &&) noexcept = delete;
         const ParameterPtrVector &get_parameters() const { return m_params; }
         ParameterPtrVector::const_iterator begin() const { return m_params.cbegin(); }
         ParameterPtrVector::const_iterator end() const { return m_params.cend(); }

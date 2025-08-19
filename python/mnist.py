@@ -47,10 +47,9 @@ def load_mnist() -> tuple[DataLoader, DataLoader, DataLoader]:
 
 
 # @profile
-def test_train_mnist(loader: DataLoader, iterations=5) -> list[float]:
-    model = MnistModel()
-    loss_fn = nn.cross_entropy_loss
-    optimizer = optim.GradientDescent(lr=1e-3)
+def try_train_mnist(
+    loader: DataLoader, model: MnistModel, loss_fn, optimizer: optim.Optimizer, iterations=5
+) -> list[float]:
     losses = []
     for i, (torch_input, torch_label) in tqdm(enumerate(loader), total=iterations):
         if i == iterations:
@@ -67,7 +66,7 @@ def test_train_mnist(loader: DataLoader, iterations=5) -> list[float]:
     return losses
 
 
-def train_mnist_epoch(train_loader: DataLoader, model: MnistModel, loss_fn, optimizer: optim.Optimizer):
+def train_mnist_epoch(train_loader: DataLoader, model: MnistModel, loss_fn, optimizer: optim.Optimizer) -> float:
     mean_loss = 0
     for torch_input, torch_label in tqdm(train_loader):
         np_input = torch_input.numpy()
@@ -83,10 +82,10 @@ def train_mnist_epoch(train_loader: DataLoader, model: MnistModel, loss_fn, opti
     return mean_loss
 
 
-def validate_mnist_epoch(validation_loader: DataLoader, model: MnistModel, loss_fn):
+def test_mnist(test_loader: DataLoader, model: MnistModel, loss_fn) -> tuple[float, float]:
     mean_loss = 0
     accuracy = 0.0
-    for torch_input, torch_label in tqdm(validation_loader):
+    for torch_input, torch_label in tqdm(test_loader):
         np_input = torch_input.numpy()
         np_label = torch_label.numpy().astype(np.int32)
         nx_input = from_numpy(np_input)
@@ -97,22 +96,26 @@ def validate_mnist_epoch(validation_loader: DataLoader, model: MnistModel, loss_
         mean_loss += loss.item()
         cmp = (probs == nx_label.unsqueeze()).astype(f32)
         accuracy += cmp.sum().item() / len(cmp)
-    mean_loss /= len(validation_loader)
-    accuracy /= len(validation_loader)
+    mean_loss /= len(test_loader)
+    accuracy /= len(test_loader)
     return mean_loss, accuracy
 
 
-def train_mnist(train_loader: DataLoader, validation_loader: DataLoader, epochs=3):
-    model = MnistModel()
-    loss_fn = nn.cross_entropy_loss
-    optimizer = optim.GradientDescent(lr=1e-3)
+def train_mnist(
+    train_loader: DataLoader,
+    validation_loader: DataLoader,
+    model: MnistModel,
+    loss_fn,
+    optimizer: optim.Optimizer,
+    epochs=3,
+) -> tuple[list[float], list[float]]:
     train_losses, validation_losses = [], []
     for i in range(epochs):
         print(f"Epoch {i + 1}:")
         mean_loss = train_mnist_epoch(train_loader, model, loss_fn, optimizer)
         train_losses.append(mean_loss)
         print(f"Training loss: {mean_loss}")
-        mean_loss, accuracy = validate_mnist_epoch(validation_loader, model, loss_fn)
+        mean_loss, accuracy = test_mnist(validation_loader, model, loss_fn)
         validation_losses.append(mean_loss)
         print(f"Validation loss: {mean_loss}")
         print(f"Validation accuracy: {accuracy}")

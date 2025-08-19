@@ -28,8 +28,10 @@ namespace nx::primitive {
         }
 
         ArrayData(const ArrayData &) = default;
+        ArrayData(ArrayData &&) noexcept = default;
         ~ArrayData() = default;
         ArrayData &operator=(const ArrayData &) = default;
+        ArrayData &operator=(ArrayData &&) noexcept = default;
         const ArrayId &get_id() const { return m_id; }
         const Shape &get_shape() const { return m_shape; }
         isize get_offset() const { return m_shape.get_offset(); }

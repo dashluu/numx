@@ -20,13 +20,15 @@ public:
     }
 
     MnistModel(const MnistModel &) = delete;
+    MnistModel(MnistModel &&) noexcept = delete;
     ~MnistModel() = default;
     MnistModel &operator=(const MnistModel &) = delete;
+    MnistModel &operator=(MnistModel &&) noexcept = delete;
 
     Array forward(const Array &x) override {
-        auto x1 = (*m_linear1)(x);
-        auto x2 = relu(x1);
-        auto x3 = (*m_linear2)(x2);
+        Array x1 = (*m_linear1)(x);
+        Array x2 = relu(x1);
+        Array x3 = (*m_linear2)(x2);
         return x3;
     }
 };
