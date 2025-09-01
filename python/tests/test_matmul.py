@@ -18,7 +18,12 @@ class TestMatmul:
             ([1, 4], [4, 5]),  # Single row matrix
             ([3, 2], [2, 1]),  # Result is a column matrix
             ([5, 5], [5, 5]),  # Square matrices
-            ([1, 1], [1, 1]),  # 1x1 matrices
+            ([1, 1], [1, 1]),  # 1x1 matrices,
+            # More common cases
+            ([67, 99], [99, 35]),
+            ([1024, 519], [519, 267]),
+            ([31, 27], [27, 75]),
+            ([128, 64], [64, 256]),
         ]
 
         for shape1, shape2 in test_cases:
@@ -50,6 +55,10 @@ class TestMatmul:
             ([3, 1, 4], [3, 4, 1], "Result has singular dimension"),
             ([2, 5, 1], [2, 1, 3], "Inner dimension is 1"),
             ([1, 1, 1], [1, 1, 1], "All dimensions are 1"),
+            # More common cases
+            ([27, 68, 25], [27, 25, 19], "Common case 1"),
+            ([11, 32, 49], [11, 49, 58], "Common case 2"),
+            ([51, 29, 7], [51, 7, 30], "Common case 3"),
         ]
 
         for shape1, shape2, desc in test_cases:
