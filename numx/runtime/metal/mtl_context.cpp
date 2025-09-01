@@ -13,10 +13,24 @@ namespace nx::runtime::metal {
         }
     }
 
+    void MTLContext::init_strided_kernels(const std::vector<std::string> &names, DtypeCategory dtype_category) {
+        for (auto &name : names) {
+            init_strided_kernels(name, dtype_category);
+        }
+    }
+
     void MTLContext::init_kernels(const std::string &name, DtypeCategory dtype_category) {
         for (auto &dtype : all_dtypes) {
             if (dtype->has_category(dtype_category)) {
-                init_kernel(name + "_" + dtype->get_name_str());
+                init_kernel(std::format("{}_{}", name, dtype->get_name_str()));
+            }
+        }
+    }
+
+    void MTLContext::init_strided_kernels(const std::string &name, DtypeCategory dtype_category) {
+        for (auto &dtype : all_dtypes) {
+            if (dtype->has_category(dtype_category)) {
+                init_kernel(std::format("strided_{}_{}", name, dtype->get_name_str()));
             }
         }
     }
@@ -31,14 +45,18 @@ namespace nx::runtime::metal {
         std::vector<std::string> unary_names = {"neg", "sq"};
         std::vector<std::string> unary_float_names = {"exp", "log", "recip", "sin", "cos", "sqrt"};
         init_kernels(unary_names, DtypeCategory::Numeric);
+        init_strided_kernels(unary_names, DtypeCategory::Numeric);
         init_kernels(unary_float_names, DtypeCategory::Float);
+        init_strided_kernels(unary_float_names, DtypeCategory::Float);
     }
 
     void MTLContext::init_binary_kernels() {
         std::vector<std::string> binary_names = {"add", "sub", "mul", "div", "lt", "gt", "leq", "geq", "minimum", "maximum"};
         std::vector<std::string> eq_names = {"eq", "neq"};
         init_kernels(binary_names, DtypeCategory::Numeric);
+        init_strided_kernels(binary_names, DtypeCategory::Numeric);
         init_kernels(eq_names, DtypeCategory::All);
+        init_strided_kernels(eq_names, DtypeCategory::All);
     }
 
     void MTLContext::init_reduce_kernels() {
@@ -70,7 +88,8 @@ namespace nx::runtime::metal {
     void MTLContext::init_copy_kernels() {
         for (auto &dtype1 : all_dtypes) {
             for (auto &dtype2 : all_dtypes) {
-                init_kernel("copy_" + dtype1->get_name_str() + "_" + dtype2->get_name_str());
+                init_kernel(std::format("copy_{}_{}", dtype1->get_name_str(), dtype2->get_name_str()));
+                init_kernel(std::format("strided_copy_{}_{}", dtype1->get_name_str(), dtype2->get_name_str()));
             }
         }
     }

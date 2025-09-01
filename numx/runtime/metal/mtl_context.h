@@ -17,7 +17,9 @@ namespace nx::runtime::metal {
 
         void init_kernel(const std::string &name);
         void init_kernels(const std::vector<std::string> &names, DtypeCategory dtype_category);
+        void init_strided_kernels(const std::vector<std::string> &names, DtypeCategory dtype_category);
         void init_kernels(const std::string &name, DtypeCategory dtype_category);
+        void init_strided_kernels(const std::string &name, DtypeCategory dtype_category);
         void init_initializer_kernels();
         void init_unary_kernels();
         void init_binary_kernels();

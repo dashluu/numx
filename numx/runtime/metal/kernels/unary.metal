@@ -2,6 +2,16 @@
 
 template <class Op, class T, class R>
 kernel void unary(
+    const constant isize *offset [[buffer(0)]],
+    const device T *input [[buffer(1)]],
+    device R *output [[buffer(2)]],
+    uint id [[thread_position_in_grid]])
+{
+    output[offset[1] + id] = Op()(input[offset[0] + id]);
+}
+
+template <class Op, class T, class R>
+kernel void strided_unary(
     const constant isize &ndim [[buffer(0)]],
     const constant isize *offset [[buffer(1)]],
     const constant isize *shape [[buffer(2)]],
@@ -12,16 +22,18 @@ kernel void unary(
     device R *output [[buffer(7)]],
     uint id [[thread_position_in_grid]])
 {
-    isize iloc = strided[0] ? get_elm_loc(id, ndim, shape, in_stride) : id;
-    isize oloc = strided[1] ? get_elm_loc(id, ndim, shape, out_stride) : id;
-    output[offset[1] + oloc] = Op()(input[offset[0] + iloc]);
+    isize in_loc = strided[0] ? get_elm_loc(id, ndim, shape, in_stride) : id;
+    isize out_loc = strided[1] ? get_elm_loc(id, ndim, shape, out_stride) : id;
+    output[offset[1] + out_loc] = Op()(input[offset[0] + in_loc]);
 }
 
 #define def_unary_all_kernels(opname, op, dtype, T, R)  \
-template [[host_name(#opname "_" #dtype)]] [[kernel]] decltype(unary<op, T, R>) unary<op, T, R>;
+template [[host_name(#opname "_" #dtype)]] [[kernel]] decltype(unary<op, T, R>) unary<op, T, R>;                            \
+template [[host_name("strided_" #opname "_" #dtype)]] [[kernel]] decltype(strided_unary<op, T, R>) strided_unary<op, T, R>;
 
 #define def_unary_float_kernels(opname, op, dtype, T)   \
-template [[host_name(#opname "_" #dtype)]] [[kernel]] decltype(unary<op, T, float>) unary<op, T, float>;
+template [[host_name(#opname "_" #dtype)]] [[kernel]] decltype(unary<op, T, float>) unary<op, T, float>;                            \
+template [[host_name("strided_" #opname "_" #dtype)]] [[kernel]] decltype(strided_unary<op, T, float>) strided_unary<op, T, float>;
 
 #define def_unary_float(opname, op)                     \
 def_unary_float_kernels(opname, op, f32, float);        \

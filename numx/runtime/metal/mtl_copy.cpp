@@ -1,7 +1,24 @@
 #include "mtl_runner.h"
 
 namespace nx::runtime::metal {
-    void MTLRunner::run_copy_kernel(OpPtr in_op, OpPtr out_op) {
+    void MTLRunner::run_contiguous_copy_kernel(OpPtr in_op, OpPtr out_op) {
+        NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();
+        MTLEncoder encoder(m_ctx);
+        const ArrayData &in_data = in_op->get_data();
+        const ArrayData &out_data = out_op->get_data();
+        const isize offset[] = {in_data.get_offset(), out_data.get_offset()};
+        encoder.encode_mtl_buffer(offset, sizeof(isize) * 2);
+        encoder.encode_array_buffer(in_data);
+        encoder.encode_array_buffer(out_data);
+        const std::string kernel_name = std::format("copy_{}_{}", in_data.get_dtype()->str(), out_data.get_dtype()->str());
+        encoder.set_pipeline_state(kernel_name);
+        const isize numel = in_data.get_numel();
+        encoder.dispatch_threads(numel, std::min(numel, s_max_threadgroup_size));
+        encoder.wait_to_complete();
+        pool->release();
+    }
+
+    void MTLRunner::run_strided_copy_kernel(OpPtr in_op, OpPtr out_op) {
         NS::AutoreleasePool *pool = NS::AutoreleasePool::alloc()->init();
         MTLEncoder encoder(m_ctx);
         const ArrayData &in_data = in_op->get_data();
@@ -17,11 +34,19 @@ namespace nx::runtime::metal {
         encoder.encode_mtl_buffer(strided, sizeof(bool) * 2);
         encoder.encode_array_buffer(in_data);
         encoder.encode_array_buffer(out_data);
-        const std::string kernel_name = "copy_" + in_data.get_dtype()->str() + "_" + out_data.get_dtype()->str();
+        const std::string kernel_name = std::format("strided_copy_{}_{}", in_data.get_dtype()->str(), out_data.get_dtype()->str());
         encoder.set_pipeline_state(kernel_name);
         const isize numel = in_data.get_numel();
         encoder.dispatch_threads(numel, std::min(numel, s_max_threadgroup_size));
         encoder.wait_to_complete();
         pool->release();
+    }
+
+    void MTLRunner::run_copy_kernel(OpPtr in_op, OpPtr out_op) {
+        if (in_op->get_data().is_contiguous() && out_op->get_data().is_contiguous()) {
+            run_contiguous_copy_kernel(in_op, out_op);
+        } else {
+            run_strided_copy_kernel(in_op, out_op);
+        }
     }
 } // namespace nx::runtime::metal
