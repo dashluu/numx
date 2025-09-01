@@ -105,7 +105,7 @@ namespace nx::primitive {
             }
         }
 
-        Shape(const ShapeView &view) : Shape(0, view) {}
+        explicit Shape(const ShapeView &view) : Shape(0, view) {}
         Shape(const Shape &) = default;
         Shape(Shape &&) noexcept = default;
         Shape &operator=(const Shape &) = default;

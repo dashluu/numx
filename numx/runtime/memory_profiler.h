@@ -15,7 +15,7 @@ namespace nx::runtime {
         void stream_memory_snapshot(std::ostream &stream, const MemorySnapshot &snapshot);
 
     public:
-        MemoryProfiler(DevicePtr device) : m_device(device) {}
+        explicit MemoryProfiler(DevicePtr device) : m_device(device) {}
         MemoryProfiler(const MemoryProfiler &) = delete;
         MemoryProfiler(MemoryProfiler &&) noexcept = delete;
         ~MemoryProfiler() = default;

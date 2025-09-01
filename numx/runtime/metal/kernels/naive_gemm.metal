@@ -15,10 +15,15 @@ kernel void naive_gemm2d(
     
     if (row < M && col < N) {
         R sum = 0;
+        isize l_loc, r_loc, out_loc = offset[2] + row * N + col;
+        
         for (isize i = 0; i < K; i++) {
-            sum += lhs[offset[0] + row * K + i] * rhs[offset[1] + N * i + col];
+            l_loc = offset[0] + row * K + i;
+            r_loc = offset[1] + N * i + col;
+            sum += lhs[l_loc] * rhs[r_loc];
         }
-        output[offset[2] + row * N + col] = sum;
+        
+        output[out_loc] = sum;
     }
 }
 
@@ -39,14 +44,15 @@ kernel void strided_naive_gemm2d(
     
     if (row < M && col < N) {
         R sum = 0;
+        isize l_loc, r_loc, out_loc = offset[2] + row * N + col;
         
         for (isize i = 0; i < K; i++) {
-            const isize lloc = offset[0] + get_elm_loc(row * K + i, 2, l_shape, l_stride);
-            const isize rloc = offset[1] + get_elm_loc(N * i + col, 2, r_shape, r_stride);
-            sum += lhs[lloc] * rhs[rloc];
+            l_loc = offset[0] + get_elm_loc(row * K + i, 2, l_shape, l_stride);
+            r_loc = offset[1] + get_elm_loc(N * i + col, 2, r_shape, r_stride);
+            sum += lhs[l_loc] * rhs[r_loc];
         }
         
-        output[offset[2] + row * N + col] = sum;
+        output[out_loc] = sum;
     }
 }
 
@@ -71,10 +77,15 @@ kernel void naive_gemm3d(
     
     if (batch < B && row < M && col < N) {
         R sum = 0;
+        isize l_loc, r_loc, out_loc = offset[2] + batch * M * N + row * N + col;
+        
         for (isize i = 0; i < K; i++) {
-            sum += lhs[offset[0] + batch * M * K + row * K + i] * rhs[offset[1] + batch * K * N + N * i + col];
+            l_loc = offset[0] + batch * M * K + row * K + i;
+            r_loc = offset[1] + batch * K * N + N * i + col;
+            sum += lhs[l_loc] * rhs[r_loc];
         }
-        output[offset[2] + batch * M * N + row * N + col] = sum;
+        
+        output[out_loc] = sum;
     }
 }
 
@@ -101,14 +112,15 @@ kernel void strided_naive_gemm3d(
     
     if (batch < B && row < M && col < N) {
         R sum = 0;
+        isize l_loc, r_loc, out_loc = offset[2] + batch * M * N + row * N + col;
         
         for (isize i = 0; i < K; i++) {
-            const isize lloc = offset[0] + get_elm_loc(batch * M * K + row * K + i, ndim, l_shape, l_stride);
-            const isize rloc = offset[1] + get_elm_loc(batch * K * N + N * i + col, ndim, r_shape, r_stride);
-            sum += lhs[lloc] * rhs[rloc];
+            l_loc = offset[0] + get_elm_loc(batch * M * K + row * K + i, ndim, l_shape, l_stride);
+            r_loc = offset[1] + get_elm_loc(batch * K * N + N * i + col, ndim, r_shape, r_stride);
+            sum += lhs[l_loc] * rhs[r_loc];
         }
         
-        output[offset[2] + batch * M * N + row * N + col] = sum;
+        output[out_loc] = sum;
     }
 }
 

@@ -19,7 +19,7 @@ namespace nx::graph {
         void bw_toposort(OpPtr op);
 
     public:
-        Graph(OpPtr output) : m_output(output) {}
+        explicit Graph(OpPtr output) : m_output(output) {}
         Graph(const Graph &) = delete;
         Graph(Graph &&) noexcept = delete;
         virtual ~Graph() = default;

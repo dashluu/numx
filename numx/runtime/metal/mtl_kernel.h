@@ -16,7 +16,7 @@ namespace nx::runtime::metal {
         std::string m_name;
 
     public:
-        MTLKernel(const std::string &name) : m_name(name) {}
+        explicit MTLKernel(const std::string &name) : m_name(name) {}
         MTLKernel(const MTLKernel &) = delete;
         MTLKernel(MTLKernel &&) noexcept = delete;
         ~MTLKernel() = default;

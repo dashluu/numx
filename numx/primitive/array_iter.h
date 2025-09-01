@@ -10,7 +10,7 @@ namespace nx::primitive {
         isize m_counter;
 
     public:
-        ArrayIterator(const ArrayData &data) : m_data(data) {}
+        explicit ArrayIterator(const ArrayData &data) : m_data(data) {}
         ArrayIterator(const ArrayIterator &) = delete;
         ArrayIterator(ArrayIterator &&) noexcept = delete;
         ~ArrayIterator() = default;

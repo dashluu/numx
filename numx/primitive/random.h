@@ -13,7 +13,7 @@ namespace nx::primitive {
         void update_counter();
 
     public:
-        RandomKeyGenerator(uint64_t seed) : m_key(seed) {}
+        explicit RandomKeyGenerator(uint64_t seed) : m_key(seed) {}
         RandomKeyGenerator(const RandomKeyGenerator &) = delete;
         RandomKeyGenerator(RandomKeyGenerator &&) noexcept = delete;
         ~RandomKeyGenerator() = default;

@@ -181,7 +181,7 @@ class Array:
         """Convert array to numpy array"""
 
     def torch(self) -> ArrayLike:
-        """Convert array to Pytorch tensor"""
+        """Convert array to PyTorch tensor"""
 
     def item(self) -> object:
         """Get array's only value"""

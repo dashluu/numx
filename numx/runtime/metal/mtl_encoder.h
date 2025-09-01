@@ -12,7 +12,7 @@ namespace nx::runtime::metal {
         isize m_buffer_index = 0;
 
     public:
-        MTLEncoder(RuntimeContextPtr ctx) {
+        explicit MTLEncoder(RuntimeContextPtr ctx) {
             m_ctx = std::static_pointer_cast<MTLContext>(ctx);
             m_cmd_buffer = m_ctx->get_cmd_queue()->commandBuffer();
             m_encoder = m_cmd_buffer->computeCommandEncoder();

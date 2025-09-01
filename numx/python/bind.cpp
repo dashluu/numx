@@ -79,8 +79,8 @@ NB_MODULE(numx, m) {
 
         // N-dimensional array
         .def("numpy", &nxb::array_to_numpy, nb::rv_policy::reference_internal, "Convert array to numpy array")
-        .def("torch", &nxb::array_to_torch, nb::rv_policy::reference_internal, "Convert array to Pytorch tensor")
-        // .def_static("from_torch", &nxb::array_from_torch, "tensor"_a, "Convert Pytorch tensor to array")
+        .def("torch", &nxb::array_to_torch, nb::rv_policy::reference_internal, "Convert array to PyTorch tensor")
+        // .def_static("from_torch", &nxb::array_from_torch, "tensor"_a, "Convert PyTorch tensor to array")
         .def("item", &nxb::item, "Get array's only value")
         .def("graph", &nxc::Array::graph_str, "Get array's computation graph representation")
 

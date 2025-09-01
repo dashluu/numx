@@ -20,7 +20,7 @@ namespace nx::core {
         GraphBuilder get_graph_builder() const { return get_device_context()->get_graph_builder(); }
 
     public:
-        Array(OpPtr op) {
+        explicit Array(OpPtr op) {
             if (op == nullptr) {
                 throw std::invalid_argument("Expected non-null operator.");
             }

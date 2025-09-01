@@ -29,7 +29,7 @@ namespace nx::primitive {
         Resource *m_next;
 
     public:
-        ResourceListIterator(Resource *current) : m_current(current) {
+        explicit ResourceListIterator(Resource *current) : m_current(current) {
             m_next = m_current ? m_current->m_next : nullptr;
         }
 

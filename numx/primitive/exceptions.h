@@ -33,12 +33,12 @@ namespace nx::primitive {
 
     class UnableToOpenFileToSaveMemoryProfile : public std::runtime_error {
     public:
-        UnableToOpenFileToSaveMemoryProfile(std::string_view file_name) : std::runtime_error(std::format("Cannot save memory profile due to failing to open file '{}'.", file_name)) {}
+        explicit UnableToOpenFileToSaveMemoryProfile(std::string_view file_name) : std::runtime_error(std::format("Cannot save memory profile due to failing to open file '{}'.", file_name)) {}
     };
 
     class UnableToOpenFileToSaveGraphProfile : public std::runtime_error {
     public:
-        UnableToOpenFileToSaveGraphProfile(std::string_view file_name) : std::runtime_error(std::format("Cannot save graph profile due to failing to open file '{}'.", file_name)) {}
+        explicit UnableToOpenFileToSaveGraphProfile(std::string_view file_name) : std::runtime_error(std::format("Cannot save graph profile due to failing to open file '{}'.", file_name)) {}
     };
 
     class InvalidMemoryProfileStream : public std::invalid_argument {

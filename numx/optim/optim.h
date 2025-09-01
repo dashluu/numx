@@ -14,7 +14,7 @@ namespace nx::optim {
         ArrayVector m_grads;
 
     public:
-        Optimizer(float learning_rate) : m_learning_rate(learning_rate) {}
+        explicit Optimizer(float learning_rate) : m_learning_rate(learning_rate) {}
         Optimizer(const Optimizer &) = delete;
         Optimizer(Optimizer &&) noexcept = delete;
         virtual ~Optimizer() = default;
@@ -53,7 +53,7 @@ namespace nx::optim {
 
     class GradientDescent : public Optimizer {
     public:
-        GradientDescent(float learning_rate = 1e-3) : Optimizer(learning_rate) {}
+        explicit GradientDescent(float learning_rate = 1e-3) : Optimizer(learning_rate) {}
 
         void forward() override {
             for (size_t i = 0; i < m_params.size(); i++) {

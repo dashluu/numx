@@ -76,7 +76,7 @@ namespace nx::primitive {
         OpPtr detach_this() const;
 
     public:
-        Op(const ArrayData &data) : m_data(data) { m_grad_enabled = m_data.get_dtype()->is_float(); }
+        explicit Op(const ArrayData &data) : m_data(data) { m_grad_enabled = m_data.get_dtype()->is_float(); }
         Op(const Op &) = delete;
         Op(Op &&) noexcept = delete;
         virtual ~Op() = default;
@@ -119,7 +119,7 @@ namespace nx::primitive {
 
     struct InitializerOp : public Op {
     public:
-        InitializerOp(const ArrayData &data) : Op(data) {}
+        explicit InitializerOp(const ArrayData &data) : Op(data) {}
         Optype get_optype() const override { return Optype::INITIALIZER; }
         const std::string optype_str() const override { return "initializer"; }
     };
@@ -127,7 +127,7 @@ namespace nx::primitive {
     struct Nop : public InitializerOp {
     public:
         inline static const std::string s_opname = "nop";
-        Nop(const ArrayData &data) : InitializerOp(data) {}
+        explicit Nop(const ArrayData &data) : InitializerOp(data) {}
         Opcode get_opcode() const override { return Opcode::NOP; }
         const std::string &get_opname() const override { return s_opname; }
     };
@@ -135,7 +135,7 @@ namespace nx::primitive {
     struct EmptyOp : public InitializerOp {
     public:
         inline static const std::string s_opname = "empty";
-        EmptyOp(const ArrayData &data) : InitializerOp(data) {}
+        explicit EmptyOp(const ArrayData &data) : InitializerOp(data) {}
         Opcode get_opcode() const override { return Opcode::EMPTY; }
         const std::string &get_opname() const override { return s_opname; }
     };

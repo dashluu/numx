@@ -10,7 +10,7 @@ namespace nx::primitive {
         isize m_val;
 
     public:
-        ArrayId(isize val) : m_val(val) {}
+        explicit ArrayId(isize val) : m_val(val) {}
         ArrayId(const ArrayId &) = default;
         ArrayId(ArrayId &&) noexcept = default;
         ~ArrayId() = default;

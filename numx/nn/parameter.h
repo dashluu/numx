@@ -12,7 +12,7 @@ namespace nx::nn {
             set_parameter(true);
         }
 
-        Parameter(const Array &array) : Array(array.detach()) { set_parameter(true); }
+        explicit Parameter(const Array &array) : Array(array.detach()) { set_parameter(true); }
         Parameter(Array &&array) noexcept : Array(std::move(array)) { set_parameter(true); }
         Parameter(const Parameter &) = default;
         Parameter(Parameter &&) noexcept = default;

@@ -14,7 +14,7 @@ namespace nx::runtime {
         bool m_alive = true;
 
     public:
-        MemorySnapshot(BufferBlock *block) : m_block(block) { m_alloc_time = std::chrono::system_clock::now(); }
+        explicit MemorySnapshot(BufferBlock *block) : m_block(block) { m_alloc_time = std::chrono::system_clock::now(); }
         MemorySnapshot(const MemorySnapshot &) = default;
         MemorySnapshot(MemorySnapshot &&) noexcept = default;
         ~MemorySnapshot() = default;
