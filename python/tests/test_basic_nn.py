@@ -74,6 +74,20 @@ class TestBasicNN:
         t2 = torch.nn.functional.one_hot(t1, num_classes=10).type(torch.int32)
         assert torch.allclose(nx_a2.torch(), t2, atol=1e-3, rtol=0)
 
+    def test_softmax(self):
+        np_a1 = np.random.randn(64, 10).astype(np.float32)
+        nx_a1 = from_numpy(np_a1)
+        t1 = torch.from_numpy(np_a1)
+        t1.requires_grad_(True)
+        nx_a2 = nn.softmax(nx_a1)
+        nx_a3 = nx_a2.sum()
+        t2 = torch.softmax(t1, dim=-1)
+        t3 = t2.sum()
+        nx_a3.backward()
+        t3.backward()
+        assert torch.allclose(nx_a2.torch(), t2, atol=1e-3, rtol=0)
+        assert torch.allclose(nx_a1.grad.torch(), t1.grad, atol=1e-3, rtol=0)
+
     def test_cross_entropy(self):
         np_input = np.random.randn(64, 10).astype(np.float32)
         np_label = np.random.randint(0, 10, (64,), dtype=np.int32)
