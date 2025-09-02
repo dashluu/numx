@@ -124,3 +124,4 @@ These resources inspired me to do the project:
 - Tinygrad by George Hotz (https://github.com/tinygrad/tinygrad)
 - Micrograd by Karpathy (https://github.com/karpathy/micrograd)
 - Deep Learning Systems (https://dlsyscourse.org/lectures)
+- Metal matmul testing (https://github.com/bkvogel/metal_performance_testing)
