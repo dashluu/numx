@@ -1,7 +1,7 @@
 # NumX - A Deep Learning Framework
 
 ## Overview
-**NumX** is a deep learning framework for Apple Silicon that provides PyTorch-compatible tensor operations using Metal acceleration. The project emphasizes clean design and is actively optimized for performance. Future releases will include CUDA support for NVIDIA GPUs.
+**NumX** is a deep learning framework built from scratch in C++ with Python bindings, designed with a PyTorch-like API. The framework is actively optimized for performance and currently supports Metal GPU acceleration. Future releases will include CUDA support for NVIDIA GPUs.
 
 ## Requirements
 A virtual environment(e.g., Conda) is recommended before installing Python packages. The following software is needed to run NumX:
