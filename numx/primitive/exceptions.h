@@ -31,6 +31,11 @@ namespace nx::primitive {
         IndexOutOfRange(isize index, isize start, isize stop) : std::out_of_range(std::format("Index {} is out of range [{}, {}).", index, start, stop)) {}
     };
 
+    class IncompatDtypeForRandomFunction : public std::invalid_argument {
+    public:
+        IncompatDtypeForRandomFunction(std::string_view function_name, std::string_view expected_dtype_str, std::string_view input_dtype_str) : std::invalid_argument(std::format("{}() only accepts {} data type but got {}.", function_name, expected_dtype_str, input_dtype_str)) {}
+    };
+
     class UnableToOpenFileToSaveMemoryProfile : public std::runtime_error {
     public:
         explicit UnableToOpenFileToSaveMemoryProfile(std::string_view file_name) : std::runtime_error(std::format("Cannot save memory profile due to failing to open file '{}'.", file_name)) {}
@@ -53,6 +58,6 @@ namespace nx::primitive {
 
     class NanobindInvalidArgumentType : public std::invalid_argument {
     public:
-        NanobindInvalidArgumentType(std::string_view input_type_name, std::string_view expected_type_name) : std::invalid_argument(std::format("Expected an argument of type {} but received an argument of type {}.", expected_type_name, input_type_name)) {}
+        NanobindInvalidArgumentType(std::string_view expected_type_name, std::string_view input_type_name) : std::invalid_argument(std::format("Expected an argument of type {} but received an argument of type {}.", expected_type_name, input_type_name)) {}
     };
 } // namespace nx::primitive

@@ -19,7 +19,7 @@ namespace nx::bind {
         // Note: no need to check for out-of-bounds indices when converting to range
         // Shape does the checking eventually
         if (!nb::isinstance<nb::slice>(slice)) {
-            throw nxp::NanobindInvalidArgumentType(get_class_name(slice), "slice");
+            throw nxp::NanobindInvalidArgumentType("slice", get_class_name(slice));
         }
 
         auto nb_slice = nb::cast<nb::slice>(slice);
@@ -87,7 +87,7 @@ namespace nx::bind {
                 } else if (nb::isinstance<nb::slice>(elm)) {
                     ranges.push_back(slice_to_range(shape[i], elm));
                 } else {
-                    throw nxp::NanobindInvalidArgumentType(get_class_name(elm), "int, slice");
+                    throw nxp::NanobindInvalidArgumentType("int, slice", get_class_name(elm));
                 }
             }
 
@@ -98,7 +98,7 @@ namespace nx::bind {
             return ranges;
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_class_name(selector), "int, slice, sequence");
+        throw nxp::NanobindInvalidArgumentType("int, slice, sequence", get_class_name(selector));
     }
 
     nxp::DtypePtr dtype_from_nb_dtype(nb::dlpack::dtype nb_dtype) {
@@ -181,7 +181,7 @@ namespace nx::bind {
             return nxc::full(view, nb::cast<bool>(constant), dtype, device_name);
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_class_name(constant), "float, int, bool");
+        throw nxp::NanobindInvalidArgumentType("float, int, bool", get_class_name(constant));
     }
 
     nxc::Array full_like(const nxc::Array &array, const nb::object &constant, nxp::DtypePtr dtype, const std::string &device_name) {

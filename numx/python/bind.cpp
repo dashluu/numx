@@ -157,7 +157,9 @@ NB_MODULE(numx, m) {
 
     m_random.def("uniform", &nxb::uniform, "view"_a, "low"_a = 0.0, "high"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a uniform distribution")
         .def("normal", &nxb::normal, "view"_a, "mean"_a = 0.0, "std"_a = 1.0, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a normal distribution")
-        .def("kaiming_uniform", &nxr::kaiming_uniform, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a Kaiming uniform distribution");
+        .def("kaiming_uniform", &nxr::kaiming_uniform, "view"_a, "dtype"_a = &nxp::f32, "device"_a = nxp::default_device_name, "Create a new array with random values from a Kaiming uniform distribution")
+        .def("randint", &nxb::randint, "view"_a, "low"_a = 0, "high"_a = 10, "dtype"_a = &nxp::i32, "device"_a = nxp::default_device_name, "Create a new array with random integer values from a uniform distribution")
+        .def("randbool", &nxb::randbool, "view"_a, "device"_a = nxp::default_device_name, "Create a new array with uniformly distributed random boolean values");
 
     m_nn.def("linear", &nxn::linear, "x"_a, "weight"_a, "Functional linear without bias");
     m_nn.def("linear_with_bias", &nxn::linear_with_bias, "x"_a, "weight"_a, "bias"_a, "Functional linear with bias");

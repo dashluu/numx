@@ -32,7 +32,7 @@ uint2 threefry2x32(uint2 key, uint2 counter) {
 struct Uniform {
     template<class F, class I>
     uint64_t hash_to_float(uint64_t hash64, F low, F high) {
-        F val;
+        F val, normalized, clamped;
         uint64_t result = 0;
         uint64_t tmp = hash64;
         uint64_t mask = 0;
@@ -44,7 +44,12 @@ struct Uniform {
         }
         
         for (uint i = 0; i < 8 / item_nbyte; i++) {
-            val = static_cast<F>(tmp & mask) / metal::pow(F(2), F(item_nbit)) * (high - low) + low;
+            // Normalize random bits to range [0, 1] by dividing by 2^(size of F)
+            normalized = static_cast<F>(tmp & mask) / metal::pow(F(2), F(item_nbit));
+            // Clamp to [0, 1), nextafter returns greatest value less than 1
+            clamped = metal::clamp(normalized, F(0), metal::nextafter(F(1), F(0)));
+            // Map [0, 1) to [low, high)
+            val = clamped * (high - low) + low;
             result = (result << item_nbit) | *reinterpret_cast<thread I*>(&val);
             tmp >>= item_nbit;
         }
@@ -67,7 +72,7 @@ void rand(
     uint2 hash = threefry2x32(key, uint2(ctr, ctr + 1));
     uint64_t hash64 = (static_cast<uint64_t>(hash.x) << 32) | static_cast<uint64_t>(hash.y);
     
-    // Transform hash into random float for each block of size TSize
+    // Transform hash into random float for each block
     uint64_t result = Uniform().template hash_to_float<F, I>(hash64, low, high);
     
     // Masking to ensure the overflowed portion of the output is unaffected

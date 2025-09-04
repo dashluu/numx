@@ -33,10 +33,26 @@ template [[host_name("strided_copy_" #dtype)]] [[kernel]] decltype(strided_copy<
 
 def_copy(f32_f32, float, float);
 def_copy(f32_i32, float, int);
+def_copy(f32_i16, float, int16_t);
+def_copy(f32_i8, float, int8_t);
 def_copy(f32_b8, float, bool);
 def_copy(i32_f32, int, float);
 def_copy(i32_i32, int, int);
+def_copy(i32_i16, int, int16_t);
+def_copy(i32_i8, int, int8_t);
 def_copy(i32_b8, int, bool);
+def_copy(i16_f32, int16_t, float);
+def_copy(i16_i32, int16_t, int);
+def_copy(i16_i16, int16_t, int16_t);
+def_copy(i16_i8, int16_t, int8_t);
+def_copy(i16_b8, int16_t, bool);
+def_copy(i8_f32, int8_t, float);
+def_copy(i8_i32, int8_t, int);
+def_copy(i8_i16, int8_t, int16_t);
+def_copy(i8_i8, int8_t, int8_t);
+def_copy(i8_b8, int8_t, bool);
 def_copy(b8_f32, bool, float);
 def_copy(b8_i32, bool, int);
+def_copy(b8_i16, bool, int16_t);
+def_copy(b8_i8, bool, int8_t);
 def_copy(b8_b8, bool, bool);

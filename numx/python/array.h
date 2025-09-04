@@ -68,7 +68,7 @@ namespace nx::bind {
             return f(array, nb::cast<bool>(rhs));
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_class_name(rhs), "float, int, bool, Array");
+        throw nxp::NanobindInvalidArgumentType("float, int, bool, Array", get_class_name(rhs));
     }
 
     template <class F>
@@ -83,7 +83,7 @@ namespace nx::bind {
             return f(array, nb::cast<bool>(rhs));
         }
 
-        throw nxp::NanobindInvalidArgumentType(get_class_name(rhs), "float, int, bool, Array");
+        throw nxp::NanobindInvalidArgumentType("float, int, bool, Array", get_class_name(rhs));
     }
 
     nxp::isize get_index(nxp::isize len, nxp::isize index);
