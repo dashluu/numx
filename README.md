@@ -91,7 +91,7 @@ There are a few more modules than just `core`:
 - Full computational graph forward and backward propagation
 - Supported operations:
   - Initialization operations: `full`, `arange`, `ones`, `zeros`
-  - Random operations: `uniform`, `normal`, `kaiming_uniform`
+  - Random operations: `uniform`, `normal`, `kaiming_uniform`, `randint`, `randbool`
   - Array transformation operations: `reshape`, `permute`, `slice`, `transpose`
   - Matrix multiplication `matmul`
   - Element-wise operations: `add`, `sub`, `mul`, `div`, `exp`, `log`, `neg`(negation), `recip`(reciprocal), `sqrt`, `sq`(square)
